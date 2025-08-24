@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './src/index.css';
 // Import GoogleGenAI here if it were to be used directly or passed as prop,
 // but for now, App.tsx handles its own import.
 // import { GoogleGenAI } from "@google/genai"; 
