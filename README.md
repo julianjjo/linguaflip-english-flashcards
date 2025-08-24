@@ -13,3 +13,4 @@ This contains everything you need to run your app locally.
 3. Run the app:
    `npm run dev`
 # -linguaflip_-english-flashcards
+# linguaflip_-english-flashcards
