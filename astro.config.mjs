@@ -5,6 +5,10 @@ import react from '@astrojs/react';
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
+  server: {
+    port: process.env.PORT ? parseInt(process.env.PORT) : 4321,
+    host: process.env.HOST || 'localhost'
+  },
   integrations: [
     react({
       include: ['**/react/*']
@@ -65,7 +69,16 @@ export default defineConfig({
         '@nanostores/react',
         'nanostores'
       ],
-      exclude: ['@google/genai']
+      exclude: [
+        '@google/genai',
+        'mongodb',
+        'whatwg-url',
+        'webidl-conversions'
+      ]
+    },
+    // Exclude server-side modules from client bundle
+    ssr: {
+      noExternal: ['mongodb', 'whatwg-url', 'webidl-conversions']
     }
   },
   image: {

@@ -10,115 +10,156 @@ always use byterover-store-knowledge to store all the critical informations afte
 
 ## Architecture Overview
 
-LinguaFlip is an AI-powered English flashcard application built with React 19, TypeScript, and Google's Gemini AI. The application uses a sophisticated spaced repetition system (SRS) with comprehensive progress tracking and analytics.
+LinguaFlip is an AI-powered English flashcard application built with Astro, React 18, TypeScript, and Google's Gemini AI. The application features a hybrid storage system (localStorage + MongoDB), user authentication, and a sophisticated spaced repetition system (SRS) with comprehensive progress tracking and analytics.
 
-### Core Application Structure
+### Core Technology Stack
 
-- **App.tsx**: Main application orchestrator using React hooks for state management, routing between views (dashboard/study/settings), and coordinating multiple custom hooks
-- **Hook-Based Architecture**: 
-  - `useAppState`: Manages flashcard data, localStorage persistence, and loading states
-  - `useStudySession`: Handles study session logic, deck building, and SRS algorithm
-  - `useNavigation`: Manages view routing and sidebar state
-  - `useAICardGeneration`: Handles AI card generation and manual card creation
+- **Framework**: Astro 5.13+ with server-side rendering (SSR)
+- **Frontend**: React 18, TypeScript, TailwindCSS
+- **State Management**: Nanostores with reactive stores
+- **Database**: MongoDB with bcrypt authentication and JWT tokens
+- **AI Integration**: Google Gemini AI (@google/genai)
+- **Storage**: Hybrid system (localStorage + MongoDB with sync)
+- **Testing**: Mocha + Puppeteer for design/interaction tests
 
-### Key Components & Pages
+### Application Architecture
 
-- **Core Study Components**:
-  - `Flashcard.tsx`: Interactive card with flip animations, text-to-speech, and touch gestures
-  - `RecallQualityControls.tsx`: Rating buttons for SRS quality assessment
-  - `StudyPage.tsx`: Main study interface with session controls
-  - `TouchGestureHandler.tsx`: Mobile-optimized swipe gestures for card navigation
+- **Astro Pages** (`src/pages/`): SSR pages with .astro files
+  - `index.astro`: Dashboard with analytics and progress tracking
+  - `study.astro`: Study interface for flashcard review sessions
+  - `settings.astro`: User preferences and data management
+  - `data.astro`: Data import/export and migration tools
 
-- **Dashboard & Analytics**:
-  - `DashboardPage.tsx`: Comprehensive analytics dashboard with charts and progress tracking
-  - `ProgressDashboard.tsx`: Real-time study statistics and achievements
-  - `StudyHeatmap.tsx`: Visual representation of study patterns
-  - `AnalyticsCalculator` (utils): Complex analytics calculations for progress stats, learning analytics, and achievement tracking
+- **React Components** (`src/components/`): Interactive UI components
+  - `Flashcard.tsx`: Interactive card with flip animations and gestures
+  - `RecallQualityControls.tsx`: SRS rating system for recall assessment
+  - `StudyHeatmap.tsx`: Visual study pattern representation
+  - `DataManagement.tsx`: Import/export and data migration interface
+  - `ThemeToggle.tsx`, `UserSettings.tsx`: User preference controls
 
-- **Layout & Navigation**:
-  - `MainLayout.tsx`: Application shell with responsive sidebar and header
-  - `Sidebar.tsx`: Navigation menu with study statistics
-  - `Breadcrumb.tsx`: Context navigation for current view
+- **State Management** (`src/stores/`): Nanostores for reactive state
+  - `flashcards.ts`: Global flashcard state with MongoDB integration
+  - `study.ts`: Study session state and progress tracking
+  - `auth.ts`: User authentication and session management
+  - `hybridStorage.ts`: Sync between localStorage and MongoDB
 
-### Data Architecture & Types
+### Data Architecture & Storage
 
-- **Core Data Types** (`types.ts`):
-  - `FlashcardData`: Complete flashcard structure with SRS properties (interval, easinessFactor, repetitions, dueDate)
-  - `StudySession`, `ProgressStats`, `LearningAnalytics`: Comprehensive progress tracking
-  - `StudyProfile`: Customizable study configurations with presets
-  - `Achievement`, `DeckProgress`: Gamification and progress visualization
+- **Hybrid Storage System**: 
+  - **Client-side**: localStorage for offline functionality and fast access
+  - **Server-side**: MongoDB for persistent storage and cross-device sync
+  - **Synchronization**: Automatic sync with conflict resolution and offline support
 
-- **SRS Implementation**: 
-  - SM-2 algorithm with configurable easiness factors and learning steps
-  - Dynamic review deck building (filters due cards, balances review/new cards)
-  - Progress tracking with streak calculations and retention rates
+- **Core Data Types** (`src/types/index.ts`):
+  - `FlashcardData`: Complete flashcard with SRS properties (interval, easinessFactor, repetitions, dueDate)
+  - `StudySession`, `ProgressStats`: Comprehensive progress tracking and analytics
+  - `User`, `AuthState`: Authentication and user management types
+  - Database schemas in `src/schemas/mongodb.ts`
 
-### AI Integration & Data Management
+- **Authentication & Security** (`src/services/auth.ts`):
+  - JWT-based authentication with secure token storage
+  - bcrypt password hashing and rate limiting
+  - User data isolation and secure endpoints
 
-- **Google Gemini Integration**: Bulk card generation and translation services
-- **Data Export/Import** (`utils/dataExport.ts`): JSON/CSV export capabilities for flashcard data
-- **localStorage Persistence**: Automatic card migration and data integrity checks
+### SRS & Study System
 
-## Common Development Tasks
+- **Spaced Repetition**: SM-2 algorithm implementation in study logic
+- **Dynamic Deck Building**: Filters due cards, balances review/new content
+- **Progress Analytics**: Streak calculations, retention rates, and learning analytics
+- **Study Profiles**: Customizable study configurations and presets
 
-### Development Commands
+## Development Commands
+
+### Core Development
 ```bash
-npm run dev              # Vite development server (http://localhost:5173)
-npm run build            # Production build to dist/
-npm run preview          # Preview production build locally
-npm start                # Express server serving dist/ files
+astro dev               # Development server (http://localhost:4321)
+astro build            # Production build to dist/
+astro preview          # Preview production build locally
+astro check            # TypeScript and Astro diagnostics
+astro check --watch    # Watch mode for type checking
 ```
 
-### Testing Commands
+### Testing & Quality
 ```bash
-npm test                 # Run design tests with Mocha/Puppeteer
-npm run test:design      # Same as npm test - runs visual/interaction tests
-npm run design-review    # Generate design review report and screenshots
+npm test               # Run all tests (calls run-tests.js)
+npm run test:design    # Visual/design tests with Puppeteer (30s timeout)
+npm run test:interaction # Interaction tests with Puppeteer (30s timeout)
+npm run test:all       # Run both design and interaction tests sequentially
+npm run test:parallel  # Run tests in parallel
+npm run test:ci        # CI-optimized test run
+npm run test:health    # Health check tests
+npm run design-review  # Generate design review report and screenshots
+```
+
+### Code Quality & Linting
+```bash
+npm run lint           # ESLint check (.js,.jsx,.ts,.tsx,.astro files)
+npm run lint:fix       # Auto-fix linting issues
+npm run format         # Format code with Prettier
+npm run format:check   # Check code formatting
+npm run type-check     # TypeScript type checking (no emit)
+```
+
+### Utility Commands
+```bash
+npm run clean          # Remove dist, node_modules/.astro, test-results
+npm run deploy         # Build and preview (for deployment prep)
+npm run test:setup     # Set up test environment
+npm run test:cleanup   # Clean up test environment
 ```
 
 ### Environment Setup
-Create `.env.local` in project root:
+
+Multiple environment files for different contexts:
+- `.env.local` - Local development (not committed)
+- `.env.development` - Development environment
+- `.env.production` - Production environment  
+- `.env.test` - Test environment
+
+Required environment variables:
+```bash
+GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb://localhost:27017/linguaflip  # or MongoDB Atlas URI
+JWT_SECRET=your_jwt_secret_here
 ```
-GEMINI_API_KEY=your_api_key_here
-```
 
-### Development Architecture Notes
+### Development Architecture Patterns
 
-- **Hook-Based State Management**: All complex state logic is encapsulated in custom hooks rather than Context API or external state libraries
-- **Component Composition**: Pages are composed of smaller, focused components rather than monolithic components
-- **Utility Classes**: Complex calculations and business logic are separated into utility classes (e.g., `AnalyticsCalculator`)
-- **Responsive Design**: TailwindCSS with mobile-first approach and touch gesture support
+- **Astro + React Hybrid**: SSR pages (.astro) with interactive React islands
+- **Nanostores State**: Reactive global state management with client/server sync
+- **Hybrid Storage**: localStorage + MongoDB with automatic synchronization
+- **Progressive Enhancement**: Features work offline, sync when connected
+- **Component Islands**: React components embedded in Astro pages for interactivity
 
-## Deployment
+### MongoDB Integration & Testing
 
-- **GitHub Pages**: Automatic deployment via GitHub Actions workflow (`.github/workflows/deploy.yml`)
-- **Environment**: Requires `GEMINI_API_KEY` secret in repository settings
-- **Build Process**: Vite build with TailwindCSS optimization
+- **Local Development**: Use MongoDB locally or MongoDB Memory Server for tests
+- **Test Database**: Automated test setup with in-memory MongoDB instances
+- **Schema Validation**: Dedicated schemas in `src/schemas/mongodb.ts`
+- **Data Migration**: Utilities in `src/utils/dataMigration.ts` for version upgrades
 
-## Project Structure & Conventions
+## Project Structure & Key Patterns
 
 ### File Organization
-- **Flat Architecture**: Components stored in `components/` rather than nested `src/` structure
-- **Utility Separation**: Business logic in `utils/` directory with focused, single-responsibility classes
-- **Hook Extraction**: Complex state logic extracted to `hooks/` for reusability
-- **Type Definitions**: Comprehensive TypeScript interfaces in `types.ts` for all data structures
+- **Astro Pages**: `src/pages/` - SSR pages with .astro extension
+- **React Components**: `src/components/` - Interactive UI components (.tsx)
+- **Hooks**: `src/hooks/` - Custom React hooks for state and effects
+- **Stores**: `src/stores/` - Nanostores for global state management
+- **Services**: `src/services/` - API calls and business logic
+- **Utils**: `src/utils/` - Helper functions and utilities
+- **Types**: `src/types/` - TypeScript type definitions
+- **Middleware**: `src/middleware/` - Astro middleware for auth/routing
 
 ### Key Development Patterns
-- **Data Migration**: `useAppState` handles automatic localStorage data migration for backward compatibility
-- **SRS Algorithm**: SM-2 implementation in `utils/studySession.ts` with configurable parameters
-- **Progressive Enhancement**: AI features gracefully degrade when API key unavailable
-- **Touch Optimization**: Mobile-first design with gesture handlers for study interactions
+- **Server/Client Separation**: SSR pages with client-side React islands
+- **Data Synchronization**: Automatic sync between localStorage and MongoDB
+- **Authentication Flow**: JWT-based auth with secure token storage
+- **Error Handling**: Centralized error handling with user-friendly messages
+- **Type Safety**: Strict TypeScript with comprehensive type definitions
 
-### Testing & Quality
-- **Visual Testing**: Puppeteer-based design tests validate UI components and interactions
-- **Design Review**: Automated screenshot generation for design consistency checks
-- **TypeScript**: Strict typing throughout with comprehensive interfaces
-
-### Technical Stack & Constraints
-- **Frontend**: React 19, TypeScript, Vite
-- **Styling**: TailwindCSS v3 with PostCSS (v3 for PostCSS compatibility, not v4)
-- **AI**: Google Gemini AI (@google/genai)
-- **Server**: Express.js for production serving
-- **Storage**: Browser localStorage for data persistence
-- **Environment Variables**: Uses Vite's `process.env` handling, not `import.meta.env`
-- **No Linting**: Project doesn't include ESLint/Prettier - follow existing code style
+### Testing Strategy
+- **Visual Testing**: Puppeteer for UI component validation and screenshot comparison
+- **Interaction Testing**: Automated user interaction simulation
+- **MongoDB Testing**: In-memory database for isolation and speed
+- **CI/CD Testing**: Optimized test suites for continuous integration
+- **Health Checks**: Database connectivity and service availability tests

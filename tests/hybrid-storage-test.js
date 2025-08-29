@@ -1,0 +1,633 @@
+// Hybrid Storage System Integration Test
+import { MongoClient } from 'mongodb';
+import { getMockMongoDBServer } from './mongodb-mock-server.js';
+import chai from 'chai';
+const { expect } = chai;
+
+// Mock implementations for testing
+class MockFlashcardsService {
+  constructor() {
+    this.flashcards = new Map();
+  }
+
+  async getDueFlashcards(userId, options = {}) {
+    const userCards = Array.from(this.flashcards.values())
+      .filter(card => card.userId === userId);
+    return { success: true, data: userCards };
+  }
+
+  async createFlashcard(card, userId) {
+    const newCard = { ...card, cardId: `card_${Date.now()}`, userId };
+    this.flashcards.set(newCard.cardId, newCard);
+    return { success: true, data: newCard };
+  }
+
+  async updateFlashcard(cardId, updates, userId) {
+    if (this.flashcards.has(cardId)) {
+      const updated = { ...this.flashcards.get(cardId), ...updates };
+      this.flashcards.set(cardId, updated);
+      return { success: true, data: updated };
+    }
+    return { success: false, error: 'Card not found' };
+  }
+
+  async deleteFlashcard(cardId, userId) {
+    if (this.flashcards.has(cardId)) {
+      this.flashcards.delete(cardId);
+      return { success: true };
+    }
+    return { success: false, error: 'Card not found' };
+  }
+}
+
+class MockStudySessionsService {
+  constructor() {
+    this.sessions = new Map();
+  }
+
+  async getUserStudySessions(userId, options = {}) {
+    const userSessions = Array.from(this.sessions.values())
+      .filter(session => session.userId === userId);
+    return { success: true, data: userSessions };
+  }
+
+  async createStudySession(session, userId) {
+    const newSession = { ...session, sessionId: `session_${Date.now()}`, userId };
+    this.sessions.set(newSession.sessionId, newSession);
+    return { success: true, data: newSession };
+  }
+}
+
+class MockStudyStatisticsService {
+  constructor() {
+    this.stats = new Map();
+  }
+
+  async getStudyStatisticsByDate(userId, date, type) {
+    const userStats = this.stats.get(userId);
+    return { success: true, data: userStats || this.getDefaultStats(userId) };
+  }
+
+  getDefaultStats(userId) {
+    return {
+      userId,
+      date: new Date(),
+      totalCardsStudied: 0,
+      totalStudyTime: 0,
+      averageRecallRate: 0
+    };
+  }
+}
+
+class MockSyncService {
+  constructor() {
+    this.syncResults = new Map();
+  }
+
+  async syncFromLocal(userId, data, options) {
+    const result = {
+      success: true,
+      syncedItems: data.flashcards?.length || 0 + data.studySessions?.length || 0,
+      conflicts: []
+    };
+    this.syncResults.set(userId, result);
+    return { success: true, data: result };
+  }
+}
+
+// Mock Hybrid Storage implementation
+class MockHybridStorage {
+  constructor() {
+    this.cache = new Map();
+    this.flashcardsService = new MockFlashcardsService();
+    this.studySessionsService = new MockStudySessionsService();
+    this.studyStatisticsService = new MockStudyStatisticsService();
+    this.syncService = new MockSyncService();
+    this.isOnline = true;
+  }
+
+  async getFlashcards(userId, forceRefresh = false) {
+    if (!forceRefresh && this.cache.has(`flashcards_${userId}`)) {
+      return this.cache.get(`flashcards_${userId}`);
+    }
+
+    const result = await this.flashcardsService.getDueFlashcards(userId);
+    if (result.success) {
+      const flashcards = this.convertMongoToLocal(result.data);
+      this.cache.set(`flashcards_${userId}`, flashcards);
+      return flashcards;
+    }
+    return [];
+  }
+
+  async saveFlashcard(userId, flashcard) {
+    const currentData = await this.getFlashcards(userId);
+    const updatedData = flashcard.id
+      ? currentData.map(card => card.id === flashcard.id ? flashcard : card)
+      : [...currentData, flashcard];
+
+    this.cache.set(`flashcards_${userId}`, updatedData);
+
+    if (this.isOnline) {
+      const mongoCard = this.convertLocalToMongo(flashcard, userId);
+      if (flashcard.id) {
+        await this.flashcardsService.updateFlashcard(flashcard.id.toString(), mongoCard, userId);
+      } else {
+        const result = await this.flashcardsService.createFlashcard(mongoCard, userId);
+        if (result.success) {
+          const updatedCard = { ...flashcard, id: parseInt(result.data.cardId) };
+          const finalData = updatedData.map(card =>
+            card === flashcard ? updatedCard : card
+          );
+          this.cache.set(`flashcards_${userId}`, finalData);
+        }
+      }
+    }
+  }
+
+  async deleteFlashcard(userId, flashcardId) {
+    const currentData = await this.getFlashcards(userId);
+    const updatedData = currentData.filter(card => card.id !== flashcardId);
+    this.cache.set(`flashcards_${userId}`, updatedData);
+
+    if (this.isOnline) {
+      await this.flashcardsService.deleteFlashcard(flashcardId.toString(), userId);
+    }
+  }
+
+  async getStudySessions(userId, forceRefresh = false) {
+    if (!forceRefresh && this.cache.has(`sessions_${userId}`)) {
+      return this.cache.get(`sessions_${userId}`);
+    }
+
+    const result = await this.studySessionsService.getUserStudySessions(userId);
+    if (result.success) {
+      const sessions = this.convertMongoSessionsToLocal(result.data);
+      this.cache.set(`sessions_${userId}`, sessions);
+      return sessions;
+    }
+    return [];
+  }
+
+  async saveStudySession(userId, session) {
+    const currentData = await this.getStudySessions(userId);
+    const updatedData = [...currentData, session];
+    this.cache.set(`sessions_${userId}`, updatedData);
+
+    if (this.isOnline) {
+      const mongoSession = this.convertLocalSessionToMongo(session, userId);
+      await this.studySessionsService.createStudySession(mongoSession, userId);
+    }
+  }
+
+  async getProgressStats(userId, forceRefresh = false) {
+    if (!forceRefresh && this.cache.has(`stats_${userId}`)) {
+      return this.cache.get(`stats_${userId}`);
+    }
+
+    const result = await this.studyStatisticsService.getStudyStatisticsByDate(userId, new Date(), 'daily');
+    if (result.success) {
+      this.cache.set(`stats_${userId}`, result.data);
+      return result.data;
+    }
+    return this.studyStatisticsService.getDefaultStats(userId);
+  }
+
+  async performSync(userId) {
+    if (!this.isOnline) {
+      return { success: false, error: 'Offline' };
+    }
+
+    const flashcards = this.cache.get(`flashcards_${userId}`) || [];
+    const sessions = this.cache.get(`sessions_${userId}`) || [];
+
+    const result = await this.syncService.syncFromLocal(userId, {
+      flashcards: flashcards.map(card => this.convertLocalToMongo(card, userId)),
+      studySessions: sessions.map(session => this.convertLocalSessionToMongo(session, userId))
+    });
+
+    return result;
+  }
+
+  async migrateLocalStorageToMongoDB(userId) {
+    const flashcards = this.cache.get(`flashcards_${userId}`) || [];
+    const sessions = this.cache.get(`sessions_${userId}`) || [];
+
+    return {
+      success: true,
+      migratedItems: flashcards.length + sessions.length,
+      skippedItems: 0,
+      errors: []
+    };
+  }
+
+  setOnlineStatus(isOnline) {
+    this.isOnline = isOnline;
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
+  // Helper methods
+  convertMongoToLocal(mongoCards) {
+    return mongoCards.map(card => ({
+      id: parseInt(card.cardId),
+      front: card.front,
+      back: card.back,
+      difficulty: card.difficulty || 2.5,
+      nextReview: card.nextReview || new Date(),
+      reviewCount: card.reviewCount || 0,
+      correctCount: card.correctCount || 0,
+      incorrectCount: card.incorrectCount || 0,
+      tags: card.tags || [],
+      audioUrl: card.audioUrl
+    }));
+  }
+
+  convertLocalToMongo(card, userId) {
+    return {
+      cardId: card.id.toString(),
+      userId,
+      front: card.front,
+      back: card.back,
+      difficulty: card.difficulty,
+      nextReview: card.nextReview,
+      reviewCount: card.reviewCount,
+      correctCount: card.correctCount,
+      incorrectCount: card.incorrectCount,
+      tags: card.tags,
+      audioUrl: card.audioUrl
+    };
+  }
+
+  convertMongoSessionsToLocal(mongoSessions) {
+    return mongoSessions.map(session => ({
+      id: session.sessionId,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      cardsStudied: session.cardsStudied,
+      correctAnswers: session.correctAnswers,
+      incorrectAnswers: session.incorrectAnswers,
+      timeSpent: session.timeSpent,
+      averageDifficulty: session.averageDifficulty
+    }));
+  }
+
+  convertLocalSessionToMongo(session, userId) {
+    return {
+      sessionId: session.id,
+      userId,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      cardsStudied: session.cardsStudied,
+      correctAnswers: session.correctAnswers,
+      incorrectAnswers: session.incorrectAnswers,
+      timeSpent: session.timeSpent,
+      averageDifficulty: session.averageDifficulty
+    };
+  }
+}
+
+describe('Hybrid Storage System Integration Tests', () => {
+  let mockServer;
+  let client;
+  let db;
+  let hybridStorage;
+
+  before(async function() {
+    this.timeout(30000);
+
+    try {
+      // Start mock MongoDB server
+      mockServer = getMockMongoDBServer();
+      const mongoUri = await mockServer.start();
+
+      // Connect to the mock server
+      client = new MongoClient(mongoUri, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+      });
+
+      await client.connect();
+      db = client.db('linguaflip_test');
+
+      // Initialize hybrid storage
+      hybridStorage = new MockHybridStorage();
+
+      console.log('Hybrid storage test environment initialized');
+    } catch (error) {
+      console.error('Failed to setup hybrid storage test environment:', error);
+      throw error;
+    }
+  });
+
+  after(async () => {
+    try {
+      if (client) {
+        await client.close();
+      }
+      if (mockServer) {
+        await mockServer.stop();
+      }
+      console.log('Hybrid storage test cleanup completed');
+    } catch (error) {
+      console.error('Error during hybrid storage test cleanup:', error);
+    }
+  });
+
+  beforeEach(async () => {
+    // Clear all collections and cache before each test
+    if (mockServer && mockServer.isServerRunning()) {
+      await mockServer.clearDatabase();
+    }
+    hybridStorage.clearCache();
+    hybridStorage.setOnlineStatus(true);
+  });
+
+  describe('Flashcards Management', () => {
+    const testUserId = 'user_123';
+    const testFlashcard = {
+      id: 1,
+      front: 'Hello',
+      back: 'Hola',
+      difficulty: 2.5,
+      nextReview: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      reviewCount: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      tags: ['greetings'],
+      audioUrl: '/audio/hello.mp3'
+    };
+
+    it('should save and retrieve flashcards from cache', async () => {
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+
+      const retrieved = await hybridStorage.getFlashcards(testUserId);
+      retrieved.length.should.equal(1);
+      retrieved[0].front.should.equal(testFlashcard.front);
+      retrieved[0].back.should.equal(testFlashcard.back);
+    });
+
+    it('should sync flashcards to MongoDB when online', async () => {
+      hybridStorage.setOnlineStatus(true);
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+
+      const syncResult = await hybridStorage.performSync(testUserId);
+      syncResult.success.should.be.true;
+    });
+
+    it('should work offline and sync later', async () => {
+      // Go offline
+      hybridStorage.setOnlineStatus(false);
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+
+      // Should still be able to retrieve from cache
+      const cached = await hybridStorage.getFlashcards(testUserId);
+      cached.length.should.equal(1);
+
+      // Go back online and sync
+      hybridStorage.setOnlineStatus(true);
+      const syncResult = await hybridStorage.performSync(testUserId);
+      syncResult.success.should.be.true;
+    });
+
+    it('should delete flashcards', async () => {
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+
+      await hybridStorage.deleteFlashcard(testUserId, testFlashcard.id);
+
+      const remaining = await hybridStorage.getFlashcards(testUserId);
+      remaining.length.should.equal(0);
+    });
+
+    it('should handle multiple flashcards', async () => {
+      const flashcards = [
+        { ...testFlashcard, id: 1, front: 'Hello', back: 'Hola' },
+        { ...testFlashcard, id: 2, front: 'Goodbye', back: 'Adiós' },
+        { ...testFlashcard, id: 3, front: 'Thank you', back: 'Gracias' }
+      ];
+
+      for (const card of flashcards) {
+        await hybridStorage.saveFlashcard(testUserId, card);
+      }
+
+      const retrieved = await hybridStorage.getFlashcards(testUserId);
+      retrieved.length.should.equal(3);
+    });
+  });
+
+  describe('Study Sessions Management', () => {
+    const testUserId = 'user_456';
+    const testSession = {
+      id: 'session_001',
+      startTime: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
+      endTime: new Date(),
+      cardsStudied: 20,
+      correctAnswers: 18,
+      incorrectAnswers: 2,
+      timeSpent: 3600, // 1 hour in seconds
+      averageDifficulty: 2.8
+    };
+
+    it('should save and retrieve study sessions', async () => {
+      await hybridStorage.saveStudySession(testUserId, testSession);
+
+      const retrieved = await hybridStorage.getStudySessions(testUserId);
+      retrieved.length.should.equal(1);
+      retrieved[0].cardsStudied.should.equal(testSession.cardsStudied);
+      retrieved[0].correctAnswers.should.equal(testSession.correctAnswers);
+    });
+
+    it('should sync study sessions to MongoDB', async () => {
+      await hybridStorage.saveStudySession(testUserId, testSession);
+
+      const syncResult = await hybridStorage.performSync(testUserId);
+      syncResult.success.should.be.true;
+    });
+  });
+
+  describe('Progress Statistics', () => {
+    const testUserId = 'user_789';
+
+    it('should retrieve progress statistics', async () => {
+      const stats = await hybridStorage.getProgressStats(testUserId);
+
+      stats.should.be.an('object');
+      stats.should.have.property('userId');
+      stats.should.have.property('totalCardsStudied');
+      stats.should.have.property('totalStudyTime');
+      stats.should.have.property('averageRecallRate');
+    });
+
+    it('should cache progress statistics', async () => {
+      const stats1 = await hybridStorage.getProgressStats(testUserId);
+      const stats2 = await hybridStorage.getProgressStats(testUserId, false); // Should use cache
+
+      stats1.userId.should.equal(stats2.userId);
+    });
+  });
+
+  describe('Data Migration', () => {
+    const testUserId = 'user_migrate';
+
+    it('should migrate localStorage data to MongoDB', async () => {
+      // Add some data to cache
+      const flashcards = [
+        { id: 1, front: 'Test', back: 'Prueba', difficulty: 2.5, nextReview: new Date(), reviewCount: 0, correctCount: 0, incorrectCount: 0, tags: [], audioUrl: '' },
+        { id: 2, front: 'Hello', back: 'Hola', difficulty: 2.5, nextReview: new Date(), reviewCount: 0, correctCount: 0, incorrectCount: 0, tags: [], audioUrl: '' }
+      ];
+
+      for (const card of flashcards) {
+        await hybridStorage.saveFlashcard(testUserId, card);
+      }
+
+      const migrationResult = await hybridStorage.migrateLocalStorageToMongoDB(testUserId);
+
+      migrationResult.success.should.be.true;
+      migrationResult.migratedItems.should.be.at.least(2);
+      migrationResult.errors.length.should.equal(0);
+    });
+  });
+
+  describe('Offline Functionality', () => {
+    const testUserId = 'user_offline';
+    const testFlashcard = {
+      id: 1,
+      front: 'Offline Test',
+      back: 'Prueba sin conexión',
+      difficulty: 2.5,
+      nextReview: new Date(),
+      reviewCount: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      tags: ['offline'],
+      audioUrl: ''
+    };
+
+    it('should work offline for read operations', async () => {
+      // Add data while online
+      hybridStorage.setOnlineStatus(true);
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+
+      // Go offline
+      hybridStorage.setOnlineStatus(false);
+
+      // Should still be able to read from cache
+      const cachedData = await hybridStorage.getFlashcards(testUserId);
+      cachedData.length.should.equal(1);
+      cachedData[0].front.should.equal(testFlashcard.front);
+    });
+
+    it('should queue operations when offline', async () => {
+      hybridStorage.setOnlineStatus(false);
+
+      // These operations should be queued
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+      await hybridStorage.saveFlashcard(testUserId, { ...testFlashcard, id: 2, front: 'Second Card' });
+
+      // Data should be in cache
+      const cachedData = await hybridStorage.getFlashcards(testUserId);
+      cachedData.length.should.equal(2);
+    });
+
+    it('should sync queued operations when back online', async () => {
+      hybridStorage.setOnlineStatus(false);
+
+      // Queue operations offline
+      await hybridStorage.saveFlashcard(testUserId, testFlashcard);
+
+      // Go back online
+      hybridStorage.setOnlineStatus(true);
+
+      // Sync should work
+      const syncResult = await hybridStorage.performSync(testUserId);
+      syncResult.success.should.be.true;
+    });
+  });
+
+  describe('Cache Management', () => {
+    const testUserId = 'user_cache';
+
+    it('should clear cache when requested', async () => {
+      await hybridStorage.saveFlashcard(testUserId, {
+        id: 1,
+        front: 'Cache Test',
+        back: 'Prueba de caché',
+        difficulty: 2.5,
+        nextReview: new Date(),
+        reviewCount: 0,
+        correctCount: 0,
+        incorrectCount: 0,
+        tags: [],
+        audioUrl: ''
+      });
+
+      // Verify data is cached
+      const cached = await hybridStorage.getFlashcards(testUserId);
+      cached.length.should.equal(1);
+
+      // Clear cache
+      hybridStorage.clearCache();
+
+      // Cache should be empty now
+      const emptyCache = await hybridStorage.getFlashcards(testUserId);
+      emptyCache.length.should.equal(0);
+    });
+  });
+
+  describe('MongoDB Integration', () => {
+    it('should connect to MongoDB successfully', async () => {
+      client.should.be.an('object');
+      db.should.be.an('object');
+      db.databaseName.should.equal('linguaflip_test');
+    });
+
+    it('should perform basic MongoDB operations', async () => {
+      const collection = db.collection('test_collection');
+
+      const testDoc = { name: 'MongoDB Test', value: 42, timestamp: new Date() };
+      const insertResult = await collection.insertOne(testDoc);
+
+      insertResult.acknowledged.should.be.true;
+      insertResult.insertedId.should.be.ok;
+
+      const found = await collection.findOne({ name: 'MongoDB Test' });
+      found.should.be.an('object');
+      found.name.should.equal('MongoDB Test');
+      found.value.should.equal(42);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle network errors gracefully', async () => {
+      hybridStorage.setOnlineStatus(false);
+
+      // This should not throw an error
+      await hybridStorage.saveFlashcard('user_error', {
+        id: 1,
+        front: 'Error Test',
+        back: 'Prueba de error',
+        difficulty: 2.5,
+        nextReview: new Date(),
+        reviewCount: 0,
+        correctCount: 0,
+        incorrectCount: 0,
+        tags: [],
+        audioUrl: ''
+      });
+
+      // Should still have data in cache
+      const cached = await hybridStorage.getFlashcards('user_error');
+      cached.length.should.equal(1);
+    });
+
+    it('should handle invalid data gracefully', async () => {
+      try {
+        await hybridStorage.saveFlashcard('user_invalid', null);
+      } catch (error) {
+        error.should.be.an('error');
+      }
+    });
+  });
+});

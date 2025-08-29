@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
+import { useStore } from '@nanostores/react';
 
-import Flashcard from './Flashcard';
+import Flashcard from '../src/components/Flashcard';
 import Navigation from './Navigation';
 import RecallQualityControls from './RecallQualityControls';
 import { useTouchGestures } from './TouchGestureHandler';
+import { MiniSyncIndicator } from '../src/components/SyncStatusIndicator';
+import { studySessionActions, studySessionStore, studyLoadingStore, studyErrorStore } from '../src/stores/study';
 
 import type { FlashcardData } from '../types';
 import type { RecallQuality } from './RecallQualityControls';
@@ -31,6 +34,9 @@ interface StudyPageProps {
 
   // API availability
   apiKeyAvailable: boolean;
+
+  // MongoDB integration
+  userId?: string;
 }
 
 const StudyPage: React.FC<StudyPageProps> = ({
@@ -49,7 +55,28 @@ const StudyPage: React.FC<StudyPageProps> = ({
   setShowManualForm,
   setManualCreationError,
   apiKeyAvailable,
+  userId,
 }) => {
+  // Store subscriptions
+  const studySession = useStore(studySessionStore);
+  const studyLoading = useStore(studyLoadingStore);
+  const studyError = useStore(studyErrorStore);
+
+  // Enhanced recall quality handler with MongoDB integration
+  const handleRecallQualityWithMongoDB = async (quality: RecallQuality) => {
+    // Call original handler
+    handleRecallQuality(quality);
+
+    // If user is logged in, record answer in study session
+    if (userId && studySession.isActive) {
+      try {
+        const isCorrect = quality >= 3; // Consider quality 3+ as correct
+        studySessionActions.recordAnswer(isCorrect);
+      } catch (error) {
+        console.error('Failed to record answer in MongoDB:', error);
+      }
+    }
+  };
   // Touch gesture handlers
   const touchHandlers = useTouchGestures({
     onSwipeLeft: handleNextCard,
@@ -75,7 +102,14 @@ const StudyPage: React.FC<StudyPageProps> = ({
 
   if (sessionCompleted || (reviewDeck.length === 0 && !isLoading)) {
     return (
-      <div className="text-center bg-white p-8 rounded-xl shadow-2xl w-full">
+      <div className="text-center bg-white p-8 rounded-xl shadow-2xl w-full relative">
+        {/* Sync status indicator */}
+        {userId && (
+          <div className="absolute top-4 right-4">
+            <MiniSyncIndicator userId={userId} />
+          </div>
+        )}
+
         <h2 className="text-2xl font-semibold text-success-600 mb-4">
           {reviewDeck.length === 0 ? "Welcome!" : (sessionCompleted && reviewDeck.length > 0 ? "Great job!" : "All caught up!")}
         </h2>
@@ -86,6 +120,23 @@ const StudyPage: React.FC<StudyPageProps> = ({
         <p className="text-neutral-600 mt-2">
           {reviewDeck.length > 0 && "Come back tomorrow or generate new cards!"}
         </p>
+
+        {/* Study session stats for MongoDB users */}
+        {userId && studySession.isActive && (
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">Session Progress</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-blue-600">Cards Studied:</span>
+                <span className="ml-2 font-semibold">{studySession.cardsStudied}</span>
+              </div>
+              <div>
+                <span className="text-blue-600">Correct Answers:</span>
+                <span className="ml-2 font-semibold">{studySession.correctAnswers}</span>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
           <button
               onClick={handleGenerateAICards}
@@ -132,11 +183,17 @@ const StudyPage: React.FC<StudyPageProps> = ({
             onFlip={handleFlip}
             onNextCard={handleNextCard}
             onPreviousCard={handlePreviousCard}
+            userId={userId}
+            onQualityResponse={async (quality: number) => {
+              // Convert SM-2 quality scale (0-4) to RecallQuality (0-5)
+              const recallQuality = Math.min(Math.max(quality, 0), 5) as RecallQuality;
+              await handleRecallQualityWithMongoDB(recallQuality);
+            }}
           />
         </div>
 
-        {isFlipped && (
-          <RecallQualityControls onRate={handleRecallQuality} />
+        {isFlipped && !currentCardData.exampleEnglish && (
+          <RecallQualityControls onRate={handleRecallQualityWithMongoDB} />
         )}
 
         <Navigation
@@ -144,17 +201,45 @@ const StudyPage: React.FC<StudyPageProps> = ({
           reviewDeckSize={reviewDeck.length}
         />
 
-         <button
-           onClick={() => { setShowManualForm(true); setManualCreationError(null); }}
-           disabled={!apiKeyAvailable}
-           className={`px-4 py-2 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200
-                       ${!apiKeyAvailable ? 'bg-neutral-300 text-neutral-600 cursor-not-allowed'
-                                        : 'btn-primary hover:scale-105'}`}
-           aria-live="polite"
-         >
-            Add New Card
-         </button>
-          {!apiKeyAvailable && currentCardData && <p className="text-xs text-primary-200 mt-1">AI Card Generation disabled: API Key missing.</p>}
+        {/* Study session info for MongoDB users */}
+        {userId && studySession.isActive && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-blue-800 font-medium">Study Session Active</span>
+              <MiniSyncIndicator userId={userId} className="text-xs" />
+            </div>
+            <div className="mt-1 text-blue-700">
+              Cards: {studySession.cardsStudied} | Correct: {studySession.correctAnswers}
+            </div>
+          </div>
+        )}
+
+        {/* Error display */}
+        {studyError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+            <div className="flex items-center justify-between">
+              <span>Session Error: {studyError}</span>
+              <button
+                onClick={() => studySessionActions.clearError()}
+                className="text-red-600 hover:text-red-800"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => { setShowManualForm(true); setManualCreationError(null); }}
+          disabled={!apiKeyAvailable}
+          className={`px-4 py-2 text-sm font-semibold rounded-xl shadow-lg transition-all duration-200
+                      ${!apiKeyAvailable ? 'bg-neutral-300 text-neutral-600 cursor-not-allowed'
+                                       : 'btn-primary hover:scale-105'}`}
+          aria-live="polite"
+        >
+           Add New Card
+        </button>
+        {!apiKeyAvailable && currentCardData && <p className="text-xs text-primary-200 mt-1">AI Card Generation disabled: API Key missing.</p>}
       </div>
     );
   }

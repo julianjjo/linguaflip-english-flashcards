@@ -1,7 +1,13 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useStore } from '@nanostores/react';
 import { FlashcardData } from '../types';
 import { useTouchGestures } from './TouchGestureHandler';
+import { useAudioSystem } from '../hooks/useAudioSystem';
+import { useApp } from './AppProvider';
+import { flashcardsActions, flashcardsStore, flashcardsLoadingStore, flashcardsErrorStore } from '../stores/flashcards';
+import { MiniSyncIndicator } from '../src/components/SyncStatusIndicator';
+import LoadingSpinner from '../src/components/LoadingSpinner';
 
 interface FlashcardProps {
   cardData: FlashcardData;
@@ -9,6 +15,9 @@ interface FlashcardProps {
   onFlip: () => void;
   onNextCard?: () => void;
   onPreviousCard?: () => void;
+  userId?: string;
+  onCardUpdate?: (updatedCard: FlashcardData) => void;
+  onQualityResponse?: (quality: number) => Promise<void>;
 }
 
 const SpeakerIcon = () => (

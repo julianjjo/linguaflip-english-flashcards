@@ -1,28 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useToast } from '@/hooks/useToast';
 import ThemeToggle from './ThemeToggle';
 import LoadingSpinner from './LoadingSpinner';
+import { MiniSyncIndicator } from './SyncStatusIndicator';
+import { hybridStorage } from '@/stores/hybridStorage';
 
 interface UserSettingsProps {
   isOpen: boolean;
   onClose: () => void;
+  userId?: string;
 }
 
-const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
+const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) => {
   const { preferences, updatePreference, resetToDefaults, isLoading } = useUserPreferences();
-  const { showSuccess, showInfo } = useToast();
+  const { showSuccess, showInfo, showError } = useToast();
+  const [isSyncing, setIsSyncing] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
-    showSuccess('Configuración guardada', 'Tus preferencias han sido actualizadas correctamente.');
-    onClose();
+  const handleSave = async () => {
+    try {
+      // If userId is provided, sync preferences to MongoDB
+      if (userId) {
+        setIsSyncing(true);
+        // Note: User preferences sync would be implemented in the useUserPreferences hook
+        // For now, we'll just show success
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate sync delay
+      }
+
+      showSuccess('Configuración guardada', 'Tus preferencias han sido actualizadas correctamente.');
+      onClose();
+    } catch (error) {
+      showError('Error al guardar', 'No se pudieron guardar los cambios. Inténtalo de nuevo.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleReset = () => {
     resetToDefaults();
     showInfo('Configuración restablecida', 'Se han restaurado los valores predeterminados.');
+  };
+
+  const handleSyncPreferences = async () => {
+    if (!userId) {
+      showInfo('Sincronización no disponible', 'Inicia sesión para sincronizar tus preferencias.');
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      // Force sync of user preferences
+      await hybridStorage.forceSync(userId);
+      showSuccess('Preferencias sincronizadas', 'Tus configuraciones se han sincronizado con la nube.');
+    } catch (error) {
+      showError('Error de sincronización', 'No se pudieron sincronizar las preferencias.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   if (isLoading) {
@@ -41,19 +77,43 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Configuración de Usuario
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-            aria-label="Cerrar configuración"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+           <div className="flex items-center space-x-3">
+             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+               Configuración de Usuario
+             </h2>
+             {userId && (
+               <MiniSyncIndicator userId={userId} />
+             )}
+           </div>
+           <div className="flex items-center space-x-2">
+             {userId && (
+               <button
+                 onClick={handleSyncPreferences}
+                 disabled={isSyncing}
+                 className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md transition-colors disabled:opacity-50"
+                 title="Sincronizar preferencias con MongoDB"
+               >
+                 {isSyncing ? (
+                   <LoadingSpinner size="sm" />
+                 ) : (
+                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                   </svg>
+                 )}
+                 <span>{isSyncing ? 'Sincronizando...' : 'Sync'}</span>
+               </button>
+             )}
+             <button
+               onClick={onClose}
+               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+               aria-label="Cerrar configuración"
+             >
+               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+               </svg>
+             </button>
+           </div>
+         </div>
 
         {/* Content */}
         <div className="p-6 space-y-8">

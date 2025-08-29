@@ -3,6 +3,8 @@ import React from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Breadcrumb from './Breadcrumb';
+import { MiniSyncIndicator, OfflineIndicator } from '../src/components/SyncStatusIndicator';
+import DataMigrationPrompt from '../src/components/DataMigrationPrompt';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -27,6 +29,7 @@ interface MainLayoutProps {
     href?: string;
     current?: boolean;
   }>;
+  userId?: string;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
@@ -38,6 +41,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   stats,
   recentDecks,
   breadcrumbItems,
+  userId,
 }) => {
   return (
     <div className="mobile-viewport bg-neutral-50">
@@ -61,8 +65,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         {/* Main Content */}
         <main className="flex-1 md:ml-0">
           <div className="p-mobile">
-            {/* Breadcrumb */}
-            <Breadcrumb items={breadcrumbItems} />
+            {/* Top Bar with Breadcrumb and Sync Status */}
+            <div className="flex items-center justify-between mb-4">
+              <Breadcrumb items={breadcrumbItems} />
+              {userId && (
+                <div className="flex items-center space-x-4">
+                  <MiniSyncIndicator userId={userId} />
+                </div>
+              )}
+            </div>
 
             {/* Content Area */}
             <div className="mt-mobile max-w-6xl mx-auto">
@@ -71,6 +82,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         </main>
       </div>
+
+      {/* Offline Indicator */}
+      <OfflineIndicator />
+
+      {/* Data Migration Prompt */}
+      <DataMigrationPrompt
+        userId={userId}
+        onMigrationComplete={() => {
+          // Refresh data after migration
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

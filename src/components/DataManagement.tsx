@@ -1,15 +1,44 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useStore } from '@nanostores/react';
 import { DataExportImport } from '../utils/dataExport.js';
+import { useDataMigration } from '../utils/dataMigration';
+import { flashcardsActions, flashcardsStore } from '../stores/flashcards';
+import { studySessionActions, studyHistoryStore } from '../stores/study';
+import { MiniSyncIndicator } from './SyncStatusIndicator';
+import { hybridStorage } from '../stores/hybridStorage';
+import LoadingSpinner from './LoadingSpinner';
 
 interface DataManagementProps {
+  userId?: string;
   onDataImported?: () => void;
+  onDataExported?: () => void;
 }
 
-const DataManagement: React.FC<DataManagementProps> = ({ onDataImported }) => {
+const DataManagement: React.FC<DataManagementProps> = ({
+  userId,
+  onDataImported,
+  onDataExported
+}) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Store subscriptions
+  const flashcards = useStore(flashcardsStore);
+  const studySessions = useStore(studyHistoryStore);
+
+  // Data migration hook
+  const { migrateData, isMigrating, progress, result, createBackup } = useDataMigration();
+
+  // Load data when component mounts
+  useEffect(() => {
+    if (userId) {
+      flashcardsActions.loadFlashcards(userId);
+      studySessionActions.loadStudySessions(userId);
+    }
+  }, [userId]);
 
   const handleExportAll = async () => {
     setIsExporting(true);
@@ -68,14 +97,114 @@ const DataManagement: React.FC<DataManagementProps> = ({ onDataImported }) => {
     fileInputRef.current?.click();
   };
 
+  // MongoDB-based export functions
+  const handleExportToMongoDB = async () => {
+    if (!userId) {
+      setImportMessage({ type: 'error', text: 'User ID required for MongoDB export' });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      // Force sync all data to MongoDB
+      await hybridStorage.forceSync(userId);
+      setImportMessage({ type: 'success', text: 'Data exported to MongoDB successfully!' });
+      onDataExported?.();
+    } catch (error) {
+      setImportMessage({ type: 'error', text: 'Failed to export data to MongoDB' });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // MongoDB-based import functions
+  const handleImportFromMongoDB = async () => {
+    if (!userId) {
+      setImportMessage({ type: 'error', text: 'User ID required for MongoDB import' });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      // Load all data from MongoDB
+      await Promise.all([
+        flashcardsActions.loadFlashcards(userId),
+        studySessionActions.loadStudySessions(userId),
+        studySessionActions.loadProgressStats(userId)
+      ]);
+      setImportMessage({ type: 'success', text: 'Data imported from MongoDB successfully!' });
+      onDataImported?.();
+    } catch (error) {
+      setImportMessage({ type: 'error', text: 'Failed to import data from MongoDB' });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Manual sync function
+  const handleManualSync = async () => {
+    if (!userId) return;
+
+    setIsSyncing(true);
+    try {
+      await hybridStorage.forceSync(userId);
+      setImportMessage({ type: 'success', text: 'Sync completed successfully!' });
+    } catch (error) {
+      setImportMessage({ type: 'error', text: 'Sync failed. Please try again.' });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Data migration handler
+  const handleDataMigration = async () => {
+    if (!userId) {
+      setImportMessage({ type: 'error', text: 'User ID required for data migration' });
+      return;
+    }
+
+    try {
+      const migrationResult = await migrateData(userId);
+      if (migrationResult.success) {
+        setImportMessage({
+          type: 'success',
+          text: `Migration completed! Migrated ${migrationResult.migratedItems.flashcards} flashcards and ${migrationResult.migratedItems.studySessions} study sessions.`
+        });
+        onDataImported?.();
+      } else {
+        setImportMessage({
+          type: 'error',
+          text: `Migration failed: ${migrationResult.errors.join(', ')}`
+        });
+      }
+    } catch (error) {
+      setImportMessage({ type: 'error', text: 'Migration failed unexpectedly' });
+    }
+  };
+
+  // Create backup handler
+  const handleCreateBackup = () => {
+    try {
+      createBackup();
+      setImportMessage({ type: 'success', text: 'Backup created successfully!' });
+    } catch (error) {
+      setImportMessage({ type: 'error', text: 'Failed to create backup' });
+    }
+  };
+
   const dataSummary = DataExportImport.getDataSummary();
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
+      <div className="text-center relative">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Data Management</h2>
         <p className="text-gray-600">Export and import your learning progress</p>
+        {userId && (
+          <div className="absolute top-0 right-0">
+            <MiniSyncIndicator userId={userId} />
+          </div>
+        )}
       </div>
 
       {/* Data Summary */}
@@ -83,21 +212,142 @@ const DataManagement: React.FC<DataManagementProps> = ({ onDataImported }) => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Data</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{dataSummary.cardsCount}</div>
+            <div className="text-2xl font-bold text-blue-600">{flashcards.length}</div>
             <div className="text-sm text-gray-600">Flashcards</div>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{dataSummary.sessionsCount}</div>
+            <div className="text-2xl font-bold text-green-600">{studySessions.length}</div>
             <div className="text-sm text-gray-600">Study Sessions</div>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-sm font-bold text-purple-600">
-              {dataSummary.lastBackup ? new Date(dataSummary.lastBackup).toLocaleDateString() : 'Never'}
+              {userId ? 'Connected' : 'Local Only'}
             </div>
-            <div className="text-sm text-gray-600">Last Activity</div>
+            <div className="text-sm text-gray-600">Storage Mode</div>
           </div>
         </div>
       </div>
+
+      {/* MongoDB Operations */}
+      {userId && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">MongoDB Sync</h3>
+          <p className="text-gray-600 mb-6">
+            Synchronize your data with MongoDB for cross-device access and backup.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              onClick={handleExportToMongoDB}
+              disabled={isExporting || isSyncing}
+              className="flex flex-col items-center p-6 border-2 border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="text-3xl mb-3">☁️</div>
+              <h4 className="font-semibold text-gray-900 mb-1">Sync to MongoDB</h4>
+              <p className="text-sm text-gray-600 text-center mb-3">
+                Upload local data to cloud
+              </p>
+              <span className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                {isExporting ? 'Syncing...' : 'Sync Up'}
+              </span>
+            </button>
+
+            <button
+              onClick={handleImportFromMongoDB}
+              disabled={isImporting || isSyncing}
+              className="flex flex-col items-center p-6 border-2 border-green-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="text-3xl mb-3">⬇️</div>
+              <h4 className="font-semibold text-gray-900 mb-1">Sync from MongoDB</h4>
+              <p className="text-sm text-gray-600 text-center mb-3">
+                Download latest data from cloud
+              </p>
+              <span className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                {isImporting ? 'Loading...' : 'Sync Down'}
+              </span>
+            </button>
+
+            <button
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className="flex flex-col items-center p-6 border-2 border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="text-3xl mb-3">🔄</div>
+              <h4 className="font-semibold text-gray-900 mb-1">Force Sync</h4>
+              <p className="text-sm text-gray-600 text-center mb-3">
+                Manual synchronization
+              </p>
+              <span className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors">
+                {isSyncing ? 'Syncing...' : 'Force Sync'}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Data Migration Section */}
+      {userId && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Migration</h3>
+          <p className="text-gray-600 mb-6">
+            Migrate existing localStorage data to MongoDB for the first time.
+          </p>
+
+          {/* Migration Progress */}
+          {isMigrating && progress && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-blue-800">
+                  {progress.stage.replace('_', ' ').toUpperCase()}
+                </span>
+                <span className="text-sm text-blue-600">
+                  {progress.processedItems}/{progress.totalItems}
+                </span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(progress.processedItems / progress.totalItems) * 100}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-blue-700">
+                {progress.currentItem}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={handleDataMigration}
+              disabled={isMigrating}
+              className="flex flex-col items-center p-6 border-2 border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="text-3xl mb-3">🚀</div>
+              <h4 className="font-semibold text-gray-900 mb-1">Migrate to MongoDB</h4>
+              <p className="text-sm text-gray-600 text-center mb-3">
+                Move local data to cloud storage
+              </p>
+              <span className="px-4 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors">
+                {isMigrating ? 'Migrating...' : 'Start Migration'}
+              </span>
+            </button>
+
+            <button
+              onClick={handleCreateBackup}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all"
+            >
+              <div className="text-3xl mb-3">💾</div>
+              <h4 className="font-semibold text-gray-900 mb-1">Create Backup</h4>
+              <p className="text-sm text-gray-600 text-center mb-3">
+                Download local data backup
+              </p>
+              <span className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors">
+                Create Backup
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Export Options */}
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -205,7 +455,7 @@ const DataManagement: React.FC<DataManagementProps> = ({ onDataImported }) => {
         </div>
       )}
 
-      {/* Warning */}
+      {/* Important Notes */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -220,6 +470,13 @@ const DataManagement: React.FC<DataManagementProps> = ({ onDataImported }) => {
                 <li>Importing data will overwrite your current progress</li>
                 <li>Make sure to backup your current data before importing</li>
                 <li>Only import files that were exported from LinguaFlip</li>
+                {userId && (
+                  <>
+                    <li>MongoDB operations require an active internet connection</li>
+                    <li>Data migration is a one-time process - run it only once</li>
+                    <li>Create a backup before migrating to MongoDB</li>
+                  </>
+                )}
               </ul>
             </div>
           </div>

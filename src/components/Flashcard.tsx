@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useStore } from '@nanostores/react';
 import type { FlashcardData } from '@/types/index';
 import { useTouchGestures } from './TouchGestureHandler';
 import { useAudioSystem } from '@/hooks/useAudioSystem';
 import { useApp } from './AppProvider';
 import OptimizedImage from './OptimizedImage';
 import LoadingSpinner from './LoadingSpinner';
+import { flashcardsActions, flashcardsStore, flashcardsLoadingStore, flashcardsErrorStore } from '@/stores/flashcards';
+import { MiniSyncIndicator } from './SyncStatusIndicator';
 
 interface FlashcardProps {
-  cardData: FlashcardData;
-  isFlipped: boolean;
-  onFlip: () => void;
-  onNextCard?: () => void;
-  onPreviousCard?: () => void;
+   cardData: FlashcardData;
+   isFlipped: boolean;
+   onFlip: () => void;
+   onNextCard?: () => void;
+   onPreviousCard?: () => void;
+   userId?: string;
+   onCardUpdate?: (updatedCard: FlashcardData) => void;
+   onQualityResponse?: (quality: number) => Promise<void>;
 }
 
 const SpeakerIcon = () => (
@@ -21,15 +27,59 @@ const SpeakerIcon = () => (
 );
 
 const Flashcard: React.FC<FlashcardProps> = ({
-  cardData,
-  isFlipped,
-  onFlip,
-  onNextCard,
-  onPreviousCard
-}) => {
-  const { speak, isSpeaking } = useAudioSystem();
-  const { showError, showInfo, preferences } = useApp();
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+     cardData,
+     isFlipped,
+     onFlip,
+     onNextCard,
+     onPreviousCard,
+     userId,
+     onCardUpdate,
+     onQualityResponse
+ }) => {
+     const { speak, isSpeaking } = useAudioSystem();
+     const { showError, showInfo, preferences } = useApp();
+   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+   const [isUpdatingCard, setIsUpdatingCard] = useState(false);
+   const [qualityResponse, setQualityResponse] = useState<number | null>(null);
+
+   // Store subscriptions
+   const isLoading = useStore(flashcardsLoadingStore);
+   const error = useStore(flashcardsErrorStore);
+
+   // Handle card updates with MongoDB sync
+   const handleCardUpdate = async (updates: Partial<FlashcardData>) => {
+      if (!userId) return;
+
+      setIsUpdatingCard(true);
+      try {
+         const updatedCard = { ...cardData, ...updates };
+         await flashcardsActions.saveFlashcard(updatedCard, userId);
+         onCardUpdate?.(updatedCard);
+      } catch (error) {
+         console.error('Failed to update flashcard:', error);
+         showError('Error updating card', 'Failed to save changes to the server');
+      } finally {
+         setIsUpdatingCard(false);
+      }
+   };
+
+   // Handle quality response for SM-2 algorithm
+   const handleQualityResponse = async (quality: number) => {
+      if (!userId || !onQualityResponse) return;
+
+      setQualityResponse(quality);
+      try {
+         await onQualityResponse(quality);
+         // Update card with new SM-2 values
+         const updatedCard = { ...cardData, lastReviewed: new Date().toISOString() };
+         await handleCardUpdate(updatedCard);
+      } catch (error) {
+         console.error('Failed to process quality response:', error);
+         showError('Error processing response', 'Failed to update card difficulty');
+      } finally {
+         setQualityResponse(null);
+      }
+   };
 
   const handlePlaySound = async (event: React.MouseEvent, textToSpeak?: string) => {
     event.stopPropagation(); // Prevent card from flipping
@@ -98,6 +148,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
         ${preferences.highContrast ? 'high-contrast' : ''}
         ${preferences.largeText ? 'text-lg' : ''}
         ${preferences.reduceMotion ? 'motion-reduce' : ''}
+        ${isUpdatingCard ? 'opacity-75' : ''}
       `}
       onClick={onFlip}
       onTouchStart={touchGestures.onTouchStart}
@@ -121,6 +172,45 @@ const Flashcard: React.FC<FlashcardProps> = ({
       <div className="swipe-indicator md:hidden" aria-hidden="true">
         <span className="text-xs">👆 Toca para voltear • 👈👉 Desliza para navegar</span>
       </div>
+
+      {/* Sync status indicator */}
+      {userId && (
+        <div className="absolute top-2 right-2 z-10">
+          <MiniSyncIndicator userId={userId} className="text-xs" />
+        </div>
+      )}
+
+      {/* Loading overlay */}
+      {(isLoading || isUpdatingCard) && (
+        <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20 rounded-2xl">
+          <div className="bg-white/90 rounded-lg p-3 flex items-center space-x-2">
+            <LoadingSpinner size="sm" color="primary" />
+            <span className="text-sm text-gray-700">
+              {isUpdatingCard ? 'Updating card...' : 'Loading...'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Error display */}
+      {error && (
+        <div className="absolute top-2 left-2 right-2 z-10">
+          <div className="bg-red-100 border border-red-300 text-red-800 px-3 py-2 rounded-lg text-xs">
+            <div className="flex items-center justify-between">
+              <span>{error}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  flashcardsActions.clearError();
+                }}
+                className="text-red-600 hover:text-red-800 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`relative w-full h-full transform-style-preserve-3d transition-transform duration-700 ease-in-out ${
           isFlipped ? 'rotate-y-180' : ''
@@ -256,16 +346,64 @@ const Flashcard: React.FC<FlashcardProps> = ({
               )}
             </div>
 
-            {/* Footer Hint */}
-            <div className="mt-4 pt-4 border-t border-secondary-200/40 dark:border-secondary-700/40">
-              <div
-                className="flex items-center justify-center gap-2 text-sm font-medium text-secondary-600 dark:text-secondary-300"
-                aria-hidden="true"
-              >
-                <span className="animate-pulse">🔄</span>
-                <span>Haz clic para voltear de vuelta</span>
+            {/* Quality Response Controls for SM-2 Algorithm */}
+            {onQualityResponse && (
+              <div className="mt-4 pt-4 border-t border-secondary-200/40 dark:border-secondary-700/40">
+                <div className="text-center space-y-3">
+                  <div className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                    ¿Qué tan bien recordaste esta palabra?
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {[
+                      { value: 0, label: 'Otra vez', emoji: '😵', color: 'bg-red-100 text-red-800 hover:bg-red-200' },
+                      { value: 1, label: 'Difícil', emoji: '😰', color: 'bg-orange-100 text-orange-800 hover:bg-orange-200' },
+                      { value: 2, label: 'Buena', emoji: '😐', color: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' },
+                      { value: 3, label: 'Fácil', emoji: '😊', color: 'bg-green-100 text-green-800 hover:bg-green-200' },
+                      { value: 4, label: 'Muy fácil', emoji: '😄', color: 'bg-blue-100 text-blue-800 hover:bg-blue-200' }
+                    ].map(({ value, label, emoji, color }) => (
+                      <button
+                        key={value}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQualityResponse(value);
+                        }}
+                        disabled={qualityResponse !== null}
+                        className={`
+                          px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          ${color}
+                          ${qualityResponse === value ? 'ring-2 ring-primary-500 scale-105' : ''}
+                        `}
+                        aria-label={`Calidad de recuerdo: ${label}`}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>{emoji}</span>
+                          <span>{label}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {qualityResponse !== null && (
+                    <div className="text-xs text-secondary-500 animate-pulse">
+                      Procesando respuesta...
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Footer Hint */}
+            {!onQualityResponse && (
+              <div className="mt-4 pt-4 border-t border-secondary-200/40 dark:border-secondary-700/40">
+                <div
+                  className="flex items-center justify-center gap-2 text-sm font-medium text-secondary-600 dark:text-secondary-300"
+                  aria-hidden="true"
+                >
+                  <span className="animate-pulse">🔄</span>
+                  <span>Haz clic para voltear de vuelta</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

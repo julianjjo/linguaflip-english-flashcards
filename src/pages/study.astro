@@ -5,8 +5,7 @@ import Sidebar from '../components/Sidebar.astro';
 import Navigation from '../components/Navigation.astro';
 
 // Importar componentes React como islands de Astro
-import Flashcard from '@/components/Flashcard.tsx';
-import RecallQualityControls, { RecallQuality } from '@/components/RecallQualityControls.tsx';
+import StudyComponents from '@/components/StudyComponents.tsx';
 import TouchGestureHandler from '@/components/TouchGestureHandler.tsx';
 import AppProvider from '@/components/AppProvider.tsx';
 import ThemeToggle from '../components/ThemeToggle.tsx';
@@ -96,8 +95,7 @@ if (flashcardsStore.get().length === 0) {
     })
   } />
 
-  <AppProvider client:only="react">
-    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div class="flex">
         <!-- Main Content -->
         <main class="flex-1 p-6 lg:pl-72">
@@ -117,7 +115,7 @@ if (flashcardsStore.get().length === 0) {
               <!-- Session Controls -->
               <div class="flex items-center gap-3">
                 <!-- Theme Toggle -->
-                <ThemeToggle variant="icon" size="md" client:only="react" />
+                <ThemeToggle variant="icon" size="md" client:load />
 
                 <div class="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-sm border border-neutral-200 dark:border-gray-600">
                   <div class="text-sm text-neutral-600 dark:text-neutral-300">Progreso</div>
@@ -157,22 +155,12 @@ if (flashcardsStore.get().length === 0) {
 
             <!-- Study Content -->
             <div class="hidden" id="study-content">
-              <!-- Flashcard Container -->
-              <div class="mb-8" id="flashcard-container">
-                <div class="aspect-[4/3] max-w-2xl mx-auto">
-                  <!-- Astro Island: Flashcard Component -->
-                  <Flashcard
-                    cardData={sampleCards[0]}
-                    isFlipped={false}
-                    client:only="react"
-                  />
-                </div>
-              </div>
-
-              <!-- Recall Quality Controls -->
-              <div class="flex justify-center" id="quality-controls">
-                <RecallQualityControls client:only="react" />
-              </div>
+              <!-- Study Components Island -->
+              <StudyComponents
+                cardData={sampleCards[0]}
+                isFlipped={false}
+                client:only="react"
+              />
 
               <!-- Study Stats -->
               <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4" id="study-stats">
@@ -232,7 +220,6 @@ if (flashcardsStore.get().length === 0) {
         </main>
       </div>
     </div>
-  </AppProvider>
 
   <!-- Study Session Script - Simplified for Astro Islands -->
   <script>
@@ -320,9 +307,13 @@ if (flashcardsStore.get().length === 0) {
       }
 
       showStudyContent() {
-        document.getElementById('loading-state').classList.add('hidden');
-        document.getElementById('study-content').classList.remove('hidden');
-        document.getElementById('start-session-btn').style.display = 'none';
+        const loadingState = document.getElementById('loading-state');
+        const studyContent = document.getElementById('study-content');
+        const startBtn = document.getElementById('start-session-btn');
+        
+        if (loadingState) loadingState.classList.add('hidden');
+        if (studyContent) studyContent.classList.remove('hidden');
+        if (startBtn) startBtn.style.display = 'none';
       }
 
       updateProgress() {

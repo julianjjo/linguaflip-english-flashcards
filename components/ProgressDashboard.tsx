@@ -1,21 +1,24 @@
 import React from 'react';
-import { ProgressStats, LearningAnalytics, Achievement, DeckProgress, StudySession } from '../types';
+import type { ProgressStats, LearningAnalytics, Achievement, DeckProgress, StudySession } from '../types';
 import StudyHeatmap from './StudyHeatmap';
+import { MiniSyncIndicator } from '../src/components/SyncStatusIndicator';
 
 interface ProgressDashboardProps {
-  progressStats: ProgressStats;
-  learningAnalytics: LearningAnalytics;
-  achievements: Achievement[];
-  deckProgress: DeckProgress[];
-  studySessions: StudySession[];
+   progressStats: ProgressStats;
+   learningAnalytics: LearningAnalytics;
+   achievements: Achievement[];
+   deckProgress: DeckProgress[];
+   studySessions: StudySession[];
+   userId?: string;
 }
 
 const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
-  progressStats,
-  learningAnalytics,
-  achievements,
-  deckProgress,
-  studySessions,
+   progressStats,
+   learningAnalytics,
+   achievements,
+   deckProgress,
+   studySessions,
+   userId,
 }) => {
   const StatCard: React.FC<{ title: string; value: string | number; subtitle?: string; icon: string }> = ({
     title,
@@ -145,9 +148,14 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
+      <div className="text-center relative">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Progress Dashboard</h1>
         <p className="text-gray-600">Track your language learning journey</p>
+        {userId && (
+          <div className="absolute top-0 right-0">
+            <MiniSyncIndicator userId={userId} />
+          </div>
+        )}
       </div>
 
       {/* Statistics Cards */}

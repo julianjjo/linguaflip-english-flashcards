@@ -56,6 +56,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
         `}
         aria-label={getLabel()}
         title={getLabel()}
+        suppressHydrationWarning={true}
       >
         <span className="text-lg" role="img" aria-hidden="true">
           {getIcon()}
@@ -80,6 +81,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
         `}
         aria-label={getLabel()}
         title={getLabel()}
+        suppressHydrationWarning={true}
       >
         <span className="text-xl" role="img" aria-hidden="true">
           {getIcon()}
@@ -105,6 +107,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
       `}
       aria-label={getLabel()}
       title={getLabel()}
+      suppressHydrationWarning={true}
     >
       <span className="text-lg" role="img" aria-hidden="true">
         {getIcon()}

@@ -68,7 +68,7 @@ class TestConfig {
         return this.config.DEV_BASE_URL || 'http://localhost:5173';
       case 'test':
       default:
-        return this.config.TEST_BASE_URL || 'http://localhost:5174';
+        return this.config.TEST_BASE_URL || 'http://localhost:4321';
     }
   }
 
@@ -123,7 +123,7 @@ class TestConfig {
   getDefaultConfig() {
     return {
       NODE_ENV: 'test',
-      TEST_BASE_URL: 'http://localhost:5174',
+      TEST_BASE_URL: 'http://localhost:4321',
       TEST_TIMEOUT: '30000',
       TEST_PAGE_LOAD_TIMEOUT: '10000',
       TEST_ELEMENT_WAIT_TIMEOUT: '5000',
@@ -159,7 +159,7 @@ class TestConfig {
       case 'test':
       default:
         return {
-          port: parseInt(this.config.TEST_PORT) || 5174,
+          port: parseInt(this.config.TEST_PORT) || 4321,
           host: this.config.TEST_HOST || 'localhost'
         };
     }

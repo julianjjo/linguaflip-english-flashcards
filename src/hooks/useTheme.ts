@@ -14,22 +14,11 @@ interface UseThemeReturn {
 const THEME_STORAGE_KEY = 'linguaflip-theme';
 
 export const useTheme = (): UseThemeReturn => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    // Initialize from localStorage or default to 'auto'
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      return (stored as Theme) || 'auto';
-    }
-    return 'auto';
-  });
+  const [theme, setThemeState] = useState<Theme>('auto');
 
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
-    // Get system theme
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
-  });
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
+
+  const [mounted, setMounted] = useState(false);
 
   // Listen for system theme changes
   useEffect(() => {
@@ -41,6 +30,20 @@ export const useTheme = (): UseThemeReturn => {
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Handle mounting and localStorage sync
+  useEffect(() => {
+    setMounted(true);
+
+    // Read theme from localStorage
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored && (stored === 'light' || stored === 'dark' || stored === 'auto')) {
+      setThemeState(stored as Theme);
+    }
+
+    // Read system theme
+    setSystemTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   }, []);
 
   // Resolve actual theme

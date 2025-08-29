@@ -71,9 +71,17 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 export const useUserPreferences = (): UseUserPreferencesReturn => {
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isLoading, setIsLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load preferences from localStorage on mount
+  // Load preferences from localStorage on mount (client-side only)
   useEffect(() => {
+    // Ensure we're on the client side to prevent hydration mismatches
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      setIsHydrated(true);
+      return;
+    }
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -85,19 +93,20 @@ export const useUserPreferences = (): UseUserPreferencesReturn => {
       console.warn('Failed to load user preferences:', error);
     } finally {
       setIsLoading(false);
+      setIsHydrated(true);
     }
   }, []);
 
-  // Save preferences to localStorage whenever they change
+  // Save preferences to localStorage whenever they change (client-side only)
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && isHydrated && typeof window !== 'undefined') {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
       } catch (error) {
         console.warn('Failed to save user preferences:', error);
       }
     }
-  }, [preferences, isLoading]);
+  }, [preferences, isLoading, isHydrated]);
 
   const updatePreference = useCallback(<K extends keyof UserPreferences>(
     key: K,

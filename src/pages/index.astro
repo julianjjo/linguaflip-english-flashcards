@@ -89,14 +89,14 @@ import AppProvider from '../components/AppProvider.tsx';
     })
   } />
 
-  <AppProvider client:only="react">
-    <main class="min-h-screen flex flex-col items-center justify-center p-8 relative">
+  <AppProvider client:load>
+    <main class="min-h-screen flex flex-col items-center justify-center p-8 relative" style="background: white; color: black;">
       <!-- Theme Toggle - Fixed position -->
       <div class="absolute top-8 right-8 z-10">
         <ThemeToggle variant="icon" size="md" client:load />
       </div>
 
-    <div class="max-w-4xl mx-auto text-center">
+    <div class="max-w-4xl mx-auto text-center" style="border: 2px solid red; padding: 20px; margin: 20px;">
       <!-- Hero Section -->
       <div class="mb-12">
         <h1 class="text-6xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent mb-6">
