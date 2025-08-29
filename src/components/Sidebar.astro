@@ -1,0 +1,71 @@
+---
+const currentPath = Astro.url.pathname;
+---
+
+<div class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-neutral-200 transform md:translate-x-0 md:static md:inset-0 transition-transform duration-300 ease-in-out">
+  <div class="flex flex-col h-full">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-neutral-200">
+      <h2 class="text-lg font-semibold text-neutral-900">Navigation</h2>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-4 py-6 space-y-2">
+      <a
+        href="/dashboard"
+        class={`w-full flex items-center px-4 py-4 text-base font-medium rounded-lg transition-colors duration-200 ${
+          currentPath === '/dashboard' || currentPath.startsWith('/dashboard')
+            ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-600'
+            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+        }`}
+      >
+        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+        </svg>
+        Dashboard
+      </a>
+
+      <a
+        href="/study"
+        class={`w-full flex items-center px-4 py-4 text-base font-medium rounded-lg transition-colors duration-200 ${
+          currentPath === '/study' || currentPath.startsWith('/study')
+            ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-600'
+            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+        }`}
+      >
+        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        Estudiar
+      </a>
+
+      <a
+        href="/data"
+        class={`w-full flex items-center px-4 py-4 text-base font-medium rounded-lg transition-colors duration-200 ${
+          currentPath === '/data' || currentPath.startsWith('/data')
+            ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-600'
+            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+        }`}
+      >
+        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Datos
+      </a>
+
+      <a
+        href="/settings"
+        class={`w-full flex items-center px-4 py-4 text-base font-medium rounded-lg transition-colors duration-200 ${
+          currentPath === '/settings' || currentPath.startsWith('/settings')
+            ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-600'
+            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+        }`}
+      >
+        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        </svg>
+        Configuración
+      </a>
+    </nav>
+  </div>
+</div>

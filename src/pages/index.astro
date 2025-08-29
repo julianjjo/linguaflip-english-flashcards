@@ -1,0 +1,163 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ThemeToggle from '../components/ThemeToggle.tsx';
+import AppProvider from '../components/AppProvider.tsx';
+---
+
+<MainLayout title="LinguaFlip - Aprende Inglés con Flashcards">
+  <!-- Enhanced SEO Meta Tags -->
+  <meta name="description" content="Aprende inglés de manera inteligente con flashcards basados en repetición espaciada y IA. Mejora tu vocabulario con nuestro sistema de estudio personalizado." />
+  <meta name="keywords" content="ingles, flashcards, aprendizaje, repetición espaciada, vocabulario, IA, educación, estudio" />
+  <meta name="author" content="LinguaFlip" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="Spanish" />
+  <meta name="revisit-after" content="7 days" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://linguaflip.app/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://linguaflip.app/" />
+  <meta property="og:title" content="LinguaFlip - Aprende Inglés con Flashcards Inteligentes" />
+  <meta property="og:description" content="Sistema de aprendizaje de inglés revolucionario con IA y repetición espaciada. Mejora tu vocabulario de forma eficiente." />
+  <meta property="og:image" content="https://linguaflip.app/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:site_name" content="LinguaFlip" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://linguaflip.app/" />
+  <meta name="twitter:title" content="LinguaFlip - Aprende Inglés con Flashcards Inteligentes" />
+  <meta name="twitter:description" content="Sistema de aprendizaje de inglés revolucionario con IA y repetición espaciada." />
+  <meta name="twitter:image" content="https://linguaflip.app/twitter-image.jpg" />
+
+  <!-- Additional Meta Tags -->
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="msapplication-TileColor" content="#0ea5e9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="LinguaFlip" />
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json" set:html={
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LinguaFlip",
+      "description": "Aplicación web para aprender inglés con flashcards inteligentes y repetición espaciada",
+      "url": "https://linguaflip.app",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "softwareVersion": "1.0.0",
+      "author": {
+        "@type": "Organization",
+        "name": "LinguaFlip"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "Flashcards inteligentes con IA",
+        "Sistema de repetición espaciada",
+        "Seguimiento de progreso",
+        "Interfaz adaptativa móvil",
+        "Estadísticas detalladas"
+      ],
+      "screenshot": "https://linguaflip.app/screenshot.jpg"
+    })
+  } />
+
+  <!-- Breadcrumbs Schema -->
+  <script type="application/ld+json" set:html={
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Inicio",
+          "item": "https://linguaflip.app"
+        }
+      ]
+    })
+  } />
+
+  <AppProvider client:only="react">
+    <main class="min-h-screen flex flex-col items-center justify-center p-8 relative">
+      <!-- Theme Toggle - Fixed position -->
+      <div class="absolute top-8 right-8 z-10">
+        <ThemeToggle variant="icon" size="md" client:load />
+      </div>
+
+    <div class="max-w-4xl mx-auto text-center">
+      <!-- Hero Section -->
+      <div class="mb-12">
+        <h1 class="text-6xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent mb-6">
+          LinguaFlip
+        </h1>
+        <p class="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
+          Aprende inglés de manera inteligente con nuestro sistema de flashcards
+          basado en repetición espaciada y tecnología de IA.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="/study"
+            class="inline-flex items-center px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            Comenzar a Estudiar
+            <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+          <a
+            href="/dashboard"
+            class="inline-flex items-center px-8 py-4 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-semibold rounded-xl transition-all duration-200"
+          >
+            Ver Progreso
+          </a>
+        </div>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="grid md:grid-cols-3 gap-8 mb-12">
+        <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+          <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-neutral-800 mb-2">IA Inteligente</h3>
+          <p class="text-neutral-600">Genera flashcards personalizadas con tecnología de IA avanzada</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+          <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+            <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-neutral-800 mb-2">Repetición Espaciada</h3>
+          <p class="text-neutral-600">Algoritmo científico que optimiza tu tiempo de estudio</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+          <div class="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+            <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-neutral-800 mb-2">Seguimiento Avanzado</h3>
+          <p class="text-neutral-600">Analíticas detalladas de tu progreso de aprendizaje</p>
+        </div>
+        </div>
+      </div>
+    </main>
+  </AppProvider>
+</MainLayout>

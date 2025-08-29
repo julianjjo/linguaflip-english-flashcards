@@ -1,0 +1,456 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+// Importar componentes React
+import DataManagement from '../../components/DataManagement.tsx';
+import ThemeToggle from '../components/ThemeToggle.tsx';
+import AppProvider from '../components/AppProvider.tsx';
+
+// Importar stores para datos
+import { flashcardsStore } from '../stores/flashcards.ts';
+import { studyHistoryStore } from '../stores/study.ts';
+---
+
+<MainLayout
+  title="Gestión de Datos - LinguaFlip"
+  description="Gestiona tus datos de aprendizaje: exporta, importa y realiza copias de seguridad de tu progreso en el estudio de inglés"
+>
+  <!-- SEO Meta Tags -->
+  <meta property="og:title" content="Gestión de Datos - LinguaFlip" />
+  <meta property="og:description" content="Exporta e importa tus datos de aprendizaje de inglés" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Gestión de Datos - LinguaFlip" />
+  <meta name="twitter:description" content="Backup y restauración de datos de estudio" />
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json" set:html={
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LinguaFlip Data Management",
+      "description": "Herramientas para gestionar y respaldar datos de aprendizaje",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "featureList": [
+        "Exportación de datos",
+        "Importación de datos",
+        "Copia de seguridad",
+        "Restauración de progreso"
+      ]
+    })
+  } />
+
+  <AppProvider client:only="react">
+    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <div class="flex">
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:pl-72">
+          <div class="max-w-4xl mx-auto">
+          <!-- Page Header -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h1 class="text-3xl font-bold text-neutral-900 mb-2">
+                  Gestión de Datos
+                </h1>
+                <p class="text-neutral-600">
+                  Exporta, importa y realiza copias de seguridad de tu progreso
+                </p>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <!-- Theme Toggle -->
+                <ThemeToggle variant="icon" size="md" client:load />
+
+                <div class="bg-white rounded-lg px-4 py-2 shadow-sm border border-neutral-200">
+                  <div class="text-sm text-neutral-600">Última actividad</div>
+                  <div class="text-sm font-medium text-primary-600" id="last-activity">
+                    Hoy
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Total Flashcards -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-neutral-600">Total de Tarjetas</p>
+                  <p class="text-2xl font-bold text-primary-600" id="total-cards">0</p>
+                </div>
+                <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Study Sessions -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-neutral-600">Sesiones de Estudio</p>
+                  <p class="text-2xl font-bold text-secondary-600" id="total-sessions">0</p>
+                </div>
+                <div class="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Size -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-neutral-600">Tamaño de Datos</p>
+                  <p class="text-2xl font-bold text-accent-600" id="data-size">0 KB</p>
+                </div>
+                <div class="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Last Backup -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-neutral-600">Último Backup</p>
+                  <p class="text-2xl font-bold text-success-600" id="last-backup">Nunca</p>
+                </div>
+                <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Management Component -->
+          <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <div id="data-management-container">
+              <!-- DataManagement component will be rendered here -->
+            </div>
+          </div>
+
+          <!-- Storage Information -->
+          <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h3 class="text-xl font-bold text-neutral-900 mb-6">Información de Almacenamiento</h3>
+
+            <div class="space-y-6">
+              <!-- Local Storage -->
+              <div class="border border-neutral-200 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 class="font-semibold text-neutral-900">Almacenamiento Local</h4>
+                    <p class="text-sm text-neutral-600">Datos guardados en tu navegador</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 bg-success-100 text-success-700 text-xs font-medium rounded-full">
+                      Activo
+                    </span>
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-neutral-600">Uso actual:</span>
+                    <span class="font-medium text-neutral-900" id="local-storage-usage">Calculando...</span>
+                  </div>
+                  <div class="w-full bg-neutral-200 rounded-full h-2">
+                    <div class="bg-primary-500 h-2 rounded-full transition-all duration-300" id="local-storage-bar" style="width: 0%"></div>
+                  </div>
+                  <p class="text-xs text-neutral-500">
+                    Los datos se guardan automáticamente en tu navegador
+                  </p>
+                </div>
+              </div>
+
+              <!-- Cloud Backup -->
+              <div class="border border-neutral-200 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 class="font-semibold text-neutral-900">Copia de Seguridad en la Nube</h4>
+                    <p class="text-sm text-neutral-600">Sincronización automática (Próximamente)</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs font-medium rounded-full">
+                      Próximamente
+                    </span>
+                  </div>
+                </div>
+
+                <p class="text-sm text-neutral-600 mb-4">
+                  En futuras versiones podrás sincronizar tus datos automáticamente con la nube
+                  para acceder desde cualquier dispositivo.
+                </p>
+
+                <div class="flex items-center gap-3">
+                  <div class="flex-1 bg-neutral-100 rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.9" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span class="text-sm text-neutral-600">Sincronización automática</span>
+                    </div>
+                  </div>
+                  <div class="flex-1 bg-neutral-100 rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span class="text-sm text-neutral-600">Acceso multidispositivo</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Privacy -->
+          <div class="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-8">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-neutral-900 mb-2">Privacidad y Seguridad</h3>
+                <div class="text-sm text-neutral-600 space-y-2">
+                  <p>
+                    <strong>Tus datos son tuyos:</strong> Toda la información se almacena localmente en tu dispositivo.
+                    No enviamos datos a servidores externos sin tu consentimiento.
+                  </p>
+                  <p>
+                    <strong>Copias de seguridad:</strong> Te recomendamos exportar regularmente tus datos
+                    para evitar pérdida de progreso.
+                  </p>
+                  <p>
+                    <strong>Anonimato:</strong> No recopilamos información personal identificable.
+                    Tu aprendizaje permanece privado.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </AppProvider>
+
+  <!-- Data Management Script -->
+  <script>
+    import { flashcardsStore } from '../stores/flashcards.ts';
+    import { studyHistoryStore } from '../stores/study.ts';
+    import DataManagement from '../../components/DataManagement.tsx';
+    import { createRoot } from 'react-dom/client';
+
+    class DataPageManager {
+      constructor() {
+        this.init();
+      }
+
+      init() {
+        this.loadStats();
+        this.renderDataManagement();
+        this.setupStorageMonitoring();
+      }
+
+      loadStats() {
+        const flashcards = flashcardsStore.get();
+        const sessions = studyHistoryStore.get();
+
+        // Update stats display
+        document.getElementById('total-cards').textContent = flashcards.length.toString();
+        document.getElementById('total-sessions').textContent = sessions.length.toString();
+
+        // Calculate data size
+        const flashcardsSize = JSON.stringify(flashcards).length;
+        const sessionsSize = JSON.stringify(sessions).length;
+        const totalSize = flashcardsSize + sessionsSize;
+        const sizeInKB = Math.round(totalSize / 1024);
+        document.getElementById('data-size').textContent = `${sizeInKB} KB`;
+
+        // Update last activity
+        if (sessions.length > 0) {
+          const lastSession = sessions.sort((a, b) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          )[0];
+          const lastActivity = new Date(lastSession.date);
+          const today = new Date();
+
+          if (lastActivity.toDateString() === today.toDateString()) {
+            document.getElementById('last-activity').textContent = 'Hoy';
+          } else if (lastActivity.toDateString() === new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString()) {
+            document.getElementById('last-activity').textContent = 'Ayer';
+          } else {
+            document.getElementById('last-activity').textContent = lastActivity.toLocaleDateString('es-ES');
+          }
+        }
+
+        // Update last backup (simulated)
+        const lastBackup = localStorage.getItem('linguaflip_last_backup');
+        if (lastBackup) {
+          document.getElementById('last-backup').textContent = new Date(lastBackup).toLocaleDateString('es-ES');
+        }
+      }
+
+      renderDataManagement() {
+        const container = document.getElementById('data-management-container');
+        if (!container) return;
+
+        // Clear previous content
+        container.innerHTML = '';
+
+        // Create React root and render DataManagement
+        const root = createRoot(container);
+        root.render(
+          React.createElement(DataManagement, {
+            onDataImported: () => this.handleDataImported()
+          })
+        );
+      }
+
+      handleDataImported() {
+        // Reload stats after import
+        this.loadStats();
+
+        // Show success message
+        this.showNotification('Datos importados correctamente', 'success');
+      }
+
+      setupStorageMonitoring() {
+        // Monitor localStorage usage
+        this.updateStorageUsage();
+
+        // Update storage info periodically
+        setInterval(() => {
+          this.updateStorageUsage();
+        }, 30000);
+      }
+
+      updateStorageUsage() {
+        try {
+          // Calculate localStorage usage (approximate)
+          let totalSize = 0;
+          for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+              totalSize += localStorage[key].length + key.length;
+            }
+          }
+
+          const usageInKB = Math.round(totalSize / 1024);
+          const maxSize = 5120; // 5MB typical localStorage limit
+          const usagePercent = Math.min((usageInKB / maxSize) * 100, 100);
+
+          document.getElementById('local-storage-usage').textContent = `${usageInKB} KB / ${maxSize} KB`;
+          document.getElementById('local-storage-bar').style.width = `${usagePercent}%`;
+        } catch (error) {
+          console.warn('Could not calculate storage usage:', error);
+        }
+      }
+
+      showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+          type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+          type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
+          'bg-blue-50 border border-blue-200 text-blue-800'
+        }`;
+
+        notification.innerHTML = `
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="${
+                  type === 'success'
+                    ? 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z'
+                    : 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                }" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium">${message}</p>
+            </div>
+            <div class="ml-auto pl-3">
+              <button onclick="this.parentElement.parentElement.parentElement.remove()" class="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          if (notification.parentElement) {
+            notification.remove();
+          }
+        }, 5000);
+      }
+    }
+
+    // Initialize data page when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      new DataPageManager();
+    });
+  </script>
+
+  <style>
+    /* Custom styles for the data management page */
+    .data-card {
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .data-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Storage bar animation */
+    #local-storage-bar {
+      transition: width 0.3s ease-in-out;
+    }
+
+    /* Notification animations */
+    .notification-enter {
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .grid-cols-1.md\\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</MainLayout>

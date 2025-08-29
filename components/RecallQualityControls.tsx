@@ -25,7 +25,7 @@ const RecallQualityControls: React.FC<RecallQualityControlsProps> = ({ onRate })
         <button
           key={label}
           onClick={() => onRate(quality)}
-          className={`p-3 rounded-lg font-semibold ${textColor} ${color} transition-colors duration-200 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 focus:ring-offset-2 focus:ring-offset-slate-200`}
+          className={`touch-target p-4 rounded-lg font-semibold text-base ${textColor} ${color} transition-all duration-200 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 focus:ring-offset-2 focus:ring-offset-slate-200 touch-feedback focus-mobile`}
           aria-label={`Rate recall as ${label}`}
         >
           {label}

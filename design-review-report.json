@@ -1,0 +1,117 @@
+{
+  "timestamp": "2025-08-29T12:11:19.991Z",
+  "url": "http://localhost:5173",
+  "deviceTests": {
+    "desktop": {
+      "success": true,
+      "screenshot": "device-desktop-1756469487031.png",
+      "elements": {
+        "header": true,
+        "sidebar": true,
+        "main": true,
+        "flashcard": false,
+        "dashboard": false
+      },
+      "config": {
+        "width": 1920,
+        "height": 1080,
+        "deviceScaleFactor": 1
+      }
+    },
+    "laptop": {
+      "success": true,
+      "screenshot": "device-laptop-1756469489990.png",
+      "elements": {
+        "header": true,
+        "sidebar": true,
+        "main": true,
+        "flashcard": false,
+        "dashboard": false
+      },
+      "config": {
+        "width": 1366,
+        "height": 768,
+        "deviceScaleFactor": 1
+      }
+    },
+    "tablet": {
+      "success": true,
+      "screenshot": "device-tablet-1756469492904.png",
+      "elements": {
+        "header": true,
+        "sidebar": true,
+        "main": true,
+        "flashcard": false,
+        "dashboard": false
+      },
+      "config": {
+        "width": 768,
+        "height": 1024,
+        "deviceScaleFactor": 1
+      }
+    },
+    "mobile": {
+      "success": true,
+      "screenshot": "device-mobile-1756469495785.png",
+      "elements": {
+        "header": true,
+        "sidebar": true,
+        "main": true,
+        "flashcard": false,
+        "dashboard": false
+      },
+      "config": {
+        "width": 375,
+        "height": 667,
+        "deviceScaleFactor": 2
+      }
+    }
+  },
+  "componentTests": {
+    "criticalElements": {
+      "header": true,
+      "sidebar": true,
+      "main": true,
+      "flashcard": false,
+      "dashboard": false
+    },
+    "styling": {
+      "hasTailwind": false,
+      "hasCustomCSS": true,
+      "bodyStyles": {
+        "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+        "backgroundColor": "rgb(241, 245, 249)",
+        "color": "rgb(0, 0, 0)",
+        "fontSize": "16px"
+      },
+      "responsiveClasses": true
+    },
+    "layout": {
+      "hasGrid": true,
+      "hasFlexbox": true,
+      "spacing": {
+        "margin": "0px",
+        "padding": "0px",
+        "lineHeight": "24px"
+      },
+      "alignment": {}
+    }
+  },
+  "responsiveTests": {},
+  "interactionTests": {
+    "elements": {
+      "buttons": 14,
+      "inputs": 0,
+      "links": 5,
+      "clickableElements": 0,
+      "forms": 0
+    }
+  },
+  "overallStatus": "success",
+  "summary": {
+    "totalDevices": 4,
+    "successfulDevices": 4,
+    "totalComponents": 3,
+    "screenshotsGenerated": 5
+  }
+}

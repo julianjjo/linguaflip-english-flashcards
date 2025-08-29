@@ -1,0 +1,149 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Aprende inglés con flashcards inteligentes" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <!-- Import global CSS with Tailwind -->
+    <link rel="stylesheet" href="/src/index.css" />
+
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Global CSS -->
+    <style is:global>
+      :root {
+        --color-primary-50: #f0f9ff;
+        --color-primary-100: #e0f2fe;
+        --color-primary-200: #bae6fd;
+        --color-primary-300: #7dd3fc;
+        --color-primary-400: #38bdf8;
+        --color-primary-500: #0ea5e9;
+        --color-primary-600: #0284c7;
+        --color-primary-700: #0369a1;
+        --color-primary-800: #075985;
+        --color-primary-900: #0c4a6e;
+        --color-primary-950: #082f49;
+
+        --color-secondary-50: #f8fafc;
+        --color-secondary-100: #f1f5f9;
+        --color-secondary-200: #e2e8f0;
+        --color-secondary-300: #cbd5e1;
+        --color-secondary-400: #94a3b8;
+        --color-secondary-500: #64748b;
+        --color-secondary-600: #475569;
+        --color-secondary-700: #334155;
+        --color-secondary-800: #1e293b;
+        --color-secondary-900: #0f172a;
+        --color-secondary-950: #020617;
+
+        --color-accent-50: #fef3c7;
+        --color-accent-100: #fde68a;
+        --color-accent-200: #fcd34d;
+        --color-accent-300: #fbbf24;
+        --color-accent-400: #f59e0b;
+        --color-accent-500: #d97706;
+        --color-accent-600: #b45309;
+        --color-accent-700: #92400e;
+        --color-accent-800: #78350f;
+        --color-accent-900: #451a03;
+        --color-accent-950: #271000;
+
+        --color-neutral-50: #fafafa;
+        --color-neutral-100: #f5f5f5;
+        --color-neutral-200: #e5e5e5;
+        --color-neutral-300: #d4d4d4;
+        --color-neutral-400: #9ca3af;
+        --color-neutral-500: #6b7280;
+        --color-neutral-600: #4b5563;
+        --color-neutral-700: #374151;
+        --color-neutral-800: #1f2937;
+        --color-neutral-900: #111827;
+        --color-neutral-950: #030712;
+
+        --color-success-50: #f0fdf4;
+        --color-success-100: #dcfce7;
+        --color-success-200: #bbf7d0;
+        --color-success-300: #86efac;
+        --color-success-400: #4ade80;
+        --color-success-500: #22c55e;
+        --color-success-600: #16a34a;
+        --color-success-700: #15803d;
+        --color-success-800: #166534;
+        --color-success-900: #14532d;
+        --color-success-950: #052e16;
+
+        --color-warning-50: #fffbeb;
+        --color-warning-100: #fef3c7;
+        --color-warning-200: #fde68a;
+        --color-warning-300: #fcd34d;
+        --color-warning-400: #fbbf24;
+        --color-warning-500: #f59e0b;
+        --color-warning-600: #d97706;
+        --color-warning-700: #b45309;
+        --color-warning-800: #92400e;
+        --color-warning-900: #78350f;
+        --color-warning-950: #451a03;
+
+        --color-error-50: #fef2f2;
+        --color-error-100: #fee2e2;
+        --color-error-200: #fecaca;
+        --color-error-300: #fca5a5;
+        --color-error-400: #f87171;
+        --color-error-500: #ef4444;
+        --color-error-600: #dc2626;
+        --color-error-700: #b91c1c;
+        --color-error-800: #991b1b;
+        --color-error-900: #7f1d1d;
+        --color-error-950: #450a0a;
+
+        --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+        --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-700));
+        --gradient-accent: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
+        --gradient-success: linear-gradient(135deg, var(--color-success-500), var(--color-success-700));
+        --gradient-background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-neutral-100) 50%, var(--color-secondary-50) 100%);
+        --gradient-card-front: linear-gradient(145deg, var(--color-neutral-50) 0%, var(--color-primary-100) 100%);
+        --gradient-card-back: linear-gradient(145deg, var(--color-neutral-50) 0%, var(--color-secondary-100) 100%);
+
+        --shadow-glow-primary: 0 0 20px rgba(14, 165, 233, 0.3);
+        --shadow-glow-secondary: 0 0 20px rgba(100, 116, 139, 0.2);
+
+        --radius-3xl: 1.5rem;
+        --font-size-6xl: 3.75rem;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        font-family: system-ui, sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: var(--gradient-background);
+      }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
