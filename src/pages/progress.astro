@@ -1,0 +1,214 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import ThemeToggle from '../components/ThemeToggle.tsx';
+import AppProvider from '../components/AppProvider.tsx';
+---
+
+<MainLayout
+  title="Progreso de Estudio - LinguaFlip"
+  description="Revisa tus estadísticas de aprendizaje, racha de estudio y progreso general"
+>
+  <!-- SEO Meta Tags -->
+  <meta property="og:title" content="Progreso de Estudio - LinguaFlip" />
+  <meta property="og:description" content="Analiza tu progreso de aprendizaje de inglés" />
+  <meta property="og:type" content="website" />
+
+  <AppProvider client:only="react">
+    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <div class="flex">
+        <!-- Sidebar -->
+        <Sidebar currentPath="/progress" client:load />
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:pl-72">
+          <div class="max-w-6xl mx-auto">
+            <!-- Page Header -->
+            <div class="mb-8">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h1 class="text-3xl font-bold text-neutral-900 mb-2">
+                    Progreso de Estudio
+                  </h1>
+                  <p class="text-neutral-600">
+                    Analiza tu rendimiento y mantén tu racha de aprendizaje
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <!-- Theme Toggle -->
+                  <ThemeToggle variant="icon" size="md" client:load />
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <!-- Current Streak -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-neutral-600">Racha Actual</p>
+                    <p class="text-3xl font-bold text-orange-600" id="current-streak">7</p>
+                    <p class="text-xs text-neutral-500">días consecutivos</p>
+                  </div>
+                  <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total Study Time -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-neutral-600">Tiempo Total</p>
+                    <p class="text-3xl font-bold text-blue-600" id="total-time">24.5</p>
+                    <p class="text-xs text-neutral-500">horas estudiadas</p>
+                  </div>
+                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cards Reviewed -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-neutral-600">Tarjetas Revisadas</p>
+                    <p class="text-3xl font-bold text-green-600" id="cards-reviewed">1,247</p>
+                    <p class="text-xs text-neutral-500">esta semana</p>
+                  </div>
+                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accuracy Rate -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-neutral-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-neutral-600">Precisión</p>
+                    <p class="text-3xl font-bold text-purple-600" id="accuracy-rate">87%</p>
+                    <p class="text-xs text-neutral-500">respuestas correctas</p>
+                  </div>
+                  <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Study Heatmap -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 class="text-xl font-bold text-neutral-900 mb-6">Mapa de Calor de Estudio</h2>
+              <div class="bg-neutral-50 rounded-lg p-6 text-center">
+                <div class="text-neutral-500 mb-4">
+                  <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p>Mapa de calor próximamente</p>
+                  <p class="text-sm">Visualiza tus patrones de estudio por día</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 class="text-xl font-bold text-neutral-900 mb-6">Rendimiento por Semana</h2>
+              <div class="bg-neutral-50 rounded-lg p-6 text-center">
+                <div class="text-neutral-500 mb-4">
+                  <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <p>Gráfico de rendimiento próximamente</p>
+                  <p class="text-sm">Sigue tu progreso de precisión y tiempo de estudio</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Sessions -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+              <h2 class="text-xl font-bold text-neutral-900 mb-6">Sesiones Recientes</h2>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 border border-neutral-200 rounded-lg">
+                  <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-medium text-neutral-900">Sesión de vocabulario básico</p>
+                      <p class="text-sm text-neutral-600">Hace 2 horas • 25 tarjetas • 87% precisión</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-green-600">Completada</p>
+                    <p class="text-xs text-neutral-500">15 min</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-neutral-200 rounded-lg">
+                  <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-medium text-neutral-900">Repaso de gramática</p>
+                      <p class="text-sm text-neutral-600">Ayer • 18 tarjetas • 92% precisión</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-green-600">Completada</p>
+                    <p class="text-xs text-neutral-500">12 min</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-neutral-200 rounded-lg">
+                  <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-medium text-neutral-900">Vocabulario avanzado</p>
+                      <p class="text-sm text-neutral-600">Hace 3 días • 32 tarjetas • 78% precisión</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-green-600">Completada</p>
+                    <p class="text-xs text-neutral-500">22 min</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 text-center">
+                <a href="/study" class="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors duration-200">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Nueva Sesión de Estudio
+                </a>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </AppProvider>
+</MainLayout>
