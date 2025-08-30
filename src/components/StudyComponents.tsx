@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider } from './AppProvider';
 import Flashcard from './Flashcard';
 import RecallQualityControls, { RecallQuality } from './RecallQualityControls';
@@ -18,8 +18,8 @@ interface StudyComponentsProps {
 
 const StudyComponents: React.FC<StudyComponentsProps> = ({
   cardData,
-  isFlipped = false,
-  onFlip = () => {},
+  isFlipped: initialFlipped = false,
+  onFlip,
   onNextCard,
   onPreviousCard,
   userId,
@@ -27,16 +27,44 @@ const StudyComponents: React.FC<StudyComponentsProps> = ({
   onQualityResponse,
   onRate = (quality) => console.log('Quality rated:', quality)
 }) => {
+  // Internal flip state management
+  const [isFlipped, setIsFlipped] = useState(initialFlipped);
+  const [isDark, setIsDark] = useState(false);
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark') || 
+                        document.body.classList.contains('dark') ||
+                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDark(isDarkMode);
+    };
+
+    checkDarkMode();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Handle flip with optional external handler
+  const handleFlip = () => {
+    setIsFlipped(prev => !prev);
+    onFlip?.();
+  };
   return (
     <AppProvider>
-      <div className="study-components">
+      <div className={`study-components ${isDark ? 'dark' : ''}`}>
         {/* Flashcard Container */}
         <div className="mb-8" id="flashcard-container">
           <div className="aspect-[4/3] max-w-2xl mx-auto">
             <Flashcard
               cardData={cardData}
               isFlipped={isFlipped}
-              onFlip={onFlip}
+              onFlip={handleFlip}
               onNextCard={onNextCard}
               onPreviousCard={onPreviousCard}
               userId={userId}

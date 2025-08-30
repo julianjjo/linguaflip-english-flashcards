@@ -217,7 +217,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
         }`}
       >
         {/* Front Face */}
-        <div className="card-front absolute inset-0 w-full h-full rounded-2xl shadow-xl p-mobile flex flex-col items-center justify-center backface-hidden group-hover:shadow-glow-primary transition-all duration-300 hover:scale-[1.02] border border-primary-200/50 dark:border-primary-700/50">
+        <div className="card-front absolute inset-0 w-full h-full rounded-2xl shadow-xl p-mobile flex flex-col items-center justify-center backface-hidden group-hover:shadow-glow-primary transition-shadow duration-300 border border-primary-200/50 dark:border-primary-700/50 bg-white dark:bg-gray-800">
           <div className="flex flex-col items-center space-mobile-y text-center">
             <div className="flex items-start gap-3">
               <h2 className="text-mobile-2xl md:text-6xl font-extrabold text-primary-800 dark:text-primary-200 leading-tight tracking-tight break-words animate-fade-in">
@@ -256,7 +256,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
         </div>
 
         {/* Back Face */}
-        <div className="card-back absolute inset-0 w-full h-full rounded-2xl shadow-xl p-mobile flex flex-col backface-hidden rotate-y-180 group-hover:shadow-glow-secondary transition-all duration-300 hover:scale-[1.02] border border-secondary-200/50 dark:border-secondary-700/50 overflow-hidden">
+        <div className="card-back absolute inset-0 w-full h-full rounded-2xl shadow-xl p-mobile flex flex-col backface-hidden rotate-y-180 group-hover:shadow-glow-secondary transition-shadow duration-300 border border-secondary-200/50 dark:border-secondary-700/50 overflow-hidden bg-white dark:bg-gray-800">
           <div className="flex flex-col h-full">
             {/* Header Section */}
             <div className="flex items-start justify-between mb-6">
