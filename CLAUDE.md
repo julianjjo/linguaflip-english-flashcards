@@ -4,9 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 [byterover-mcp]
 
-# important 
-always use byterover-retrieve-knowledge tool to get the related context before any tasks 
-always use byterover-store-knowledge to store all the critical informations after sucessful tasks
+# Important Instructions
+- Always use byterover-retrieve-knowledge tool to get the related context before any tasks 
+- Always use byterover-store-knowledge to store all the critical informations after sucessful tasks
+- Do what has been asked; nothing more, nothing less
+- NEVER create files unless they're absolutely necessary for achieving your goal
+- ALWAYS prefer editing an existing file to creating a new one
+- NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User
 
 ## Architecture Overview
 
@@ -131,6 +135,17 @@ JWT_SECRET=your_jwt_secret_here
 - **Progressive Enhancement**: Features work offline, sync when connected
 - **Component Islands**: React components embedded in Astro pages for interactivity
 
+### Build Configuration & Optimization
+
+- **Path Aliases**: `@/` resolves to `/src` for cleaner imports
+- **Code Splitting**: Automatic chunking by vendor libraries and application modules
+  - `react-vendor`: React and React DOM
+  - `state-vendor`: Nanostores libraries
+  - `ai-vendor`: Google Gemini AI
+  - Component chunks: `flashcard-components`, `ui-components`, `settings-components`
+- **SSR Optimization**: MongoDB and related modules excluded from client bundle
+- **Image Optimization**: Sharp service for optimized image processing
+
 ### MongoDB Integration & Testing
 
 - **Local Development**: Use MongoDB locally or MongoDB Memory Server for tests
@@ -159,7 +174,19 @@ JWT_SECRET=your_jwt_secret_here
 
 ### Testing Strategy
 - **Visual Testing**: Puppeteer for UI component validation and screenshot comparison
-- **Interaction Testing**: Automated user interaction simulation
+- **Interaction Testing**: Automated user interaction simulation with gesture support
 - **MongoDB Testing**: In-memory database for isolation and speed
+- **Component Testing**: Specific tests for flashcard flip animations and user interactions
+- **Integration Testing**: Full authentication flow and hybrid storage synchronization
+- **Performance Testing**: Load testing and performance validation
 - **CI/CD Testing**: Optimized test suites for continuous integration
 - **Health Checks**: Database connectivity and service availability tests
+
+### Test File Structure
+- `tests/design-tests.js` - Visual component validation
+- `tests/interaction-tests.js` - User interaction simulation  
+- `tests/flashcard-flip-test.cjs` - Flashcard component testing
+- `tests/auth-integration-test.js` - Authentication flow testing
+- `tests/hybrid-storage-test.js` - Storage synchronization testing
+- `tests/mongodb-connection-test.js` - Database connectivity
+- `tests/performance-validation.js` - Performance benchmarks

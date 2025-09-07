@@ -2,6 +2,7 @@ import React from 'react';
 import { useAudioSystem } from '@/hooks/useAudioSystem';
 import { useNumericInput } from '@/hooks/useNumericInput';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useFeatureFlag } from '@/services/featureFlags';
 import { ActionButton } from './ActionButton';
 
 const AudioSettings: React.FC = () => {
@@ -13,6 +14,10 @@ const AudioSettings: React.FC = () => {
     speak,
     isSpeaking
   } = useAudioSystem();
+
+  // Feature flags
+  const geminiTTSEnabled = useFeatureFlag('gemini-tts');
+  const enhancedSettingsEnabled = useFeatureFlag('enhanced-audio-settings');
 
   // Use custom hooks to reduce duplication
   const { handleNumericChange } = useNumericInput(updateSettings, {
