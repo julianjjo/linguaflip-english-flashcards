@@ -1,4 +1,4 @@
-import { FlashcardData, StudySession } from '../types/index.js';
+import type { FlashcardData, StudySession } from '../types/index.js';
 
 export interface ExportData {
   version: string;

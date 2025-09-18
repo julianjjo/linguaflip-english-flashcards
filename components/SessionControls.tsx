@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StudySessionState, SessionControls as SessionControlsType } from '../types';
+import type { StudySessionState, SessionControls as SessionControlsType } from '../types';
 import { formatSessionTime, calculateSessionProgress } from '../utils/studySession';
 
 interface SessionControlsProps {

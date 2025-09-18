@@ -1,4 +1,4 @@
-import { FlashcardData, StudySession } from '../types';
+import type { FlashcardData, StudySession } from '../types';
 
 export interface ExportData {
   version: string;

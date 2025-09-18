@@ -1,6 +1,6 @@
 import React from 'react';
 import ProgressDashboard from './ProgressDashboard';
-import { ProgressStats, LearningAnalytics, Achievement, DeckProgress, StudySession } from '../types';
+import type { ProgressStats, LearningAnalytics, Achievement, DeckProgress, StudySession } from '../types';
 
 interface DashboardPageProps {
   progressStats: ProgressStats;

@@ -1,4 +1,4 @@
-import { FlashcardData, StudySession, ProgressStats, LearningAnalytics, Achievement, DeckProgress } from '../types';
+import type { FlashcardData, StudySession, ProgressStats, LearningAnalytics, Achievement, DeckProgress } from '../types';
 
 export class AnalyticsCalculator {
   static calculateProgressStats(cards: FlashcardData[], studySessions: StudySession[]): ProgressStats {
@@ -56,7 +56,7 @@ export class AnalyticsCalculator {
     };
   }
 
-  static calculateRetentionRate(cards: FlashcardData[], studySessions: StudySession[]): number {
+  static calculateRetentionRate(cards: FlashcardData[]): number {
     const reviewedCards = cards.filter(card => card.lastReviewed !== null);
     if (reviewedCards.length === 0) return 0;
 

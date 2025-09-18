@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
+import type {
   StudyProfile,
   StudyModeConfig,
   DifficultyFilter,

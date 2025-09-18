@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import type { FlashcardData } from '@/types/index';
 import { useTouchGestures } from './TouchGestureHandler';
@@ -6,7 +6,7 @@ import { useAudioSystem } from '@/hooks/useAudioSystem';
 import { useApp } from './AppProvider';
 import OptimizedImage from './OptimizedImage';
 import LoadingSpinner from './LoadingSpinner';
-import { flashcardsActions, flashcardsStore, flashcardsLoadingStore, flashcardsErrorStore } from '@/stores/flashcards';
+import { flashcardsActions, flashcardsLoadingStore, flashcardsErrorStore } from '@/stores/flashcards';
 import { MiniSyncIndicator } from './SyncStatusIndicator';
 
 interface FlashcardProps {

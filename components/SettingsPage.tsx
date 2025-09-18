@@ -1,6 +1,6 @@
 import React from 'react';
 import StudySettings from './StudySettings';
-import { StudyProfile } from '../types';
+import type { StudyProfile } from '../types';
 
 interface SettingsPageProps {
   currentProfile: StudyProfile | null;

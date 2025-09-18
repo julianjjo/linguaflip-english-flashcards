@@ -1,4 +1,4 @@
-import { FlashcardData } from './types';
+import type { FlashcardData } from './types';
 import type {
   StudyModeConfig,
   DifficultyFilter,

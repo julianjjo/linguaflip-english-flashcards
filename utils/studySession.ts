@@ -1,4 +1,4 @@
-import { FlashcardData, StudyModeConfig, DifficultyFilter, StudySessionState, StudySessionStats, DifficultyLevel } from '../types';
+import type { FlashcardData, StudyModeConfig, DifficultyFilter, StudySessionState, StudySessionStats } from '../types';
 import { getDifficultyLevel, isCardMastered, DEFAULT_STUDY_MODE, DEFAULT_DIFFICULTY_FILTER } from '../constants';
 
 export class StudySessionManager {
@@ -51,7 +51,7 @@ export class StudySessionManager {
     }
   }
 
-  private applyFilters(cards: FlashcardData[], today: string): FlashcardData[] {
+  private applyFilters(cards: FlashcardData[]): FlashcardData[] {
     let filteredCards = [...cards];
 
     // Apply difficulty filter

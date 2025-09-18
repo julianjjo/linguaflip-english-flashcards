@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FlashcardData } from '../types';
+import type { FlashcardData } from '../types';
 import { INITIAL_FLASHCARDS_DATA, DEFAULT_EASINESS_FACTOR } from '../constants';
 
 export const useAppState = () => {
