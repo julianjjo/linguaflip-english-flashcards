@@ -29,7 +29,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
   const studySessions = useStore(studyHistoryStore);
 
   // Data migration hook
-  const { migrateData, isMigrating, progress, createBackup } = useDataMigration();
+  const { migrateData, isMigrating, progress, result, createBackup } = useDataMigration();
 
   // Load data when component mounts
   useEffect(() => {

@@ -208,12 +208,15 @@ interface MiniSyncIndicatorProps {
 }
 
 export const MiniSyncIndicator: React.FC<MiniSyncIndicatorProps> = ({
-  userId: _userId,
+  userId,
   className = ''
 }) => {
   const syncStatus = useSyncStatus();
 
   const getMiniStatus = () => {
+    // If no userId, show offline/local-only status
+    if (!userId) return { icon: '💾', color: 'text-gray-500' };
+    
     if (syncStatus.syncInProgress) return { icon: '🔄', color: 'text-blue-500' };
     if (!syncStatus.isOnline) return { icon: '📶', color: 'text-orange-500' };
     if (syncStatus.lastSyncError) return { icon: '⚠️', color: 'text-red-500' };
@@ -226,6 +229,7 @@ export const MiniSyncIndicator: React.FC<MiniSyncIndicatorProps> = ({
   return (
     <div className={`flex items-center space-x-1 ${className}`}>
       <span className={`${color} text-sm`} title={
+        !userId ? 'Local storage only' :
         syncStatus.syncInProgress ? 'Syncing...' :
         !syncStatus.isOnline ? 'Offline' :
         syncStatus.lastSyncError ? 'Sync error' :

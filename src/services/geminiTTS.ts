@@ -426,12 +426,17 @@ export class GeminiTTSService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance with proper caching
 let geminiTTSInstance: GeminiTTSService | null = null;
+let lastApiKey: string | undefined = undefined;
+let lastUserIdentifier: string | undefined = undefined;
 
 export const getGeminiTTSService = (apiKey?: string, userIdentifier?: string): GeminiTTSService => {
-  if (!geminiTTSInstance || apiKey || userIdentifier) {
+  // Only recreate if no instance exists OR if parameters actually changed
+  if (!geminiTTSInstance || apiKey !== lastApiKey || userIdentifier !== lastUserIdentifier) {
     geminiTTSInstance = new GeminiTTSService(apiKey, userIdentifier);
+    lastApiKey = apiKey;
+    lastUserIdentifier = userIdentifier;
   }
   return geminiTTSInstance;
 };

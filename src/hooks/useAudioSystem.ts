@@ -238,23 +238,26 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
     }
 
     try {
-      const audioBuffer = await audioContext.current.decodeAudioData(audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength));
+      const audioBuffer = await audioContext.current.decodeAudioData(
+        audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength)
+      );
       
       const source = audioContext.current.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContext.current.destination);
-      
+      try { 
+        await audioContext.current.resume(); 
+      } catch {
+        // Ignore resume errors in some browsers
+      }
       currentAudioSource.current = source;
       
       return new Promise<void>((resolve, reject) => {
+        setIsSpeaking(true);
         source.onended = () => {
           currentAudioSource.current = null;
+          setIsSpeaking(false);
           resolve();
-        };
-        
-        source.onerror = () => {
-          currentAudioSource.current = null;
-          reject(new Error('Audio playback failed'));
         };
         
         source.start();
@@ -392,11 +395,30 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
       const cached = await audioCacheService.current.hasAudio(text, settings.geminiVoice);
       if (cached) return;
 
-      // Pre-generate with Gemini TTS
+      // Pre-generate with Gemini TTS (silent, cache only)
       try {
-        await speakWithGemini(text, settings.geminiVoice, settings.temperature);
+        setIsGenerating(true);
+        const response = await fetch('/api/tts/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            voice: settings.geminiVoice,
+            temperature: settings.temperature ?? 1.0
+          })
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.message || 'TTS generation failed');
+        }
+        const audioData = new Uint8Array(await response.arrayBuffer());
+        const mimeType = response.headers.get('Content-Type') || 'audio/wav';
+        const duration = parseFloat(response.headers.get('X-Audio-Duration') || '0');
+        await audioCacheService.current.storeAudio(text, settings.geminiVoice, audioData, mimeType, duration);
       } catch (error) {
         console.warn('Preload failed:', error);
+      } finally {
+        setIsGenerating(false);
       }
       return;
     }
