@@ -2,7 +2,6 @@ import React from 'react';
 import { useAudioSystem } from '@/hooks/useAudioSystem';
 import { useNumericInput } from '@/hooks/useNumericInput';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
-import { useFeatureFlag } from '@/services/featureFlags';
 import { ActionButton } from './ActionButton';
 
 const AudioSettings: React.FC = () => {

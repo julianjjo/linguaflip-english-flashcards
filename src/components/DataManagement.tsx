@@ -6,7 +6,6 @@ import { flashcardsActions, flashcardsStore } from '../stores/flashcards';
 import { studySessionActions, studyHistoryStore } from '../stores/study';
 import { MiniSyncIndicator } from './SyncStatusIndicator';
 import { hybridStorage } from '../stores/hybridStorage';
-import LoadingSpinner from './LoadingSpinner';
 
 interface DataManagementProps {
   userId?: string;
@@ -30,7 +29,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
   const studySessions = useStore(studyHistoryStore);
 
   // Data migration hook
-  const { migrateData, isMigrating, progress, result, createBackup } = useDataMigration();
+  const { migrateData, isMigrating, progress, createBackup } = useDataMigration();
 
   // Load data when component mounts
   useEffect(() => {
@@ -192,7 +191,6 @@ const DataManagement: React.FC<DataManagementProps> = ({
     }
   };
 
-  const dataSummary = DataExportImport.getDataSummary();
 
   return (
     <div className="space-y-6">

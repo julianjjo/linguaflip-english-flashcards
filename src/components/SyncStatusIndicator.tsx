@@ -24,7 +24,6 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
 }) => {
   const syncStatus = useSyncStatus();
   const [isManualSync, setIsManualSync] = useState(false);
-  const [lastManualSync, setLastManualSync] = useState<Date | null>(null);
 
   // Handle manual sync
   const handleManualSync = async () => {
@@ -209,7 +208,7 @@ interface MiniSyncIndicatorProps {
 }
 
 export const MiniSyncIndicator: React.FC<MiniSyncIndicatorProps> = ({
-  userId,
+  userId: _userId,
   className = ''
 }) => {
   const syncStatus = useSyncStatus();

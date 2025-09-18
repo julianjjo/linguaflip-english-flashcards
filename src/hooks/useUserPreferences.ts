@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { DifficultyLevel, AudioSettings, VisualSettings } from '@/types/index';
+import type { DifficultyLevel } from '@/types/index';
 import type { TTSProvider } from './useAudioSystem';
 
 interface UserPreferences {

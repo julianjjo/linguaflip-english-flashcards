@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUserPreferences } from './useUserPreferences';
 import { getAudioCache } from '../services/audioCache';
-import type { CachedAudio } from '../services/audioCache';
 import { GEMINI_VOICES } from '../services/geminiTTS';
 import type { TTSVoice } from '../services/geminiTTS';
 

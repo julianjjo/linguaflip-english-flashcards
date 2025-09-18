@@ -18,7 +18,6 @@ export const useTheme = (): UseThemeReturn => {
 
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
-  const [mounted, setMounted] = useState(false);
 
   // Listen for system theme changes
   useEffect(() => {

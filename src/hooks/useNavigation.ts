@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react';
-import { atom, map } from 'nanostores';
+import { map } from 'nanostores';
 import { navigationStore, navigationActions } from '../stores/flashcards.js';
 
 export type ViewType = 'study' | 'dashboard' | 'progress' | 'settings';
