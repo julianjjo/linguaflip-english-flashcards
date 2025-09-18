@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { DifficultyLevel, AudioSettings, VisualSettings } from '@/types/index';
+import type { DifficultyLevel } from '@/types/index';
+import type { TTSProvider } from './useAudioSystem';
 
 interface UserPreferences {
   // Audio preferences
@@ -8,6 +9,9 @@ interface UserPreferences {
   speechPitch: number;
   speechVolume: number;
   autoPlayAudio: boolean;
+  ttsProvider: TTSProvider;
+  geminiVoice: string;
+  ttsTemperature: number;
 
   // Study preferences
   difficulty: DifficultyLevel;
@@ -48,6 +52,9 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   speechPitch: 1.0,
   speechVolume: 1.0,
   autoPlayAudio: true,
+  ttsProvider: 'gemini',
+  geminiVoice: 'Zephyr',
+  ttsTemperature: 1.0,
 
   // Study
   difficulty: 'medium',

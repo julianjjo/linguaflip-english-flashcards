@@ -1,11 +1,26 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUserPreferences } from './useUserPreferences';
+import { getAudioCache } from '../services/audioCache';
+import { GEMINI_VOICES } from '../services/geminiTTS';
+import type { TTSVoice } from '../services/geminiTTS';
+
+export type TTSProvider = 'browser' | 'gemini';
+
+export interface GeminiVoice {
+  name: string;
+  displayName: string;
+  language: string;
+  gender: 'male' | 'female' | 'neutral';
+}
 
 interface AudioSettings {
   voice: SpeechSynthesisVoice | null;
+  geminiVoice: string;
+  provider: TTSProvider;
   rate: number;
   pitch: number;
   volume: number;
+  temperature?: number;
 }
 
 interface AudioCache {
@@ -20,10 +35,15 @@ interface UseAudioSystemReturn {
   stop: () => void;
   isSupported: boolean;
   isSpeaking: boolean;
+  isGenerating: boolean;
   voices: SpeechSynthesisVoice[];
+  geminiVoices: TTSVoice[];
   settings: AudioSettings;
   updateSettings: (newSettings: Partial<AudioSettings>) => void;
   preloadPronunciation: (text: string) => Promise<void>;
+  switchProvider: (provider: TTSProvider) => void;
+  getCacheSize: () => Promise<number>;
+  clearCache: () => Promise<void>;
 }
 
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
@@ -33,17 +53,24 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
   const { preferences } = useUserPreferences();
   const [isSupported, setIsSupported] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [geminiVoices] = useState<TTSVoice[]>(GEMINI_VOICES);
   const [settings, setSettings] = useState<AudioSettings>({
     voice: null,
+    geminiVoice: 'Zephyr',
+    provider: preferences.ttsProvider || 'gemini',
     rate: preferences.speechRate,
     pitch: preferences.speechPitch,
     volume: preferences.speechVolume,
+    temperature: 1.0,
   });
 
   const audioCache = useRef<AudioCache>({});
   const currentUtterance = useRef<SpeechSynthesisUtterance | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
+  const currentAudioSource = useRef<AudioBufferSourceNode | null>(null);
+  const audioCacheService = useRef(getAudioCache());
 
   // Initialize audio system
   useEffect(() => {
@@ -150,17 +177,113 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
     }
   };
 
+  // Gemini TTS implementation
+  const speakWithGemini = useCallback(async (text: string, voice: string, temperature?: number): Promise<void> => {
+    try {
+      // Check cache first
+      const cached = await audioCacheService.current.getAudio(text, voice);
+      if (cached) {
+        await playAudioData(cached.audioData);
+        return;
+      }
+
+      setIsGenerating(true);
+
+      // Call TTS API
+      const response = await fetch('/api/tts/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          voice,
+          temperature: temperature || 1.0
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.message || 'TTS generation failed');
+      }
+
+      const audioData = await response.arrayBuffer();
+      const audioDataArray = new Uint8Array(audioData);
+      const mimeType = response.headers.get('Content-Type') || 'audio/wav';
+      const duration = parseFloat(response.headers.get('X-Audio-Duration') || '0');
+
+      // Cache the audio
+      await audioCacheService.current.storeAudio(text, voice, audioDataArray, mimeType, duration);
+
+      // Play the audio
+      await playAudioData(audioDataArray);
+      
+    } catch (error) {
+      console.error('Gemini TTS failed:', error);
+      throw error;
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
+  // Play audio data using Web Audio API
+  const playAudioData = useCallback(async (audioData: Uint8Array): Promise<void> => {
+    if (!audioContext.current) {
+      if ('AudioContext' in window || 'webkitAudioContext' in window) {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        audioContext.current = new AudioContextClass();
+      } else {
+        throw new Error('Web Audio API not supported');
+      }
+    }
+
+    try {
+      const audioBuffer = await audioContext.current.decodeAudioData(
+        audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength)
+      );
+      
+      const source = audioContext.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.current.destination);
+      try { 
+        await audioContext.current.resume(); 
+      } catch {
+        // Ignore resume errors in some browsers
+      }
+      currentAudioSource.current = source;
+      
+      return new Promise<void>((resolve, reject) => {
+        setIsSpeaking(true);
+        source.onended = () => {
+          currentAudioSource.current = null;
+          setIsSpeaking(false);
+          resolve();
+        };
+        
+        source.start();
+      });
+    } catch (error) {
+      console.error('Audio decoding/playback failed:', error);
+      throw error;
+    }
+  }, []);
+
   const speak = useCallback(async (text: string, options: Partial<AudioSettings> = {}): Promise<void> => {
     if (!text.trim()) return;
 
     const finalSettings = { ...settings, ...options };
-    const cacheKey = getCacheKey(text, finalSettings.voice?.name);
-
+    
     try {
       setIsSpeaking(true);
 
-      // Try Speech Synthesis API first
-      if (isSupported) {
+      // Use Gemini TTS if selected as provider
+      if (finalSettings.provider === 'gemini') {
+        await speakWithGemini(text, finalSettings.geminiVoice, finalSettings.temperature);
+        return;
+      }
+
+      // Fall back to browser TTS
+      if (isSupported && finalSettings.provider === 'browser') {
         return new Promise((resolve, reject) => {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.voice = finalSettings.voice;
@@ -187,14 +310,14 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
         });
       }
 
-      // Fallback to Web Audio API
+      // Final fallback: Web Audio API synthesis
       if (audioContext.current) {
-        let audioBuffer = audioCache.current[cacheKey]?.audioBuffer;
+        let audioBuffer = audioCache.current[getCacheKey(text, finalSettings.voice?.name)]?.audioBuffer;
 
         if (!audioBuffer) {
           audioBuffer = await synthesizeFallbackAudio(text);
           if (audioBuffer) {
-            audioCache.current[cacheKey] = {
+            audioCache.current[getCacheKey(text, finalSettings.voice?.name)] = {
               audioBuffer,
               timestamp: Date.now(),
             };
@@ -217,7 +340,7 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
         }
       }
 
-      // Final fallback: console log (for development/debugging)
+      // Ultimate fallback: console log
       console.log(`🔊 Audio playback: "${text}"`);
       setIsSpeaking(false);
 
@@ -226,40 +349,93 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
       setIsSpeaking(false);
       throw error;
     }
-  }, [isSupported, settings, cleanCache]);
+  }, [isSupported, settings, speakWithGemini, cleanCache]);
 
   const stop = useCallback(() => {
+    // Stop browser TTS
     if (currentUtterance.current) {
       speechSynthesis.cancel();
       currentUtterance.current = null;
     }
+    
+    // Stop Gemini TTS audio
+    if (currentAudioSource.current) {
+      currentAudioSource.current.stop();
+      currentAudioSource.current = null;
+    }
+    
     setIsSpeaking(false);
+    setIsGenerating(false);
   }, []);
 
   const updateSettings = useCallback((newSettings: Partial<AudioSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   }, []);
 
+  // Switch TTS provider
+  const switchProvider = useCallback((provider: TTSProvider) => {
+    setSettings(prev => ({ ...prev, provider }));
+  }, []);
+
+  // Get cache size
+  const getCacheSize = useCallback(async (): Promise<number> => {
+    return await audioCacheService.current.getCacheSize();
+  }, []);
+
+  // Clear audio cache
+  const clearCache = useCallback(async (): Promise<void> => {
+    await audioCacheService.current.clearCache();
+  }, []);
+
   const preloadPronunciation = useCallback(async (text: string): Promise<void> => {
     if (!text.trim()) return;
 
-    const cacheKey = getCacheKey(text, settings.voice?.name);
+    if (settings.provider === 'gemini') {
+      // Check if already cached
+      const cached = await audioCacheService.current.hasAudio(text, settings.geminiVoice);
+      if (cached) return;
 
-    // If already cached, skip
+      // Pre-generate with Gemini TTS (silent, cache only)
+      try {
+        setIsGenerating(true);
+        const response = await fetch('/api/tts/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            voice: settings.geminiVoice,
+            temperature: settings.temperature ?? 1.0
+          })
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.message || 'TTS generation failed');
+        }
+        const audioData = new Uint8Array(await response.arrayBuffer());
+        const mimeType = response.headers.get('Content-Type') || 'audio/wav';
+        const duration = parseFloat(response.headers.get('X-Audio-Duration') || '0');
+        await audioCacheService.current.storeAudio(text, settings.geminiVoice, audioData, mimeType, duration);
+      } catch (error) {
+        console.warn('Preload failed:', error);
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
+
+    // Browser TTS preload (legacy)
+    const cacheKey = getCacheKey(text, settings.voice?.name);
     if (audioCache.current[cacheKey]) return;
 
-    // For Speech Synthesis API, we can't really preload, but we can validate
     if (isSupported) {
-      // Just mark as cached to avoid repeated synthesis attempts
       audioCache.current[cacheKey] = {
-        audioBuffer: null, // Speech synthesis doesn't use AudioBuffer
+        audioBuffer: null,
         timestamp: Date.now(),
       };
       cleanCache();
       return;
     }
 
-    // For Web Audio fallback, generate and cache the audio buffer
     if (audioContext.current) {
       const audioBuffer = await synthesizeFallbackAudio(text);
       if (audioBuffer) {
@@ -270,16 +446,21 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
         cleanCache();
       }
     }
-  }, [isSupported, settings.voice?.name, cleanCache]);
+  }, [settings.provider, settings.geminiVoice, settings.temperature, settings.voice?.name, speakWithGemini, isSupported, cleanCache]);
 
   return {
     speak,
     stop,
     isSupported,
     isSpeaking,
+    isGenerating,
     voices,
+    geminiVoices,
     settings,
     updateSettings,
     preloadPronunciation,
+    switchProvider,
+    getCacheSize,
+    clearCache,
   };
 };

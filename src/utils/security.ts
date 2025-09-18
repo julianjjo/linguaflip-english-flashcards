@@ -328,4 +328,140 @@ export class InputSanitizer {
   }
 }
 
+// Additional security utilities for Gemini TTS
+
+// Rate limiting interface
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+}
+
+// Custom SecurityError class
+export class SecurityError extends Error {
+  public readonly code: string;
+
+  constructor(message: string, code: string = 'SECURITY_ERROR') {
+    super(message);
+    this.name = 'SecurityError';
+    this.code = code;
+  }
+}
+
+// Rate limiting for API calls
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+export function checkRateLimit(
+  identifier: string,
+  maxRequests: number = 50,
+  windowMs: number = 60000
+): RateLimitResult {
+  const now = Date.now();
+  const record = rateLimitStore.get(identifier);
+
+  if (!record || now > record.resetTime) {
+    // Reset or initialize counter
+    const newRecord = {
+      count: 1,
+      resetTime: now + windowMs,
+    };
+    rateLimitStore.set(identifier, newRecord);
+    return {
+      allowed: true,
+      remaining: maxRequests - 1,
+      resetTime: newRecord.resetTime,
+    };
+  }
+
+  if (record.count >= maxRequests) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: record.resetTime,
+    };
+  }
+
+  record.count++;
+  return {
+    allowed: true,
+    remaining: maxRequests - record.count,
+    resetTime: record.resetTime,
+  };
+}
+
+// Validate Gemini API key format
+export function validateGeminiApiKey(apiKey: string): boolean {
+  if (!apiKey || typeof apiKey !== 'string') {
+    return false;
+  }
+
+  // Gemini API keys typically start with 'AIza' and are 39 characters long
+  const geminiKeyRegex = /^AIza[0-9A-Za-z_-]{35}$/;
+  return geminiKeyRegex.test(apiKey);
+}
+
+// Sanitize text input for TTS
+export function sanitizeTextInput(input: string): string {
+  if (typeof input !== 'string') {
+    return '';
+  }
+
+  // Remove control characters, null bytes, and other dangerous characters
+  let sanitized = input.replace(/\p{Cc}/gu, '');
+  
+  // Remove potentially dangerous HTML/XML tags
+  sanitized = sanitized.replace(/<[^>]*>/g, '');
+  
+  // Remove script-related content
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+  
+  // Normalize whitespace
+  sanitized = sanitized.replace(/\s+/g, ' ').trim();
+  
+  return sanitized;
+}
+
+// Security configuration loader
+export interface SecurityConfig {
+  geminiApiKey?: string;
+  rateLimitMaxRequests?: number;
+  rateLimitWindowMs?: number;
+  encryptionSecret?: string;
+}
+
+export function loadSecurityConfig(): SecurityConfig {
+  const config: SecurityConfig = {};
+
+  // Load API key from environment
+  if (process.env.GEMINI_API_KEY) {
+    if (!validateGeminiApiKey(process.env.GEMINI_API_KEY)) {
+      throw new SecurityError('Invalid Gemini API key format in environment', 'INVALID_API_KEY_FORMAT');
+    }
+    config.geminiApiKey = process.env.GEMINI_API_KEY;
+  }
+
+  // Load rate limiting configuration
+  if (process.env.RATE_LIMIT_MAX_REQUESTS) {
+    const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10);
+    if (!isNaN(maxRequests) && maxRequests > 0) {
+      config.rateLimitMaxRequests = maxRequests;
+    }
+  }
+
+  if (process.env.RATE_LIMIT_WINDOW_MS) {
+    const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10);
+    if (!isNaN(windowMs) && windowMs > 0) {
+      config.rateLimitWindowMs = windowMs;
+    }
+  }
+
+  // Load encryption secret
+  if (process.env.ENCRYPTION_SECRET) {
+    config.encryptionSecret = process.env.ENCRYPTION_SECRET;
+  }
+
+  return config;
+}
+
 // Security utilities are exported as class declarations above

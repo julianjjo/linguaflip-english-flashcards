@@ -14,6 +14,10 @@ const AudioSettings: React.FC = () => {
     isSpeaking
   } = useAudioSystem();
 
+  // Feature flags
+  // const geminiTTSEnabled = useFeatureFlag('gemini-tts');
+  // const enhancedSettingsEnabled = useFeatureFlag('enhanced-audio-settings');
+
   // Use custom hooks to reduce duplication
   const { handleNumericChange } = useNumericInput(updateSettings, {
     min: 0.5,

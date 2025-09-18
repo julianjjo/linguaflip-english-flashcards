@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { flashcardsStore, flashcardsActions } from '../stores/flashcards.js';
 import { studyHistoryStore, studySessionStore, studySessionActions } from '../stores/study.js';
-import { FlashcardData } from '../types/index.js';
+import type { FlashcardData } from '../types/index.js';
 import { INITIAL_FLASHCARDS_DATA, DEFAULT_EASINESS_FACTOR } from '../../constants.js';
 
 export const useAppState = () => {
