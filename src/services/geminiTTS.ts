@@ -59,7 +59,7 @@ export class GeminiTTSService {
   private client: GoogleGenAI;
   private securityConfig: any;
   private userIdentifier: string;
-  private readonly model = 'gemini-2.5-pro-preview-tts';
+  private readonly model = 'gemini-2.5-flash-preview-tts';
 
   constructor(apiKey?: string, userIdentifier: string = 'default-user') {
     this.userIdentifier = userIdentifier;
@@ -85,50 +85,7 @@ export class GeminiTTSService {
     this.client = new GoogleGenAI(keyToUse);
   }
 
-  /**
-   * Convert raw audio data to WAV format with proper headers
-   */
-  private convertToWav(audioData: Uint8Array, mimeType: string): Uint8Array {
-    const parameters = this.parseAudioMimeType(mimeType);
-    const bitsPerSample = parameters.bitsPerSample;
-    const sampleRate = parameters.rate;
-    const numChannels = 1;
-    const dataSize = audioData.length;
-    const bytesPerSample = bitsPerSample / 8;
-    const blockAlign = numChannels * bytesPerSample;
-    const byteRate = sampleRate * blockAlign;
-    const chunkSize = 36 + dataSize; // 36 bytes for header fields before data chunk size
-
-    // Create WAV header
-    const header = new ArrayBuffer(44);
-    const view = new DataView(header);
-
-    // "RIFF" chunk descriptor
-    view.setUint32(0, 0x52494646, false); // "RIFF"
-    view.setUint32(4, chunkSize, true); // ChunkSize (little-endian)
-    view.setUint32(8, 0x57415645, false); // "WAVE"
-
-    // "fmt " sub-chunk
-    view.setUint32(12, 0x666d7420, false); // "fmt "
-    view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
-    view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
-    view.setUint16(22, numChannels, true); // NumChannels
-    view.setUint32(24, sampleRate, true); // SampleRate
-    view.setUint32(28, byteRate, true); // ByteRate
-    view.setUint16(32, blockAlign, true); // BlockAlign
-    view.setUint16(34, bitsPerSample, true); // BitsPerSample
-
-    // "data" sub-chunk
-    view.setUint32(36, 0x64617461, false); // "data"
-    view.setUint32(40, dataSize, true); // Subchunk2Size
-
-    // Combine header and audio data
-    const wavData = new Uint8Array(header.byteLength + audioData.length);
-    wavData.set(new Uint8Array(header), 0);
-    wavData.set(audioData, header.byteLength);
-
-    return wavData;
-  }
+  // If needed, request WAV/LINEAR16 from the API rather than converting here.
 
   /**
    * Parse audio MIME type to extract bits per sample and sample rate
@@ -260,14 +217,9 @@ export class GeminiTTSService {
         offset += chunk.length;
       }
 
-      // Convert to WAV if necessary
-      let finalAudioData = combinedAudio;
-      let finalMimeType = 'audio/wav';
-
-      if (!mimeType.includes('wav')) {
-        finalAudioData = this.convertToWav(combinedAudio, mimeType);
-        finalMimeType = 'audio/wav';
-      }
+      // Return original encoding; client will decode.
+      const finalAudioData = combinedAudio;
+      const finalMimeType = mimeType;
 
       return {
         audioData: finalAudioData,
@@ -356,14 +308,9 @@ export class GeminiTTSService {
           if (inlineData.data) {
             chunkCount++;
             
-            // Convert to WAV if needed
-            let audioData = inlineData.data;
+            // Pass-through chunks; preserve mimeType
+            let audioData = inlineData.data as Uint8Array;
             let mimeType = inlineData.mimeType || 'audio/wav';
-
-            if (!mimeType.includes('wav')) {
-              audioData = this.convertToWav(audioData, mimeType);
-              mimeType = 'audio/wav';
-            }
 
             yield {
               data: audioData,
@@ -426,19 +373,17 @@ export class GeminiTTSService {
   }
 }
 
-// Export singleton instance with proper caching
-let geminiTTSInstance: GeminiTTSService | null = null;
-let lastApiKey: string | undefined = undefined;
-let lastUserIdentifier: string | undefined = undefined;
+// Export per-user keyed instances for proper rate limiting isolation
+const geminiTTSInstances = new Map<string, GeminiTTSService>();
 
-export const getGeminiTTSService = (apiKey?: string, userIdentifier?: string): GeminiTTSService => {
-  // Only recreate if no instance exists OR if parameters actually changed
-  if (!geminiTTSInstance || apiKey !== lastApiKey || userIdentifier !== lastUserIdentifier) {
-    geminiTTSInstance = new GeminiTTSService(apiKey, userIdentifier);
-    lastApiKey = apiKey;
-    lastUserIdentifier = userIdentifier;
+export const getGeminiTTSService = (apiKey?: string, userIdentifier: string = 'default-user'): GeminiTTSService => {
+  const key = `${apiKey ?? 'env'}:${userIdentifier}`;
+  let inst = geminiTTSInstances.get(key);
+  if (!inst) {
+    inst = new GeminiTTSService(apiKey, userIdentifier);
+    geminiTTSInstances.set(key, inst);
   }
-  return geminiTTSInstance;
+  return inst;
 };
 
 export default GeminiTTSService;

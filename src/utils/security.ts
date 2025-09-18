@@ -407,7 +407,7 @@ export function sanitizeTextInput(input: string): string {
   }
 
   // Remove control characters, null bytes, and other dangerous characters
-  let sanitized = input.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+  let sanitized = input.replace(/\p{Cc}/gu, '');
   
   // Remove potentially dangerous HTML/XML tags
   sanitized = sanitized.replace(/<[^>]*>/g, '');
