@@ -9,6 +9,32 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
+// Security: Validate and sanitize file paths
+const sanitizePath = (filePath) => {
+  // Resolve to absolute path and normalize
+  const resolved = path.resolve(filePath);
+  const projectRoot = path.resolve('.');
+  
+  // Ensure path is within project directory
+  if (!resolved.startsWith(projectRoot)) {
+    throw new Error(`Path outside project directory: ${filePath}`);
+  }
+  
+  // Additional validation - only allow specific file types and patterns
+  const allowedExtensions = ['.ts', '.tsx', '.js', '.json', '.astro'];
+  const ext = path.extname(resolved);
+  const filename = path.basename(resolved);
+  
+  // Allow .env files specifically
+  const isEnvFile = filename.startsWith('.env');
+  
+  if (ext && !allowedExtensions.includes(ext) && !isEnvFile) {
+    throw new Error(`File type not allowed: ${ext}`);
+  }
+  
+  return resolved;
+};
+
 console.log('🧪 Testing Gemini TTS Integration...\n');
 
 // Test 1: Check if key files exist
@@ -25,9 +51,15 @@ const requiredFiles = [
 
 let filesExist = true;
 requiredFiles.forEach(file => {
-  const exists = fs.existsSync(file);
-  console.log(`  ${exists ? '✅' : '❌'} ${file}`);
-  if (!exists) filesExist = false;
+  try {
+    const safePath = sanitizePath(file);
+    const exists = fs.existsSync(safePath);
+    console.log(`  ${exists ? '✅' : '❌'} ${file}`);
+    if (!exists) filesExist = false;
+  } catch (error) {
+    console.log(`  ❌ ${file} (Security validation failed: ${error.message})`);
+    filesExist = false;
+  }
 });
 
 if (!filesExist) {
@@ -39,7 +71,8 @@ if (!filesExist) {
 console.log('\n📦 Checking imports and exports...');
 const checkImports = (filePath) => {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const safePath = sanitizePath(filePath);
+    const content = fs.readFileSync(safePath, 'utf-8');
     return {
       hasExports: content.includes('export '),
       hasImports: content.includes('import '),
@@ -69,9 +102,9 @@ Object.entries(fileChecks).forEach(([name, check]) => {
 // Test 3: Check for key functionality
 console.log('\n🔧 Checking key functionality...');
 
-const geminiTTSContent = fs.readFileSync('src/services/geminiTTS.ts', 'utf-8');
-const audioCacheContent = fs.readFileSync('src/services/audioCache.ts', 'utf-8');
-const featureFlagsContent = fs.readFileSync('src/services/featureFlags.ts', 'utf-8');
+const geminiTTSContent = fs.readFileSync(sanitizePath('src/services/geminiTTS.ts'), 'utf-8');
+const audioCacheContent = fs.readFileSync(sanitizePath('src/services/audioCache.ts'), 'utf-8');
+const featureFlagsContent = fs.readFileSync(sanitizePath('src/services/featureFlags.ts'), 'utf-8');
 
 const functionality = [
   {
@@ -96,7 +129,15 @@ const functionality = [
   },
   {
     name: 'API Endpoints',
-    check: fs.existsSync('src/pages/api/tts/generate.ts') && fs.existsSync('src/pages/api/tts/stream.ts'),
+    check: (() => {
+      try {
+        return fs.existsSync(sanitizePath('src/pages/api/tts/generate.ts')) && 
+               fs.existsSync(sanitizePath('src/pages/api/tts/stream.ts'));
+      } catch (error) {
+        console.log(`    ⚠️ API endpoints check failed: ${error.message}`);
+        return false;
+      }
+    })(),
     file: 'API routes'
   }
 ];
@@ -108,13 +149,21 @@ functionality.forEach(item => {
 // Test 4: Check environment setup
 console.log('\n🌍 Checking environment...');
 const envFiles = ['.env.development', '.env.production', '.env.test'];
-const hasEnvFiles = envFiles.some(file => fs.existsSync(file));
+const hasEnvFiles = envFiles.some(file => {
+  try {
+    const safePath = sanitizePath(file);
+    return fs.existsSync(safePath);
+  } catch (error) {
+    console.log(`  ⚠️ Skipping ${file}: ${error.message}`);
+    return false;
+  }
+});
 console.log(`  ${hasEnvFiles ? '✅' : '⚠️'} Environment files: ${hasEnvFiles ? 'Found' : 'Consider creating'}`);
 
 // Test 5: Check package.json dependencies
 console.log('\n📋 Checking dependencies...');
 try {
-  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+  const packageJson = JSON.parse(fs.readFileSync(sanitizePath('package.json'), 'utf-8'));
   const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
   
   const requiredDeps = {
