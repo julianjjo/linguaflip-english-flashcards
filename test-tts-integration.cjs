@@ -5,9 +5,8 @@
  * Tests the basic functionality of our TTS migration
  */
 
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+const fs = require('fs');
+const path = require('path');
 
 // Security: Validate and sanitize file paths
 const sanitizePath = (filePath) => {
