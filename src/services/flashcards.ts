@@ -6,9 +6,8 @@
  * advanced querying capabilities.
  */
 
-import { ObjectId } from 'mongodb';
 import { createDatabaseOperations } from '../utils/databaseOperations';
-import type { FlashcardDocument, DatabaseOperationResult, FlashcardFilter } from '../types/database';
+import type { FlashcardDocument, DatabaseOperationResult } from '../types/database';
 import {
   DatabaseError,
   NotFoundError,
@@ -18,8 +17,7 @@ import {
   safeAsync,
   validateRequired,
   validateOwnership,
-  validateQuality,
-  errorHandler
+  validateQuality
 } from '../types/database';
 import { FlashcardSchema, validateDocument, sanitizeInput, calculateNextReviewDate, getDefaultSM2Params } from '../schemas/mongodb';
 

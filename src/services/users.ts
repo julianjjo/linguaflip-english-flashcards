@@ -5,7 +5,6 @@
  * including profile management, preferences, statistics, and security features.
  */
 
-import { ObjectId } from 'mongodb';
 import { createDatabaseOperations } from '../utils/databaseOperations.ts';
 import type { UserDocument, DatabaseOperationResult, UserFilter } from '../types/database.ts';
 import {
@@ -15,8 +14,7 @@ import {
   ValidationError,
   safeAsync,
   validateRequired,
-  validateOwnership,
-  errorHandler
+  validateOwnership
 } from '../types/database.ts';
 import { UserSchema, validateDocument, sanitizeInput } from '../schemas/mongodb.ts';
 

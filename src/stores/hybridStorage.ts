@@ -5,13 +5,11 @@
  * handles caching, synchronization, offline support, and conflict resolution.
  */
 
-import { atom, map } from 'nanostores';
+import { map } from 'nanostores';
 import type { FlashcardData, StudySession, ProgressStats, StudyProfile } from '../types';
 import type {
   FlashcardDocument,
-  StudySessionDocument,
-  StudyStatisticsDocument,
-  DatabaseOperationResult
+  StudySessionDocument
 } from '../types/database';
 
 // Import MongoDB services conditionally (server-side only)
@@ -91,7 +89,6 @@ const STORAGE_KEYS = {
   lastSync: 'linguaflip_last_sync'
 } as const;
 
-type StorageKeyType = keyof typeof STORAGE_KEYS;
 
 // ============================================================================
 // HYBRID STORAGE CLASS
@@ -660,7 +657,7 @@ export class HybridStorage {
 
   private saveCacheToLocalStorage<T>(
     storeType: keyof typeof STORAGE_KEYS,
-    key: string,
+    _key: string,
     cacheEntry: CacheEntry<T>
   ): void {
     // Only run on client side

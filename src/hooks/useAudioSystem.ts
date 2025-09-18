@@ -252,7 +252,7 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
       }
       currentAudioSource.current = source;
       
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         setIsSpeaking(true);
         source.onended = () => {
           currentAudioSource.current = null;

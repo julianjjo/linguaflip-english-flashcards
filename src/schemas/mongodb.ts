@@ -7,7 +7,6 @@
  * Supports the SM-2 Spaced Repetition algorithm and multi-user architecture.
  */
 
-import { ObjectId } from 'mongodb';
 
 // ============================================================================
 // CUSTOM VALIDATORS

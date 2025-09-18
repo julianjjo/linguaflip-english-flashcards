@@ -5,7 +5,6 @@
  * including daily, weekly, and monthly progress tracking and analytics.
  */
 
-import { ObjectId } from 'mongodb';
 import { createDatabaseOperations } from '../utils/databaseOperations';
 import type { StudyStatisticsDocument, DatabaseOperationResult } from '../types/database';
 import {
@@ -15,10 +14,9 @@ import {
   ValidationError,
   safeAsync,
   validateRequired,
-  validateOwnership,
-  errorHandler
+  validateOwnership
 } from '../types/database';
-import { StudyStatisticsSchema, validateDocument, sanitizeInput } from '../schemas/mongodb';
+import { StudyStatisticsSchema, validateDocument } from '../schemas/mongodb';
 
 const COLLECTION_NAME = 'study_statistics';
 const dbOps = createDatabaseOperations(COLLECTION_NAME);

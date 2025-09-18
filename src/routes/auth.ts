@@ -13,14 +13,13 @@ import express from 'express';
 import { authService } from '../services/auth';
 import {
   requireAuth,
-  optionalAuth,
   authRateLimit,
   authCors,
   authLogging,
   securityHeaders,
   authErrorHandler
 } from '../middleware/auth';
-import { SecurityAuditor, InputSanitizer } from '../utils/security';
+import { InputSanitizer } from '../utils/security';
 import { ValidationError } from '../types/database';
 
 const router = express.Router();
@@ -285,7 +284,7 @@ router.post('/forgot-password', authRateLimit, async (req, res) => {
     const sanitizedEmail = InputSanitizer.sanitizeString(email);
 
     // Initiate password reset
-    const result = await authService.initiatePasswordReset({
+    await authService.initiatePasswordReset({
       email: sanitizedEmail
     });
 

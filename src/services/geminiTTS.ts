@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';
-import type { GenerateContentConfig, VoiceConfig, SpeechConfig, PrebuiltVoiceConfig } from '@google/genai/types';
 import {
   validateGeminiApiKey,
   sanitizeTextInput,
@@ -31,6 +30,25 @@ export interface AudioChunk {
   data: Uint8Array;
   mimeType: string;
   isComplete: boolean;
+}
+
+// Local type definitions for Gemini TTS (until types are available in the package)
+interface PrebuiltVoiceConfig {
+  voiceName: string;
+}
+
+interface VoiceConfig {
+  prebuiltVoiceConfig: PrebuiltVoiceConfig;
+}
+
+interface SpeechConfig {
+  voiceConfig: VoiceConfig;
+}
+
+interface GenerateContentConfig {
+  temperature: number;
+  responseModalities: string[];
+  speechConfig: SpeechConfig;
 }
 
 // Available Gemini TTS voices
@@ -86,36 +104,6 @@ export class GeminiTTSService {
   }
 
   // If needed, request WAV/LINEAR16 from the API rather than converting here.
-
-  /**
-   * Parse audio MIME type to extract bits per sample and sample rate
-   */
-  private parseAudioMimeType(mimeType: string): { bitsPerSample: number; rate: number } {
-    let bitsPerSample = 16;
-    let rate = 24000;
-
-    // Extract rate from parameters
-    const parts = mimeType.split(';');
-    for (const param of parts) {
-      const trimmedParam = param.trim();
-      if (trimmedParam.toLowerCase().startsWith('rate=')) {
-        try {
-          const rateStr = trimmedParam.split('=', 2)[1];
-          rate = parseInt(rateStr, 10);
-        } catch (error) {
-          // Keep default rate if parsing fails
-        }
-      } else if (trimmedParam.startsWith('audio/L')) {
-        try {
-          bitsPerSample = parseInt(trimmedParam.split('L', 2)[1], 10);
-        } catch (error) {
-          // Keep default bits per sample if parsing fails
-        }
-      }
-    }
-
-    return { bitsPerSample, rate };
-  }
 
   /**
    * Generate speech audio from text using Gemini TTS
@@ -174,7 +162,7 @@ export class GeminiTTSService {
       const audioChunks: Uint8Array[] = [];
       let mimeType = 'audio/wav';
 
-      const response = this.client.models.generateContentStream({
+      const response = await this.client.models.generateContentStream({
         model: this.model,
         contents: [
           {
@@ -197,7 +185,11 @@ export class GeminiTTSService {
         ) {
           const inlineData = chunk.candidates[0].content.parts[0].inlineData;
           if (inlineData.data) {
-            audioChunks.push(inlineData.data);
+            // Convert base64 string to Uint8Array
+            const audioData = typeof inlineData.data === 'string' 
+              ? new Uint8Array(Buffer.from(inlineData.data, 'base64'))
+              : inlineData.data as Uint8Array;
+            audioChunks.push(audioData);
             mimeType = inlineData.mimeType || mimeType;
           }
         }
@@ -280,7 +272,7 @@ export class GeminiTTSService {
         speechConfig
       };
 
-      const response = this.client.models.generateContentStream({
+      const response = await this.client.models.generateContentStream({
         model: this.model,
         contents: [
           {
@@ -295,7 +287,6 @@ export class GeminiTTSService {
         config: generateConfig
       });
 
-      let isComplete = false;
       let chunkCount = 0;
 
       for await (const chunk of response) {
@@ -308,8 +299,10 @@ export class GeminiTTSService {
           if (inlineData.data) {
             chunkCount++;
             
-            // Pass-through chunks; preserve mimeType
-            let audioData = inlineData.data as Uint8Array;
+            // Convert base64 string to Uint8Array if needed
+            let audioData = typeof inlineData.data === 'string' 
+              ? new Uint8Array(Buffer.from(inlineData.data, 'base64'))
+              : inlineData.data as Uint8Array;
             let mimeType = inlineData.mimeType || 'audio/wav';
 
             yield {
@@ -337,7 +330,7 @@ export class GeminiTTSService {
   /**
    * Estimate audio duration based on text length and voice
    */
-  private estimateAudioDuration(text: string, voice: TTSVoice): number {
+  private estimateAudioDuration(text: string, _voice: TTSVoice): number {
     // Average speaking rate is about 150-160 words per minute
     // Adjust based on voice characteristics
     const wordsPerMinute = 155; // Average speaking rate

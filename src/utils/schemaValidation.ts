@@ -5,10 +5,10 @@
  * for MongoDB collections and documents in the LinguaFlip application.
  */
 
-import { Db, Collection } from 'mongodb';
+import { Db } from 'mongodb';
 import type { Document } from 'mongodb';
 import { getDatabase } from './database';
-import { Schemas, validateDocument, DatabaseIndexes } from '../schemas/mongodb';
+import { Schemas, validateDocument } from '../schemas/mongodb';
 import type {
   UserDocument,
   FlashcardDocument,
@@ -75,7 +75,11 @@ export class SchemaValidator {
   private db: Db;
 
   constructor(db?: Db) {
-    this.db = db || getDatabase();
+    const database = db || getDatabase();
+    if (!database) {
+      throw new Error('Database connection not available');
+    }
+    this.db = database;
   }
 
   /**
@@ -351,7 +355,7 @@ export class SchemaValidator {
     collectionName: string,
     document: Document,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    _warnings: ValidationWarning[]
   ): Promise<void> {
     // Check referential integrity
     if (document.userId) {
@@ -393,7 +397,7 @@ export class SchemaValidator {
   private async validateUserRules(
     user: UserDocument,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    _warnings: ValidationWarning[]
   ): Promise<void> {
     // Check email uniqueness if email exists
     if (user.email) {
@@ -582,7 +586,7 @@ export class SchemaValidator {
     try {
       const collection = this.db.collection(collectionName);
       // Use aggregate to get basic stats instead of stats() method
-      const stats = await collection.aggregate([
+      await collection.aggregate([
         {
           $group: {
             _id: null,
@@ -707,14 +711,7 @@ export function generateSampleData(): {
       userId: 'user_001',
       startTime: new Date(Date.now() - 1800000), // 30 minutes ago
       endTime: new Date(),
-      cardsStudied: [
-        {
-          cardId: 'card_001',
-          quality: 4,
-          responseTime: 2500,
-          wasCorrect: true
-        }
-      ],
+      cardsStudied: ['card_001'],
       totalCards: 1,
       correctAnswers: 1,
       incorrectAnswers: 0,
@@ -736,5 +733,4 @@ export function generateSampleData(): {
 // EXPORT UTILITIES
 // ============================================================================
 
-export type { ValidationResult, ValidationError, ValidationWarning, SchemaHealthReport };
 export default SchemaValidator;

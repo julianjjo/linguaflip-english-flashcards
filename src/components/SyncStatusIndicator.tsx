@@ -32,7 +32,6 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
     setIsManualSync(true);
     try {
       await hybridStorage.forceSync(userId);
-      setLastManualSync(new Date());
     } catch (error) {
       console.error('Manual sync failed:', error);
     } finally {

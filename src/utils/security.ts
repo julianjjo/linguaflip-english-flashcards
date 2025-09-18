@@ -173,7 +173,7 @@ export class EnvironmentEncryptor {
       throw new Error('Invalid encrypted text format');
     }
 
-    const iv = Buffer.from(parts[0], 'hex');
+    const _iv = Buffer.from(parts[0], 'hex');
     const encrypted = parts[1];
 
     const decipher = crypto.createDecipher(this.algorithm, key);

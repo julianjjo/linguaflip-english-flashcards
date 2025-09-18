@@ -7,7 +7,6 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { authService } from '../services/auth';
 import { SecurityAuditor } from '../utils/security';
 import { PermissionError, ValidationError } from '../types/database';
 
@@ -168,7 +167,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 /**
  * Optional authentication middleware - doesn't require token but validates if present
  */
-export function optionalAuth(req: Request, res: Response, next: NextFunction) {
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   try {
     const token = extractTokenFromHeader(req.headers.authorization);
 
@@ -311,7 +310,7 @@ export function authCors(req: Request, res: Response, next: NextFunction) {
 /**
  * Security headers middleware
  */
-export function securityHeaders(req: Request, res: Response, next: NextFunction) {
+export function securityHeaders(_req: Request, res: Response, next: NextFunction) {
   // Set security headers
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('X-Frame-Options', 'DENY');
