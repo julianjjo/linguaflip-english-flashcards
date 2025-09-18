@@ -866,7 +866,7 @@ export class AuthService {
   /**
    * Verify password reset token
    */
-  private verifyPasswordResetToken(token: string): { userId: string } {
+  private verifyPasswordResetToken(_token: string): { userId: string } {
     // For now, just return a mock decoded token
     // In production, this should verify the token properly
     return { userId: 'mock_user_id' };

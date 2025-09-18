@@ -15,15 +15,12 @@ import type {
   BulkOperationResult
 } from '../types/database';
 import {
-  DatabaseError,
   BulkOperationError,
   ValidationError,
-  safeAsync,
-  validateOwnership,
-  errorHandler
+  safeAsync
 } from '../types/database';
 import { validateDocument } from '../schemas/mongodb';
-import { UserSchema, FlashcardSchema, StudySessionSchema, StudyStatisticsSchema } from '../schemas/mongodb';
+import { FlashcardSchema } from '../schemas/mongodb';
 
 // Import individual services for cross-collection operations
 import { usersService } from './users';
@@ -482,7 +479,7 @@ export class BulkOperationsService {
     } = {}
   ): Promise<DatabaseOperationResult<BulkOperationResult>> {
     return safeAsync(async () => {
-      const { olderThanDays = 365, cleanupFlashcards = false, cleanupSessions = true, cleanupStatistics = false } = options;
+      const { olderThanDays = 365, cleanupSessions = true, cleanupStatistics = false } = options;
       const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
 
       const results = {

@@ -9,13 +9,14 @@ interface UseThemeReturn {
   toggleTheme: () => void;
   isDark: boolean;
   isLight: boolean;
+  mounted: boolean;
 }
 
 const THEME_STORAGE_KEY = 'linguaflip-theme';
 
 export const useTheme = (): UseThemeReturn => {
   const [theme, setThemeState] = useState<Theme>('auto');
-
+  const [mounted, setMounted] = useState(false);
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
 
@@ -91,5 +92,6 @@ export const useTheme = (): UseThemeReturn => {
     toggleTheme,
     isDark,
     isLight,
+    mounted,
   };
 };

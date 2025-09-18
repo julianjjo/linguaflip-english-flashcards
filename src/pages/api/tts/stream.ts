@@ -3,21 +3,6 @@ import { getGeminiTTSService } from '../../../services/geminiTTS';
 import type { TTSRequest } from '../../../services/geminiTTS';
 import { SecurityError } from '../../../utils/security';
 
-function getClientIP(request: Request): string {
-  const xForwardedFor = request.headers.get('x-forwarded-for');
-  const xRealIP = request.headers.get('x-real-ip');
-  
-  if (xForwardedFor) {
-    return xForwardedFor.split(',')[0].trim();
-  }
-  
-  if (xRealIP) {
-    return xRealIP;
-  }
-
-  return 'localhost';
-}
-
 export const POST: APIRoute = async ({ request }) => {
   try {
     // Parse request body

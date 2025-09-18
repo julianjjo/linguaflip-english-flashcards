@@ -245,7 +245,7 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
  * Query parameter sanitization middleware
  * Removes or modifies query parameters that could bypass data isolation
  */
-export function sanitizeQueryParameters(req: Request, res: Response, next: NextFunction) {
+export function sanitizeQueryParameters(req: Request, _res: Response, next: NextFunction) {
   if (!req.user || !req.user.userId) {
     return next(); // Let auth middleware handle this
   }

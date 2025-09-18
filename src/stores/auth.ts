@@ -118,9 +118,6 @@ const setError = (error: string | null) => {
   lastActivityAtom.set(new Date());
 };
 
-const updateLastActivity = () => {
-  lastActivityAtom.set(new Date());
-};
 
 const clearAuth = () => {
   userAtom.set(null);

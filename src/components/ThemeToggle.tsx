@@ -7,25 +7,32 @@ interface ThemeToggleProps {
   className?: string;
 }
 
+const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
+  switch (size) {
+    case 'sm':
+      return 'w-8 h-8 text-sm';
+    case 'md':
+      return 'w-10 h-10 text-base';
+    case 'lg':
+      return 'w-12 h-12 text-lg';
+    default:
+      return 'w-10 h-10 text-base';
+  }
+};
+
 const ThemeToggle: React.FC<ThemeToggleProps> = ({
   size = 'md',
   variant = 'button',
   className = ''
 }) => {
-  const { theme, actualTheme, toggleTheme, isDark } = useTheme();
+  const { theme, actualTheme, toggleTheme, isDark, mounted } = useTheme();
 
-  const getSizeClasses = () => {
-    switch (size) {
-      case 'sm':
-        return 'w-8 h-8 text-sm';
-      case 'md':
-        return 'w-10 h-10 text-base';
-      case 'lg':
-        return 'w-12 h-12 text-lg';
-      default:
-        return 'w-10 h-10 text-base';
-    }
-  };
+  // Prevent rendering theme-dependent content until after hydration
+  if (!mounted) {
+    return (
+      <div className={`${getSizeClasses(size)} animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg`} />
+    );
+  }
 
   const getIcon = () => {
     if (theme === 'auto') {
@@ -46,7 +53,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <button
         onClick={toggleTheme}
         className={`
-          ${getSizeClasses()}
+          ${getSizeClasses(size)}
           flex items-center justify-center rounded-full
           bg-gray-100 dark:bg-gray-800
           hover:bg-gray-200 dark:hover:bg-gray-700
@@ -70,7 +77,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <button
         onClick={toggleTheme}
         className={`
-          ${getSizeClasses()}
+          ${getSizeClasses(size)}
           flex items-center justify-center rounded-lg
           bg-gray-100 dark:bg-gray-800
           hover:bg-gray-200 dark:hover:bg-gray-700
@@ -95,7 +102,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     <button
       onClick={toggleTheme}
       className={`
-        ${getSizeClasses()}
+        ${getSizeClasses(size)}
         flex items-center justify-center gap-2 px-3 py-2 rounded-lg
         bg-gray-100 dark:bg-gray-800
         hover:bg-gray-200 dark:hover:bg-gray-700

@@ -5,9 +5,7 @@
  * including conflict resolution, data migration, and offline support.
  */
 
-import { createDatabaseOperations } from '../utils/databaseOperations';
 import type {
-  UserDocument,
   FlashcardDocument,
   StudySessionDocument,
   StudyStatisticsDocument,
@@ -16,8 +14,7 @@ import type {
 import {
   DatabaseError,
   ValidationError,
-  safeAsync,
-  errorHandler
+  safeAsync
 } from '../types/database';
 
 // Import individual services
@@ -649,8 +646,6 @@ export class SyncService {
    * Apply local version to resolve conflict
    */
   private async applyLocalVersion(conflict: SyncConflict): Promise<void> {
-    const dbOps = createDatabaseOperations(conflict.collection);
-
     switch (conflict.collection) {
       case 'flashcards':
         await flashcardsService.updateFlashcard(
@@ -699,8 +694,6 @@ export class SyncService {
    * Apply merged version
    */
   private async applyMergedVersion(conflict: SyncConflict, mergedData: any): Promise<void> {
-    const dbOps = createDatabaseOperations(conflict.collection);
-
     switch (conflict.collection) {
       case 'flashcards':
         await flashcardsService.updateFlashcard(

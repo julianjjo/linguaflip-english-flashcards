@@ -5,9 +5,8 @@
  * including session tracking, performance analytics, and progress monitoring.
  */
 
-import { ObjectId } from 'mongodb';
 import { createDatabaseOperations } from '../utils/databaseOperations';
-import type { StudySessionDocument, DatabaseOperationResult, StudySessionFilter } from '../types/database';
+import type { StudySessionDocument, DatabaseOperationResult } from '../types/database';
 import {
   DatabaseError,
   NotFoundError,
@@ -15,8 +14,7 @@ import {
   ValidationError,
   safeAsync,
   validateRequired,
-  validateOwnership,
-  errorHandler
+  validateOwnership
 } from '../types/database';
 import { StudySessionSchema, validateDocument, sanitizeInput } from '../schemas/mongodb';
 

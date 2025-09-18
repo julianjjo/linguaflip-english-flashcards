@@ -6,11 +6,9 @@
  */
 
 import { Db, Collection } from 'mongodb';
-import type { IndexSpecification } from 'mongodb';
 import { getDatabase } from './database';
 import type { MigrationDocument } from '../types/database';
 import { Schemas, DatabaseIndexes } from '../schemas/mongodb';
-import { createDatabaseOperations } from './databaseOperations';
 
 // ============================================================================
 // MIGRATION TYPES
@@ -448,6 +446,9 @@ export class MigrationEngine {
  */
 export async function initializeDatabaseWithMigrations(): Promise<MigrationResult> {
   const db = getDatabase();
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
   const migrationEngine = new MigrationEngine(db);
 
   console.log('🔄 Checking for pending database migrations...');
@@ -474,6 +475,9 @@ export async function getDatabaseHealthWithMigrations(): Promise<{
   collections: string[];
 }> {
   const db = getDatabase();
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
   const migrationEngine = new MigrationEngine(db);
 
   try {
@@ -506,6 +510,9 @@ export async function getDatabaseHealthWithMigrations(): Promise<{
  */
 export async function createMigrationBackup(collectionName: string): Promise<string> {
   const db = getDatabase();
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupCollectionName = `${collectionName}_backup_${timestamp}`;
 
