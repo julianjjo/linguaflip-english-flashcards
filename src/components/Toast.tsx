@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
@@ -49,12 +49,12 @@ const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
 
       return () => clearTimeout(timer);
     }
-  }, [toast.id, toast.duration, toast.persistent]);
+  }, [toast.id, toast.duration, toast.persistent, handleClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => onClose(toast.id), 300); // Wait for exit animation
-  };
+  }, [onClose, toast.id]);
 
   const getIcon = () => {
     switch (toast.type) {

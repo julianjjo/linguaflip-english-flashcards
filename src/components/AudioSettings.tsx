@@ -55,7 +55,7 @@ const AudioSettings: React.FC = () => {
               Audio Not Supported
             </h3>
             <div className="mt-2 text-sm text-yellow-700">
-              <p>Your browser doesn't support speech synthesis. Audio features will use fallback methods.</p>
+              <p>Your browser doesn&apos;t support speech synthesis. Audio features will use fallback methods.</p>
             </div>
           </div>
         </div>

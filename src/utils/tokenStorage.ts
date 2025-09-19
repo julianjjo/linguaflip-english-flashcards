@@ -309,7 +309,7 @@ export class SecureTokenStorage {
  */
 export class TokenRefreshManager {
   private static refreshPromise: Promise<string> | null = null;
-  private static refreshTimer: NodeJS.Timeout | null = null;
+  private static refreshTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
 
   /**

@@ -106,7 +106,7 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
   useEffect(() => {
     if ('AudioContext' in window || 'webkitAudioContext' in window) {
       try {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         audioContext.current = new AudioContextClass();
       } catch (error) {
         console.warn('Web Audio API not available:', error);
@@ -224,13 +224,13 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
     } finally {
       setIsGenerating(false);
     }
-  }, []);
+  }, [playAudioData]);
 
   // Play audio data using Web Audio API
   const playAudioData = useCallback(async (audioData: Uint8Array): Promise<void> => {
     if (!audioContext.current) {
       if ('AudioContext' in window || 'webkitAudioContext' in window) {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         audioContext.current = new AudioContextClass();
       } else {
         throw new Error('Web Audio API not supported');
@@ -446,7 +446,7 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
         cleanCache();
       }
     }
-  }, [settings.provider, settings.geminiVoice, settings.temperature, settings.voice?.name, speakWithGemini, isSupported, cleanCache]);
+  }, [settings.provider, settings.geminiVoice, settings.temperature, settings.voice?.name, isSupported, cleanCache]);
 
   return {
     speak,

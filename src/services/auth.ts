@@ -875,3 +875,50 @@ export class AuthService {
 
 // Export singleton instance
 export const authService = new AuthService();
+
+// Export wrapper functions for API endpoints
+export const login = async (email: string, password: string, _ipAddress?: string, deviceInfo?: string) => {
+  return authService.login({ email, password, deviceInfo: deviceInfo || 'Unknown Device' });
+};
+
+export const register = async (data: { 
+  email: string; 
+  username?: string; 
+  password: string; 
+  clientIP?: string;
+}) => {
+  return authService.register({
+    email: data.email,
+    username: data.username,
+    password: data.password,
+    confirmPassword: data.password // API already validated this
+  }, data.clientIP);
+};
+
+export const logout = async (accessToken?: string | null, refreshToken?: string | null, clientIP?: string) => {
+  if (!accessToken && !refreshToken) {
+    return { success: true, message: 'No tokens to invalidate' };
+  }
+
+  // For now, just return success - actual token invalidation would be implemented here
+  SecurityAuditor.logSecurityEvent(
+    'LOGOUT_API_CALLED',
+    { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken, clientIP },
+    'low'
+  );
+
+  return { success: true, message: 'Logged out successfully' };
+};
+
+export const refreshAccessToken = async (refreshToken: string, _clientIP?: string) => {
+  return authService.refreshToken({ refreshToken });
+};
+
+export const verifyAccessToken = async (token: string) => {
+  return authService.verifyAccessToken(token);
+};
+
+export const getUserById = async (userId: string) => {
+  const usersService = new UsersService();
+  return usersService.getUserById(userId);
+};

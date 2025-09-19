@@ -45,7 +45,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
       const exportData = DataExportImport.exportAllData();
       DataExportImport.downloadExportData(exportData);
       setImportMessage({ type: 'success', text: 'Data exported successfully!' });
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Failed to export data. Please try again.' });
     } finally {
       setIsExporting(false);
@@ -58,7 +58,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
       const exportData = DataExportImport.exportProgressData();
       DataExportImport.downloadExportData(exportData, `linguaflip-progress-${new Date().toISOString().split('T')[0]}.json`);
       setImportMessage({ type: 'success', text: 'Progress data exported successfully!' });
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Failed to export progress data. Please try again.' });
     } finally {
       setIsExporting(false);
@@ -81,7 +81,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
       } else {
         setImportMessage({ type: 'error', text: result.message });
       }
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'An unexpected error occurred during import.' });
     } finally {
       setIsImporting(false);
@@ -109,7 +109,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
       await hybridStorage.forceSync(userId);
       setImportMessage({ type: 'success', text: 'Data exported to MongoDB successfully!' });
       onDataExported?.();
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Failed to export data to MongoDB' });
     } finally {
       setIsExporting(false);
@@ -133,7 +133,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
       ]);
       setImportMessage({ type: 'success', text: 'Data imported from MongoDB successfully!' });
       onDataImported?.();
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Failed to import data from MongoDB' });
     } finally {
       setIsImporting(false);
@@ -148,7 +148,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
     try {
       await hybridStorage.forceSync(userId);
       setImportMessage({ type: 'success', text: 'Sync completed successfully!' });
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Sync failed. Please try again.' });
     } finally {
       setIsSyncing(false);
@@ -176,7 +176,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
           text: `Migration failed: ${migrationResult.errors.join(', ')}`
         });
       }
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Migration failed unexpectedly' });
     }
   };
@@ -186,7 +186,7 @@ const DataManagement: React.FC<DataManagementProps> = ({
     try {
       createBackup();
       setImportMessage({ type: 'success', text: 'Backup created successfully!' });
-    } catch (error) {
+    } catch {
       setImportMessage({ type: 'error', text: 'Failed to create backup' });
     }
   };

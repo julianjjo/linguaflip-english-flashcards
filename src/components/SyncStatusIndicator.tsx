@@ -293,7 +293,7 @@ export const OfflineIndicator: React.FC<{ className?: string }> = ({ className =
     <div className={`fixed top-4 right-4 bg-orange-100 border border-orange-300 text-orange-800 px-4 py-2 rounded-lg shadow-lg z-50 ${className}`}>
       <div className="flex items-center space-x-2">
         <span>📶</span>
-        <span className="text-sm font-medium">You're offline</span>
+        <span className="text-sm font-medium">You&apos;re offline</span>
         <button
           onClick={() => setShowMessage(false)}
           className="text-orange-600 hover:text-orange-800"
@@ -302,7 +302,7 @@ export const OfflineIndicator: React.FC<{ className?: string }> = ({ className =
         </button>
       </div>
       <div className="text-xs mt-1">
-        Changes will be synced when you're back online
+        Changes will be synced when you&apos;re back online
       </div>
     </div>
   );

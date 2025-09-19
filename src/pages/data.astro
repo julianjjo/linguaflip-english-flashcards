@@ -386,7 +386,7 @@ import { studyHistoryStore } from '../stores/study.ts';
               </svg>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium">${message}</p>
+              <p class="text-sm font-medium"></p>
             </div>
             <div class="ml-auto pl-3">
               <button onclick="this.parentElement.parentElement.parentElement.remove()" class="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2">
@@ -397,6 +397,12 @@ import { studyHistoryStore } from '../stores/study.ts';
             </div>
           </div>
         `;
+
+        // Safely set the message text to prevent XSS
+        const messageElement = notification.querySelector('p');
+        if (messageElement) {
+          messageElement.textContent = message;
+        }
 
         document.body.appendChild(notification);
 

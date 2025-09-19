@@ -70,7 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
     let requestData: TTSRequest;
     try {
       requestData = await request.json();
-    } catch (error) {
+    } catch {
       return new Response(
         JSON.stringify({ 
           error: 'Invalid JSON', 
