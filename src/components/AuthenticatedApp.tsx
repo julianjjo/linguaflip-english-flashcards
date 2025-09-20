@@ -18,7 +18,7 @@ const AuthenticatedApp: React.FC<AuthenticatedAppProps> = ({
     <AuthProvider>
       {children}
       {showUserProfile && (
-        <div className="fixed top-8 right-20 z-20">
+        <div className="fixed top-0 right-4 z-20 flex items-center h-16 px-4">
           <UserProfile />
         </div>
       )}
