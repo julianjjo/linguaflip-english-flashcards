@@ -26,10 +26,10 @@ export const calculateAccuracy = (correct: number, total: number): number => {
 };
 
 export const generateId = (): string => {
-  return `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `id_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -40,7 +40,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): ((...args: Parameters<T>) => void) => {

@@ -1,16 +1,17 @@
 import puppeteer from 'puppeteer';
 
-async function testFlashcardButtons() {
-  console.log('🧪 Iniciando prueba de botones de flashcards...');
+describe('Flashcard Buttons Test', () => {
+  test('should test flashcard buttons', async () => {
+    console.log('🧪 Iniciando prueba de botones de flashcards...');
 
-  const browser = await puppeteer.launch({
-    headless: false,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
-  const page = await browser.newPage();
+    const page = await browser.newPage();
 
-  try {
+    try {
     // Capturar errores de consola
     const consoleErrors = [];
     page.on('console', msg => {
@@ -136,12 +137,11 @@ async function testFlashcardButtons() {
     await page.screenshot({ path: 'flashcard-test-screenshot.png', fullPage: true });
     console.log('📸 Screenshot guardado como flashcard-test-screenshot.png');
 
-  } catch (error) {
-    console.error('❌ Error durante la prueba:', error.message);
-  } finally {
-    await browser.close();
-    console.log('🔚 Prueba completada');
-  }
-}
-
-testFlashcardButtons().catch(console.error);
+    } catch (error) {
+      console.error('❌ Error durante la prueba:', error.message);
+    } finally {
+      await browser.close();
+      console.log('🔚 Prueba completada');
+    }
+  });
+});

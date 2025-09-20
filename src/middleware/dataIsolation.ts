@@ -9,6 +9,26 @@ import type { Request, Response, NextFunction } from 'express';
 import { SecurityAuditor } from '../utils/security';
 import { PermissionError } from '../types/database';
 
+// Interface for file upload metadata
+interface FileWithUserId {
+  userId?: string;
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination: string;
+  filename: string;
+  path: string;
+  buffer: Buffer;
+}
+
+// Interface for requests with file uploads
+interface RequestWithFiles extends Request {
+  file?: FileWithUserId;
+  files?: FileWithUserId[] | { [fieldname: string]: FileWithUserId[] };
+}
+
 /**
  * User data isolation middleware
  * Ensures users can only access their own data
@@ -208,7 +228,7 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
 
   if (req.body && Array.isArray(req.body)) {
     // For bulk operations with arrays of items
-    const hasInvalidItems = req.body.some((item: any) =>
+    const hasInvalidItems = req.body.some((item: Record<string, unknown>) =>
       item.userId && item.userId !== userId
     );
 
@@ -232,7 +252,7 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
     }
 
     // Add userId to all items
-    req.body = req.body.map((item: any) => ({
+    req.body = req.body.map((item: Record<string, unknown>) => ({
       ...item,
       userId
     }));
@@ -297,7 +317,7 @@ export function isolateFileUploads(req: Request, res: Response, next: NextFuncti
   const userId = req.user.userId;
 
   // Add user ID to file metadata
-  const reqWithFiles = req as any;
+  const reqWithFiles = req as RequestWithFiles;
   if (reqWithFiles.file) {
     // For single file uploads
     reqWithFiles.file.userId = userId;
@@ -306,14 +326,14 @@ export function isolateFileUploads(req: Request, res: Response, next: NextFuncti
   if (reqWithFiles.files) {
     // For multiple file uploads
     if (Array.isArray(reqWithFiles.files)) {
-      reqWithFiles.files.forEach((file: any) => {
+      reqWithFiles.files.forEach((file: FileWithUserId) => {
         file.userId = userId;
       });
     } else {
       // For files organized by field name
-      Object.values(reqWithFiles.files).forEach((fileArray: any) => {
+      Object.values(reqWithFiles.files).forEach((fileArray: unknown) => {
         if (Array.isArray(fileArray)) {
-          fileArray.forEach((file: any) => {
+          fileArray.forEach((file: FileWithUserId) => {
             file.userId = userId;
           });
         }
@@ -381,7 +401,7 @@ export function comprehensiveDataIsolation(collectionName?: string) {
 /**
  * Data isolation error handler
  */
-export function dataIsolationErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+export function dataIsolationErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   if (err instanceof PermissionError) {
     SecurityAuditor.logSecurityEvent(
       'DATA_ISOLATION_VIOLATION',

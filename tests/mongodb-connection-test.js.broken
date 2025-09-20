@@ -1,6 +1,6 @@
 // MongoDB Connection Test Suite
 import { MongoClient } from 'mongodb';
-import { validateMongoDBEnvironment, buildSecureConnectionString, sanitizeConnectionString } from '../src/utils/security.js';
+import { validateMongoDBEnvironment, buildSecureConnectionString, sanitizeConnectionString } from '../src/utils/security.ts';
 
 // Test configuration
 const TEST_CONFIG = {
@@ -14,6 +14,13 @@ describe('MongoDB Connection Setup', () => {
   let db;
 
   beforeAll(async () => {
+    jest.setTimeout(30000);
+    
+    // Set test environment variables
+    process.env.NODE_ENV = 'test';
+    process.env.MONGODB_TEST_URI = 'mongodb://127.0.0.1:27017';
+    process.env.MONGODB_TEST_DATABASE = 'linguaflip_test';
+    
     // Validate environment before testing
     const validation = validateMongoDBEnvironment();
     if (!validation.isValid) {
@@ -216,6 +223,13 @@ describe('Performance Tests', () => {
   let db;
 
   beforeAll(async () => {
+    jest.setTimeout(30000);
+    
+    // Set test environment variables
+    process.env.NODE_ENV = 'test';
+    process.env.MONGODB_TEST_URI = 'mongodb://127.0.0.1:27017';
+    process.env.MONGODB_TEST_DATABASE = 'linguaflip_test';
+    
     const connectionString = buildSecureConnectionString();
     client = new MongoClient(connectionString, {
       maxPoolSize: 10,

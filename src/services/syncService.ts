@@ -30,8 +30,8 @@ import { bulkOperationsService } from './bulkOperations';
 export interface SyncConflict {
   collection: string;
   documentId: string;
-  localVersion: any;
-  remoteVersion: any;
+  localVersion: Record<string, unknown>;
+  remoteVersion: Record<string, unknown>;
   conflictType: 'create' | 'update' | 'delete';
   resolved: boolean;
   resolution?: 'local' | 'remote' | 'merge' | 'manual';
@@ -181,7 +181,15 @@ export class SyncService {
       includeStatistics?: boolean;
       limit?: number;
     } = {}
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<{
+    userId: string;
+    syncedAt: Date;
+    data: {
+      flashcards?: FlashcardDocument[];
+      studySessions?: StudySessionDocument[];
+      studyStatistics?: StudyStatisticsDocument[];
+    };
+  }>> {
     return safeAsync(async () => {
       const {
         since,
@@ -191,10 +199,14 @@ export class SyncService {
         limit = 1000
       } = options;
 
-      const syncData: any = {
+      const syncData = {
         userId,
         syncedAt: new Date(),
-        data: {}
+        data: {} as {
+          flashcards?: FlashcardDocument[];
+          studySessions?: StudySessionDocument[];
+          studyStatistics?: StudyStatisticsDocument[];
+        }
       };
 
       // Sync flashcards
@@ -252,7 +264,7 @@ export class SyncService {
     resolutions: Array<{
       conflictIndex: number;
       resolution: 'local' | 'remote' | 'merge' | 'manual';
-      mergedData?: any;
+      mergedData?: Record<string, unknown>;
     }>
   ): Promise<DatabaseOperationResult<SyncSession>> {
     return safeAsync(async () => {
@@ -283,7 +295,16 @@ export class SyncService {
   /**
    * Get sync status for a user
    */
-  async getSyncStatus(userId: string): Promise<DatabaseOperationResult<any>> {
+  async getSyncStatus(userId: string): Promise<DatabaseOperationResult<{
+    userId: string;
+    lastSyncTimestamp?: Date;
+    pendingItems: {
+      flashcards: number;
+      studySessions: number;
+      studyStatistics: number;
+    };
+    activeSyncSessions: SyncSession[];
+  }>> {
     return safeAsync(async () => {
       // Get last sync timestamp from user data
       const userResult = await usersService.getUserById(userId);
@@ -312,16 +333,25 @@ export class SyncService {
   async migrateUserData(
     userId: string,
     sourceData: {
-      flashcards?: any[];
-      studySessions?: any[];
-      studyStatistics?: any[];
+      flashcards?: Record<string, unknown>[];
+      studySessions?: Record<string, unknown>[];
+      studyStatistics?: Record<string, unknown>[];
     },
     options: {
       validateData?: boolean;
       transformData?: boolean;
       batchSize?: number;
     } = {}
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<{
+    success: boolean;
+    migratedItems: {
+      flashcards: number;
+      studySessions: number;
+      studyStatistics: number;
+    };
+    errors: string[];
+    skippedItems: number;
+  }>> {
     return safeAsync(async () => {
       const { validateData = true, transformData = true, batchSize = 100 } = options;
 
@@ -562,8 +592,8 @@ export class SyncService {
     syncSession: SyncSession,
     collection: string,
     documentId: string,
-    localVersion: any,
-    remoteVersion: any,
+    localVersion: Record<string, unknown>,
+    remoteVersion: Record<string, unknown>,
     conflictType: 'create' | 'update' | 'delete'
   ): Promise<SyncConflict> {
     const conflict: SyncConflict = {
@@ -617,7 +647,7 @@ export class SyncService {
    */
   private async applyConflictResolution(
     conflict: SyncConflict,
-    resolution: { resolution: string; mergedData?: any }
+    resolution: { resolution: string; mergedData?: Record<string, unknown> }
   ): Promise<void> {
     switch (resolution.resolution) {
       case 'local':
@@ -651,7 +681,7 @@ export class SyncService {
         await flashcardsService.updateFlashcard(
           conflict.documentId,
           conflict.localVersion,
-          conflict.localVersion.userId
+          conflict.localVersion.userId as string
         );
         break;
 
@@ -659,10 +689,10 @@ export class SyncService {
         await studySessionsService.updateSessionProgress(
           conflict.documentId,
           {
-            cardsStudied: conflict.localVersion.cardsStudied,
-            currentPerformance: conflict.localVersion.performance
+            cardsStudied: conflict.localVersion.cardsStudied as string[],
+            currentPerformance: conflict.localVersion.performance as Partial<{ overallScore: number; improvement: number; focusAreas: string[]; }>
           },
-          conflict.localVersion.userId
+          conflict.localVersion.userId as string
         );
         break;
 
@@ -670,7 +700,7 @@ export class SyncService {
         await studyStatisticsService.updateStudyStatistics(
           conflict.documentId,
           conflict.localVersion,
-          conflict.localVersion.userId
+          conflict.localVersion.userId as string
         );
         break;
     }
@@ -681,8 +711,8 @@ export class SyncService {
    */
   private async mergeVersions(conflict: SyncConflict): Promise<void> {
     // Simple merge strategy: take the most recent update
-    const localTime = new Date(conflict.localVersion.updatedAt || conflict.localVersion.createdAt).getTime();
-    const remoteTime = new Date(conflict.remoteVersion.updatedAt || conflict.remoteVersion.createdAt).getTime();
+    const localTime = new Date((conflict.localVersion.updatedAt || conflict.localVersion.createdAt) as string | number | Date).getTime();
+    const remoteTime = new Date((conflict.remoteVersion.updatedAt || conflict.remoteVersion.createdAt) as string | number | Date).getTime();
 
     if (localTime > remoteTime) {
       await this.applyLocalVersion(conflict);
@@ -693,13 +723,13 @@ export class SyncService {
   /**
    * Apply merged version
    */
-  private async applyMergedVersion(conflict: SyncConflict, mergedData: any): Promise<void> {
+  private async applyMergedVersion(conflict: SyncConflict, mergedData: Record<string, unknown>): Promise<void> {
     switch (conflict.collection) {
       case 'flashcards':
         await flashcardsService.updateFlashcard(
           conflict.documentId,
           mergedData,
-          mergedData.userId
+          mergedData.userId as string
         );
         break;
 
@@ -707,10 +737,10 @@ export class SyncService {
         await studySessionsService.updateSessionProgress(
           conflict.documentId,
           {
-            cardsStudied: mergedData.cardsStudied,
-            currentPerformance: mergedData.performance
+            cardsStudied: mergedData.cardsStudied as string[],
+            currentPerformance: mergedData.performance as Partial<{ overallScore: number; improvement: number; focusAreas: string[]; }>
           },
-          mergedData.userId
+          mergedData.userId as string
         );
         break;
 
@@ -718,7 +748,7 @@ export class SyncService {
         await studyStatisticsService.updateStudyStatistics(
           conflict.documentId,
           mergedData,
-          mergedData.userId
+          mergedData.userId as string
         );
         break;
     }
@@ -727,7 +757,11 @@ export class SyncService {
   /**
    * Get pending sync counts
    */
-  private async getPendingSyncCounts(userId: string, since?: Date): Promise<any> {
+  private async getPendingSyncCounts(userId: string, since?: Date): Promise<{
+    flashcards: number;
+    studySessions: number;
+    studyStatistics: number;
+  }> {
     const counts = {
       flashcards: 0,
       studySessions: 0,
@@ -770,14 +804,14 @@ export class SyncService {
    * Transform migration data
    */
   private async transformMigrationData(
-    sourceData: any,
+    sourceData: Record<string, unknown>,
     userId: string
-  ): Promise<any> {
+  ): Promise<Record<string, unknown>> {
     const transformed = { ...sourceData };
 
     // Transform flashcards
     if (transformed.flashcards) {
-      transformed.flashcards = transformed.flashcards.map((card: any) => ({
+      transformed.flashcards = (transformed.flashcards as Record<string, unknown>[]).map((card: Record<string, unknown>) => ({
         ...card,
         userId,
         cardId: card.cardId || `card_${Date.now()}_${Math.random()}`,
@@ -788,7 +822,7 @@ export class SyncService {
 
     // Transform study sessions
     if (transformed.studySessions) {
-      transformed.studySessions = transformed.studySessions.map((session: any) => ({
+      transformed.studySessions = (transformed.studySessions as Record<string, unknown>[]).map((session: Record<string, unknown>) => ({
         ...session,
         userId,
         sessionId: session.sessionId || `session_${Date.now()}_${Math.random()}`,
@@ -799,7 +833,7 @@ export class SyncService {
 
     // Transform study statistics
     if (transformed.studyStatistics) {
-      transformed.studyStatistics = transformed.studyStatistics.map((stats: any) => ({
+      transformed.studyStatistics = (transformed.studyStatistics as Record<string, unknown>[]).map((stats: Record<string, unknown>) => ({
         ...stats,
         userId,
         statsId: stats.statsId || `stats_${Date.now()}_${Math.random()}`,
@@ -814,12 +848,12 @@ export class SyncService {
   /**
    * Validate migration data
    */
-  private async validateMigrationData(data: any): Promise<{ isValid: boolean; errors: string[] }> {
+  private async validateMigrationData(data: Record<string, unknown>): Promise<{ isValid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
     // Validate flashcards
     if (data.flashcards) {
-      for (const card of data.flashcards) {
+      for (const card of (data.flashcards as Record<string, unknown>[])) {
         if (!card.front || !card.back || !card.category) {
           errors.push(`Invalid flashcard: missing required fields`);
         }
@@ -828,7 +862,7 @@ export class SyncService {
 
     // Validate study sessions
     if (data.studySessions) {
-      for (const session of data.studySessions) {
+      for (const session of (data.studySessions as Record<string, unknown>[])) {
         if (!session.startTime || !session.cardsStudied) {
           errors.push(`Invalid study session: missing required fields`);
         }
@@ -837,7 +871,7 @@ export class SyncService {
 
     // Validate study statistics
     if (data.studyStatistics) {
-      for (const stats of data.studyStatistics) {
+      for (const stats of (data.studyStatistics as Record<string, unknown>[])) {
         if (!stats.date || !stats.dailyStats) {
           errors.push(`Invalid study statistics: missing required fields`);
         }

@@ -186,7 +186,7 @@ export class DatabaseConnection {
         database: this.config.databaseName,
         collections: collectionNames,
       };
-    } catch (error) {
+    } catch {
       return {
         status: 'error',
         database: this.config.databaseName,
@@ -202,7 +202,7 @@ export const dbConnection = DatabaseConnection.getInstance();
 export const getDatabase = (): Db | null => {
   try {
     return dbConnection.getDatabase();
-  } catch (error) {
+  } catch {
     console.warn('Database not available, using offline mode');
     return null;
   }

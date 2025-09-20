@@ -1,16 +1,8 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import Header from '../components/Header.astro';
-import Sidebar from '../components/Sidebar.astro';
-
 // Importar componentes React
-import DataManagement from '../../components/DataManagement.tsx';
 import ThemeToggle from '../components/ThemeToggle.tsx';
 import AppProvider from '../components/AppProvider.tsx';
-
-// Importar stores para datos
-import { flashcardsStore } from '../stores/flashcards.ts';
-import { studyHistoryStore } from '../stores/study.ts';
 ---
 
 <MainLayout
@@ -26,7 +18,8 @@ import { studyHistoryStore } from '../stores/study.ts';
   <meta name="twitter:description" content="Backup y restauración de datos de estudio" />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" set:html={
+  {/* eslint-disable-next-line astro/no-set-html-directive */}
+  <script type="application/ld+json" is:inline set:html={
     JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -255,9 +248,10 @@ import { studyHistoryStore } from '../stores/study.ts';
 
   <!-- Data Management Script -->
   <script>
+    import React from 'react';
     import { flashcardsStore } from '../stores/flashcards.ts';
     import { studyHistoryStore } from '../stores/study.ts';
-    import DataManagement from '../../components/DataManagement.tsx';
+    import DataManagement from '../components/DataManagement.tsx';
     import { createRoot } from 'react-dom/client';
 
     class DataPageManager {
@@ -276,18 +270,31 @@ import { studyHistoryStore } from '../stores/study.ts';
         const sessions = studyHistoryStore.get();
 
         // Update stats display
-        document.getElementById('total-cards').textContent = flashcards.length.toString();
-        document.getElementById('total-sessions').textContent = sessions.length.toString();
+        const totalCardsEl = document.getElementById('total-cards');
+        const totalSessionsEl = document.getElementById('total-sessions');
+        const dataSizeEl = document.getElementById('data-size');
+        
+        if (totalCardsEl) {
+          totalCardsEl.textContent = flashcards.length.toString();
+        }
+        if (totalSessionsEl) {
+          totalSessionsEl.textContent = sessions.length.toString();
+        }
 
         // Calculate data size
         const flashcardsSize = JSON.stringify(flashcards).length;
         const sessionsSize = JSON.stringify(sessions).length;
         const totalSize = flashcardsSize + sessionsSize;
         const sizeInKB = Math.round(totalSize / 1024);
-        document.getElementById('data-size').textContent = `${sizeInKB} KB`;
+        
+        if (dataSizeEl) {
+          dataSizeEl.textContent = `${sizeInKB} KB`;
+        }
 
         // Update last activity
-        if (sessions.length > 0) {
+        const lastActivityEl = document.getElementById('last-activity');
+        
+        if (sessions.length > 0 && lastActivityEl) {
           const lastSession = sessions.sort((a, b) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
           )[0];
@@ -295,18 +302,20 @@ import { studyHistoryStore } from '../stores/study.ts';
           const today = new Date();
 
           if (lastActivity.toDateString() === today.toDateString()) {
-            document.getElementById('last-activity').textContent = 'Hoy';
+            lastActivityEl.textContent = 'Hoy';
           } else if (lastActivity.toDateString() === new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString()) {
-            document.getElementById('last-activity').textContent = 'Ayer';
+            lastActivityEl.textContent = 'Ayer';
           } else {
-            document.getElementById('last-activity').textContent = lastActivity.toLocaleDateString('es-ES');
+            lastActivityEl.textContent = lastActivity.toLocaleDateString('es-ES');
           }
         }
 
         // Update last backup (simulated)
         const lastBackup = localStorage.getItem('linguaflip_last_backup');
-        if (lastBackup) {
-          document.getElementById('last-backup').textContent = new Date(lastBackup).toLocaleDateString('es-ES');
+        const lastBackupEl = document.getElementById('last-backup');
+        
+        if (lastBackup && lastBackupEl) {
+          lastBackupEl.textContent = new Date(lastBackup).toLocaleDateString('es-ES');
         }
       }
 
@@ -358,14 +367,21 @@ import { studyHistoryStore } from '../stores/study.ts';
           const maxSize = 5120; // 5MB typical localStorage limit
           const usagePercent = Math.min((usageInKB / maxSize) * 100, 100);
 
-          document.getElementById('local-storage-usage').textContent = `${usageInKB} KB / ${maxSize} KB`;
-          document.getElementById('local-storage-bar').style.width = `${usagePercent}%`;
+          const usageElement = document.getElementById('local-storage-usage');
+          const barElement = document.getElementById('local-storage-bar');
+          
+          if (usageElement) {
+            usageElement.textContent = `${usageInKB} KB / ${maxSize} KB`;
+          }
+          if (barElement) {
+            barElement.style.width = `${usagePercent}%`;
+          }
         } catch (error) {
           console.warn('Could not calculate storage usage:', error);
         }
       }
 
-      showNotification(message, type = 'info') {
+      showNotification(message: string, type: string = 'info') {
         // Create notification element
         const notification = document.createElement('div');
         notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${

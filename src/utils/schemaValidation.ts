@@ -29,7 +29,7 @@ export interface ValidationResult {
 export interface ValidationError {
   field: string;
   message: string;
-  value?: any;
+  value?: unknown;
   expectedType?: string;
 }
 
@@ -37,6 +37,14 @@ export interface ValidationWarning {
   field: string;
   message: string;
   suggestion?: string;
+}
+
+// Interface for card study with quality rating
+interface CardStudyWithQuality {
+  cardId?: string;
+  quality: number;
+  responseTime?: number;
+  timestamp?: Date;
 }
 
 export interface SchemaHealthReport {
@@ -51,7 +59,7 @@ export interface SchemaHealthReport {
 
 export interface IndexHealth {
   name: string;
-  key: any;
+  key: unknown;
   usageCount: number;
   isUsed: boolean;
   size: number;
@@ -314,7 +322,7 @@ export class SchemaValidator {
   // PRIVATE METHODS
   // ============================================================================
 
-  private getSchemaForCollection(collectionName: string): any {
+  private getSchemaForCollection(collectionName: string): Record<string, unknown> {
     switch (collectionName) {
       case 'users':
         return Schemas.UserSchema;
@@ -325,7 +333,7 @@ export class SchemaValidator {
       case 'study_statistics':
         return Schemas.StudyStatisticsSchema;
       default:
-        return null;
+        return {} as Record<string, unknown>;
     }
   }
 
@@ -510,7 +518,7 @@ export class SchemaValidator {
     if (session.cardsStudied) {
       for (const cardStudy of session.cardsStudied) {
         if (typeof cardStudy === 'object' && 'quality' in cardStudy) {
-          const quality = (cardStudy as any).quality;
+          const quality = (cardStudy as CardStudyWithQuality).quality;
           if (quality < 0 || quality > 5) {
             errors.push({
               field: 'cardsStudied.quality',
@@ -569,12 +577,12 @@ export class SchemaValidator {
         { $indexStats: {} }
       ]).toArray();
 
-      return indexStats.map((stat: any) => ({
-        name: stat.name,
+      return indexStats.map((stat: Record<string, unknown>): IndexHealth => ({
+        name: stat.name as string,
         key: stat.key,
-        usageCount: stat.accesses?.ops || 0,
-        isUsed: (stat.accesses?.ops || 0) > 0,
-        size: stat.size || 0
+        usageCount: (stat.accesses as { ops?: number })?.ops || 0,
+        isUsed: ((stat.accesses as { ops?: number })?.ops || 0) > 0,
+        size: (stat.size as number) || 0
       }));
     } catch (error) {
       console.warn(`Could not get index health for ${collectionName}:`, error);

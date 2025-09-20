@@ -177,6 +177,48 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
     }
   };
 
+  // Play audio data using Web Audio API
+  const playAudioData = useCallback(async (audioData: Uint8Array): Promise<void> => {
+    if (!audioContext.current) {
+      if ('AudioContext' in window || 'webkitAudioContext' in window) {
+        const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        audioContext.current = new AudioContextClass();
+      } else {
+        throw new Error('Web Audio API not supported');
+      }
+    }
+
+    try {
+      const audioBuffer = await audioContext.current.decodeAudioData(
+        audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength)
+      );
+      
+      const source = audioContext.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.current.destination);
+      try { 
+        await audioContext.current.resume(); 
+      } catch {
+        // Ignore resume errors in some browsers
+      }
+      currentAudioSource.current = source;
+      
+      return new Promise<void>((resolve) => {
+        setIsSpeaking(true);
+        source.onended = () => {
+          currentAudioSource.current = null;
+          setIsSpeaking(false);
+          resolve();
+        };
+        
+        source.start();
+      });
+    } catch (error) {
+      console.error('Audio decoding/playback failed:', error);
+      throw error;
+    }
+  }, []);
+
   // Gemini TTS implementation
   const speakWithGemini = useCallback(async (text: string, voice: string, temperature?: number): Promise<void> => {
     try {
@@ -225,48 +267,6 @@ export const useAudioSystem = (): UseAudioSystemReturn => {
       setIsGenerating(false);
     }
   }, [playAudioData]);
-
-  // Play audio data using Web Audio API
-  const playAudioData = useCallback(async (audioData: Uint8Array): Promise<void> => {
-    if (!audioContext.current) {
-      if ('AudioContext' in window || 'webkitAudioContext' in window) {
-        const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-        audioContext.current = new AudioContextClass();
-      } else {
-        throw new Error('Web Audio API not supported');
-      }
-    }
-
-    try {
-      const audioBuffer = await audioContext.current.decodeAudioData(
-        audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength)
-      );
-      
-      const source = audioContext.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.current.destination);
-      try { 
-        await audioContext.current.resume(); 
-      } catch {
-        // Ignore resume errors in some browsers
-      }
-      currentAudioSource.current = source;
-      
-      return new Promise<void>((resolve) => {
-        setIsSpeaking(true);
-        source.onended = () => {
-          currentAudioSource.current = null;
-          setIsSpeaking(false);
-          resolve();
-        };
-        
-        source.start();
-      });
-    } catch (error) {
-      console.error('Audio decoding/playback failed:', error);
-      throw error;
-    }
-  }, []);
 
   const speak = useCallback(async (text: string, options: Partial<AudioSettings> = {}): Promise<void> => {
     if (!text.trim()) return;

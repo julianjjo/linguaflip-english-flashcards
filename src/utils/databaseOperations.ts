@@ -34,7 +34,7 @@ export class DatabaseOperations {
   }
 
   // Create operation with timestamps
-  async create(document: any): Promise<DatabaseOperationResult<any>> {
+  async create(document: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>>> {
     const startTime = Date.now();
 
     try {
@@ -46,7 +46,7 @@ export class DatabaseOperations {
         const now = new Date();
         const mockDocument = {
           ...document,
-          _id: `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          _id: `mock_${Date.now()}_${Math.random().toString(36).        substring(2, 11)}`,  // Use substring instead of deprecated substr
           createdAt: now,
           updatedAt: now,
         };
@@ -91,7 +91,7 @@ export class DatabaseOperations {
   }
 
   // Find single document
-  async findOne(filter: any, options?: any): Promise<DatabaseOperationResult<any>> {
+  async findOne(filter: Record<string, unknown>, options?: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
     const startTime = Date.now();
 
     try {
@@ -124,7 +124,7 @@ export class DatabaseOperations {
   }
 
   // Find multiple documents
-  async findMany(filter: any = {}, options?: any): Promise<DatabaseOperationResult<any[]>> {
+  async findMany(filter: Record<string, unknown> = {}, options?: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
     const startTime = Date.now();
 
     try {
@@ -157,7 +157,7 @@ export class DatabaseOperations {
   }
 
   // Update single document
-  async updateOne(filter: any, update: any, options?: { upsert?: boolean }): Promise<DatabaseOperationResult<any>> {
+  async updateOne(filter: Record<string, unknown>, update: Record<string, unknown>, options?: { upsert?: boolean }): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
     const startTime = Date.now();
 
     try {
@@ -177,7 +177,7 @@ export class DatabaseOperations {
       const updateWithTimestamp = {
         ...update,
         $set: {
-          ...update.$set,
+          ...(update.$set && typeof update.$set === 'object' ? update.$set as Record<string, unknown> : {}),
           updatedAt: new Date(),
         },
       };
@@ -213,7 +213,7 @@ export class DatabaseOperations {
   }
 
   // Update multiple documents
-  async updateMany(filter: any, update: any): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
+  async updateMany(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
     const startTime = Date.now();
 
     try {
@@ -232,7 +232,7 @@ export class DatabaseOperations {
       const updateWithTimestamp = {
         ...update,
         $set: {
-          ...update.$set,
+          ...(update.$set && typeof update.$set === 'object' ? update.$set as Record<string, unknown> : {}),
           updatedAt: new Date(),
         },
       };
@@ -258,7 +258,7 @@ export class DatabaseOperations {
   }
 
   // Delete single document
-  async deleteOne(filter: any): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+  async deleteOne(filter: Record<string, unknown>): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
     const startTime = Date.now();
 
     try {
@@ -295,7 +295,7 @@ export class DatabaseOperations {
   }
 
   // Delete multiple documents
-  async deleteMany(filter: any): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+  async deleteMany(filter: Record<string, unknown>): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
     const startTime = Date.now();
 
     try {
@@ -332,7 +332,7 @@ export class DatabaseOperations {
   }
 
   // Count documents
-  async count(filter: any = {}): Promise<DatabaseOperationResult<number>> {
+  async count(filter: Record<string, unknown> = {}): Promise<DatabaseOperationResult<number>> {
     const startTime = Date.now();
 
     try {
@@ -365,7 +365,7 @@ export class DatabaseOperations {
   }
 
   // Check if document exists
-  async exists(filter: any): Promise<DatabaseOperationResult<boolean>> {
+  async exists(filter: Record<string, unknown>): Promise<DatabaseOperationResult<boolean>> {
     const startTime = Date.now();
 
     try {
@@ -398,7 +398,7 @@ export class DatabaseOperations {
   }
 
   // Bulk operations
-  async bulkWrite(operations: any[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
+  async bulkWrite(operations: Record<string, unknown>[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
     const startTime = Date.now();
 
     try {
@@ -423,7 +423,7 @@ export class DatabaseOperations {
         };
       }
 
-      const result = await collection.bulkWrite(operations);
+      const result = await collection.bulkWrite(operations as any[]);
 
       const bulkResult: BulkOperationResult = {
         success: result.ok === 1,
@@ -449,7 +449,7 @@ export class DatabaseOperations {
   }
 
   // Aggregation pipeline
-  async aggregate(pipeline: any[], options?: { allowDiskUse?: boolean }): Promise<DatabaseOperationResult<any[]>> {
+  async aggregate(pipeline: Record<string, unknown>[], options?: { allowDiskUse?: boolean }): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
     const startTime = Date.now();
 
     try {
@@ -482,7 +482,7 @@ export class DatabaseOperations {
   }
 
   // Create indexes
-  async createIndexes(indexes: Array<{ key: Record<string, 1 | -1>; options?: any }>): Promise<DatabaseOperationResult<string[]>> {
+  async createIndexes(indexes: Array<{ key: Record<string, 1 | -1>; options?: Record<string, unknown> }>): Promise<DatabaseOperationResult<string[]>> {
     const startTime = Date.now();
 
     try {
@@ -517,7 +517,7 @@ export class DatabaseOperations {
   }
 
   // Get distinct values
-  async distinct(field: string, filter: any = {}): Promise<DatabaseOperationResult<any[]>> {
+  async distinct(field: string, filter: Record<string, unknown> = {}): Promise<DatabaseOperationResult<unknown[]>> {
     const startTime = Date.now();
 
     try {
@@ -581,7 +581,7 @@ export const databaseUtils = {
   },
 
   // Validate document structure
-  validateDocument(document: any, requiredFields: string[]): Error | null {
+  validateDocument(document: Record<string, unknown>, requiredFields: string[]): Error | null {
     for (const field of requiredFields) {
       if (!(field in document) || document[field] === null || document[field] === undefined) {
         return new Error(`Missing required field: ${field}`);

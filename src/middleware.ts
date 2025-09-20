@@ -57,14 +57,25 @@ export const onRequest = defineMiddleware(async (context, next) => {
   
   // Try to verify the token if it exists
   let isAuthenticated = false;
-  let user: any = null;
+  let user: {
+    userId: string;
+    email?: string;
+    username?: string;
+    role?: string;
+    [key: string]: unknown;
+  } | null = null;
 
   if (accessToken) {
     try {
       const tokenResult = await verifyAccessToken(accessToken);
       if (tokenResult.success && tokenResult.data) {
         isAuthenticated = true;
-        user = tokenResult.data;
+        user = {
+          userId: tokenResult.data.userId || '',
+          email: tokenResult.data.email,
+          username: tokenResult.data.username,
+          role: tokenResult.data.role
+        };
         
         // Store user info in locals for use in pages
         locals.user = user;
@@ -157,12 +168,14 @@ export interface AuthLocals {
     email?: string;
     username?: string;
     role?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace App {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Locals extends AuthLocals {}
   }
 }

@@ -125,7 +125,7 @@ class TestRunner {
       console.log(`\n📄 Running ${testFile}...`);
 
       try {
-        const { stdout, stderr } = await execAsync(`npx mocha ${testFile} --timeout 30000`, {
+        const { stdout, stderr } = await execAsync(`npx jest ${testFile} --testTimeout=30000`, {
           env: {
             ...process.env,
             NODE_ENV: 'test',

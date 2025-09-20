@@ -26,15 +26,40 @@ import {
 // Authentication configuration
 const AUTH_CONFIG = {
   bcryptRounds: 12,
-  jwtSecret: process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-in-production',
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
-  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  jwtSecret: (process.env.JWT_SECRET || 'default-jwt-secret-change-in-production') as string,
+  jwtRefreshSecret: (process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-in-production') as string,
+  jwtExpiresIn: (process.env.JWT_EXPIRES_IN || '15m') as string,
+  jwtRefreshExpiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as string,
   maxLoginAttempts: parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5'),
   lockoutDuration: parseInt(process.env.LOCKOUT_DURATION_MINUTES || '30') * 60 * 1000, // Convert to milliseconds
   passwordResetTokenExpires: parseInt(process.env.PASSWORD_RESET_EXPIRES_HOURS || '24') * 60 * 60 * 1000,
   emailVerificationTokenExpires: parseInt(process.env.EMAIL_VERIFICATION_EXPIRES_HOURS || '48') * 60 * 60 * 1000,
 };
+
+// JWT payload interfaces
+interface AccessTokenPayload {
+  userId: string;
+  email: string;
+  type: 'access';
+  iat?: number;
+  exp?: number;
+}
+
+interface RefreshTokenPayload {
+  userId: string;
+  type: 'refresh';
+  iat?: number;
+  exp?: number;
+}
+
+// Sanitized authentication object interface
+interface SanitizedAuthentication {
+  password: string;
+  emailVerified: boolean;
+  emailVerifiedAt?: Date;
+  passwordChangedAt?: Date;
+  refreshTokens: never[];
+}
 
 // Authentication interfaces
 export interface RegisterData {
@@ -385,7 +410,7 @@ export class AuthService {
     return safeAsync(async () => {
       try {
         // Verify refresh token
-        const decoded = jwt.verify(refreshData.refreshToken, AUTH_CONFIG.jwtRefreshSecret) as any;
+        const decoded = jwt.verify(refreshData.refreshToken, AUTH_CONFIG.jwtRefreshSecret) as RefreshTokenPayload;
 
         // Get user
         const userResult = await this.usersService.getUserById(decoded.userId);
@@ -598,7 +623,7 @@ export class AuthService {
   async verifyAccessToken(token: string): Promise<DatabaseOperationResult<Partial<UserDocument>>> {
     return safeAsync(async () => {
       try {
-        const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret) as any;
+        const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret) as AccessTokenPayload;
 
         // Get user
         const userResult = await this.usersService.getUserById(decoded.userId);
@@ -700,7 +725,7 @@ export class AuthService {
         userId: user.userId,
         email: user.email,
         type: 'access'
-      },
+      } as AccessTokenPayload,
       AUTH_CONFIG.jwtSecret,
       { expiresIn: AUTH_CONFIG.jwtExpiresIn }
     );
@@ -710,7 +735,7 @@ export class AuthService {
       {
         userId: user.userId,
         type: 'refresh'
-      },
+      } as RefreshTokenPayload,
       AUTH_CONFIG.jwtRefreshSecret,
       { expiresIn: AUTH_CONFIG.jwtRefreshExpiresIn }
     );
@@ -769,6 +794,7 @@ export class AuthService {
    * Sanitize user data for API responses
    */
   private sanitizeUserForResponse(user: UserDocument): Partial<UserDocument> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { authentication, security, ...sanitizedUser } = user;
     return {
       ...sanitizedUser,
@@ -778,7 +804,7 @@ export class AuthService {
         emailVerifiedAt: authentication.emailVerifiedAt,
         passwordChangedAt: authentication.passwordChangedAt,
         refreshTokens: [] // Never expose refresh tokens
-      } as any
+      } as SanitizedAuthentication
     };
   }
 

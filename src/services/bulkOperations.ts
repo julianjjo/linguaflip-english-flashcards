@@ -14,6 +14,29 @@ import type {
   DatabaseOperationResult,
   BulkOperationResult
 } from '../types/database';
+
+// Bulk import results interface
+interface BulkImportResults {
+  flashcards: { inserted: number; updated: number; errors: number };
+  studySessions: { inserted: number; updated: number; errors: number };
+  studyStatistics: { inserted: number; updated: number; errors: number };
+}
+
+// Bulk export data interface
+interface BulkExportData {
+  user?: UserDocument;
+  flashcards?: FlashcardDocument[];
+  studySessions?: StudySessionDocument[];
+  studyStatistics?: StudyStatisticsDocument[];
+}
+
+// Bulk import result interface
+interface BulkImportResult {
+  success: boolean;
+  results: BulkImportResults;
+  totalProcessed: number;
+  totalErrors: number;
+}
 import {
   BulkOperationError,
   ValidationError,
@@ -334,12 +357,16 @@ export class BulkOperationsService {
       includeStatistics?: boolean;
       dateRange?: { start: Date; end: Date };
     } = {}
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<{
+    userId: string;
+    exportedAt: Date;
+    data: BulkExportData;
+  }>> {
     return safeAsync(async () => {
-      const exportData: any = {
+      const exportData = {
         userId,
         exportedAt: new Date(),
-        data: {}
+        data: {} as BulkExportData
       };
 
       // Export user profile
@@ -406,7 +433,7 @@ export class BulkOperationsService {
       updateExisting?: boolean;
       validateData?: boolean;
     } = {}
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<BulkImportResult>> {
     return safeAsync(async () => {
       const results = {
         flashcards: { inserted: 0, updated: 0, errors: 0 },
@@ -445,7 +472,7 @@ export class BulkOperationsService {
           try {
             await studyStatisticsService.createStudyStatistics(stats, userId);
             results.studyStatistics.inserted++;
-          } catch (error) {
+          } catch {
             results.studyStatistics.errors++;
           }
         }

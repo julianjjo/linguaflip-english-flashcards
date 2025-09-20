@@ -4,7 +4,7 @@ interface CacheEntry<T> {
   data: T;
   timestamp: number;
   expiresAt: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface CacheOptions {
@@ -20,7 +20,7 @@ interface CacheStats {
   size: number;
 }
 
-class CacheManager<T = any> {
+class CacheManager<T = unknown> {
   private cache = new Map<string, CacheEntry<T>>();
   private options: Required<CacheOptions>;
   private accessOrder = new Map<string, number>(); // For LRU
@@ -34,7 +34,7 @@ class CacheManager<T = any> {
     };
   }
 
-  set(key: string, data: T, customTtl?: number, metadata?: Record<string, any>): void {
+  set(key: string, data: T, customTtl?: number, metadata?: Record<string, unknown>): void {
     const now = Date.now();
     const ttl = customTtl || this.options.ttl;
     const expiresAt = now + ttl;
@@ -229,7 +229,7 @@ export const useCacheSystem = () => {
   }, [updateStats]);
 
   const ai = {
-    set: (key: string, data: any, ttl?: number) => {
+    set: (key: string, data: unknown, ttl?: number) => {
       aiResponseCache.set(key, data, ttl);
       updateStats();
     },
@@ -273,7 +273,7 @@ export const useCacheSystem = () => {
   };
 
   const general = {
-    set: (key: string, data: any, ttl?: number) => {
+    set: (key: string, data: unknown, ttl?: number) => {
       generalCache.set(key, data, ttl);
       updateStats();
     },
@@ -311,7 +311,7 @@ export const useCacheSystem = () => {
 };
 
 // Utility functions for cache keys
-export const createAICacheKey = (userId: string, operation: string, params: Record<string, any>): string => {
+export const createAICacheKey = (userId: string, operation: string, params: Record<string, unknown>): string => {
   const paramString = Object.entries(params)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}:${JSON.stringify(value)}`)

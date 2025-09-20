@@ -98,7 +98,7 @@ export class DataExportImport {
           const result = this.processImport(importData);
           resolve(result);
 
-        } catch (error) {
+        } catch {
           resolve({
             success: false,
             message: 'Failed to parse the import file. Please ensure it\'s a valid JSON file.'
@@ -120,18 +120,27 @@ export class DataExportImport {
   /**
    * Validate imported data structure
    */
-  private static validateImportData(data: any): data is ExportData {
-    return (
-      data &&
-      typeof data.version === 'string' &&
-      typeof data.exportDate === 'string' &&
-      Array.isArray(data.flashcards) &&
-      Array.isArray(data.studySessions) &&
-      data.metadata &&
-      typeof data.metadata.totalCards === 'number' &&
-      typeof data.metadata.totalSessions === 'number' &&
-      (data.metadata.exportType === 'full' || data.metadata.exportType === 'progress-only')
-    );
+  private static validateImportData(data: unknown): data is ExportData {
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    const typedData = data as ExportData;
+
+    try {
+      return (
+        typeof typedData.version === 'string' &&
+        typeof typedData.exportDate === 'string' &&
+        Array.isArray(typedData.flashcards) &&
+        Array.isArray(typedData.studySessions) &&
+        typedData.metadata &&
+        typeof typedData.metadata.totalCards === 'number' &&
+        typeof typedData.metadata.totalSessions === 'number' &&
+        (typedData.metadata.exportType === 'full' || typedData.metadata.exportType === 'progress-only')
+      );
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -159,7 +168,7 @@ export class DataExportImport {
         data
       };
 
-    } catch (error) {
+    } catch {
       return {
         success: false,
         message: 'Failed to save imported data. Please try again.',

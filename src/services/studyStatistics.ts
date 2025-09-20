@@ -18,6 +18,28 @@ import {
 } from '../types/database';
 import { StudyStatisticsSchema, validateDocument } from '../schemas/mongodb';
 
+// Study statistics summary interface
+interface StudyStatisticsSummary {
+  totalDays: number;
+  totalCardsStudied: number;
+  totalStudyTime: number;
+  averageDailyCards: number;
+  averageDailyTime: number;
+  averageRecallRate: number;
+  studyDays: number;
+  consistency: number;
+}
+
+// Aggregated statistics interface
+interface AggregatedStats {
+  totalCards: number;
+  totalTime: number;
+  totalCorrect: number;
+  totalIncorrect: number;
+  averageRate: number;
+  improvement: number;
+}
+
 const COLLECTION_NAME = 'study_statistics';
 const dbOps = createDatabaseOperations(COLLECTION_NAME);
 
@@ -56,7 +78,7 @@ export class StudyStatisticsService {
       await this.checkForDuplicateStats(sanitizedData.userId, sanitizedData.statsId);
 
       // Create study statistics
-      const result = await dbOps.create(sanitizedData);
+      const result = await dbOps.create(sanitizedData) as DatabaseOperationResult<StudyStatisticsDocument>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -79,7 +101,7 @@ export class StudyStatisticsService {
     userId: string
   ): Promise<DatabaseOperationResult<StudyStatisticsDocument>> {
     return safeAsync(async () => {
-      const result = await dbOps.findOne({ statsId, userId });
+      const result = await dbOps.findOne({ statsId, userId }) as DatabaseOperationResult<StudyStatisticsDocument>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -116,7 +138,7 @@ export class StudyStatisticsService {
         userId,
         date: this.normalizeDate(date, period),
         period
-      });
+      }) as DatabaseOperationResult<StudyStatisticsDocument>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -247,7 +269,7 @@ export class StudyStatisticsService {
           skip: options.skip || 0,
           sort: { date: 1 }
         }
-      );
+      ) as DatabaseOperationResult<StudyStatisticsDocument[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -365,7 +387,7 @@ export class StudyStatisticsService {
   async getStudyStatisticsSummary(
     userId: string,
     days: number = 30
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<StudyStatisticsSummary>> {
     return safeAsync(async () => {
       const endDate = new Date();
       const startDate = new Date();
@@ -431,7 +453,7 @@ export class StudyStatisticsService {
   /**
    * Sanitize study statistics data
    */
-  private sanitizeStatsData(statsData: any): any {
+  private sanitizeStatsData<T>(statsData: T): T {
     const sanitized = { ...statsData };
     return sanitized;
   }
@@ -462,11 +484,12 @@ export class StudyStatisticsService {
       case 'daily':
         normalized.setHours(0, 0, 0, 0);
         break;
-      case 'weekly':
+      case 'weekly': {
         const dayOfWeek = normalized.getDay();
         normalized.setDate(normalized.getDate() - dayOfWeek);
         normalized.setHours(0, 0, 0, 0);
         break;
+      }
       case 'monthly':
         normalized.setDate(1);
         normalized.setHours(0, 0, 0, 0);
@@ -487,7 +510,7 @@ export class StudyStatisticsService {
   /**
    * Aggregate statistics from multiple entries
    */
-  private aggregateStats(statsArray: StudyStatisticsDocument[]): any {
+  private aggregateStats(statsArray: StudyStatisticsDocument[]): AggregatedStats {
     if (statsArray.length === 0) {
       return {
         totalCards: 0,
@@ -539,7 +562,7 @@ export class StudyStatisticsService {
   /**
    * Calculate summary statistics
    */
-  private calculateSummary(statsArray: StudyStatisticsDocument[], totalDays: number): any {
+  private calculateSummary(statsArray: StudyStatisticsDocument[], totalDays: number): StudyStatisticsSummary {
     const totals = statsArray.reduce((acc, stats) => {
       const dailyStats = stats.dailyStats;
       return {

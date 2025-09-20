@@ -19,7 +19,11 @@ interface UseToastReturn {
 export const useToast = (): UseToastReturn => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const generateId = () => `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const generateId = () => `toast-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
 
   const showToast = useCallback((
     type: ToastType,
@@ -48,11 +52,7 @@ export const useToast = (): UseToastReturn => {
     }
 
     return id;
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   const clearAllToasts = useCallback(() => {
     setToasts([]);

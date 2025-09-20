@@ -1,5 +1,4 @@
 import puppeteer from 'puppeteer';
-import { expect } from 'chai';
 import testConfig from './test-config.js';
 import { setupBrowser, setupPage, waitForPageLoad, resolveUrl, getDynamicTimeout } from './test-utils.js';
 
@@ -16,8 +15,8 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
     recommendations: []
   };
 
-  before(async function() {
-    this.timeout(getDynamicTimeout(60000));
+  beforeAll(async () => {
+    jest.setTimeout(getDynamicTimeout(60000));
 
     config = testConfig;
     console.log(`🌐 Testing against: ${config.getBaseURL()}`);
@@ -31,8 +30,8 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
     }
   });
 
-  beforeEach(async function() {
-    this.timeout(getDynamicTimeout(30000));
+  beforeEach(async () => {
+    jest.setTimeout(getDynamicTimeout(30000));
 
     page = await setupPage(browser);
 
@@ -64,15 +63,15 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
   });
 
   describe('Clickable Elements Detection', () => {
-    beforeEach(async function() {
-      this.timeout(getDynamicTimeout(15000));
+    beforeEach(async () => {
+      jest.setTimeout(getDynamicTimeout(15000));
 
       const url = resolveUrl();
       await page.goto(url, { waitUntil: 'networkidle2' });
       await waitForPageLoad(page);
     });
 
-    it('should find all clickable elements on the page', async () => {
+    test('should find all clickable elements on the page', async () => {
       try {
         // Find all types of clickable elements
         const clickableElements = await page.$$eval(`
@@ -116,7 +115,7 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
         console.log(`   - ${categorizedElements.inputs.length} inputs`);
         console.log(`   - ${categorizedElements.customClickable.length} elementos custom`);
 
-        expect(clickableElements.length).to.be.greaterThan(0);
+        expect(clickableElements.length).toBeGreaterThan(0);
       } catch (error) {
         testResults.errors.push({
           type: 'detection_error',
@@ -127,7 +126,7 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
       }
     });
 
-    it('should verify element accessibility', async () => {
+    test('should verify element accessibility', async () => {
       const elements = await page.$$('button, [role="button"], a[href], input[type="button"]');
 
       for (let i = 0; i < elements.length; i++) {
@@ -173,7 +172,7 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
       await page.goto('http://localhost:5173', { waitUntil: 'networkidle2' });
     });
 
-    it('should click all buttons successfully', async () => {
+    test('should click all buttons successfully', async () => {
       const buttons = await page.$$('button, [role="button"]');
 
       for (let i = 0; i < buttons.length; i++) {
@@ -242,10 +241,10 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
         }
       }
 
-      expect(testResults.clicksSuccessful.length).to.be.at.least(0); // Allow for disabled buttons
+      expect(testResults.clicksSuccessful.length).toBeGreaterThanOrEqual(0); // Allow for disabled buttons
     });
 
-    it('should test flashcard interactions', async () => {
+    test('should test flashcard interactions', async () => {
       try {
         // Wait for flashcard to be present (with longer timeout and more specific selector)
         const flashcard = await page.$('[data-testid="flashcard"], .flashcard, .card, [class*="card"]');
@@ -307,7 +306,7 @@ describe('LinguaFlip Navigation and Clicks Tests', () => {
         console.log(`⚠️ Error en pruebas de flashcard: ${error.message}`);
       }
     });
-it('should test recall quality buttons', async () => {
+test('should test recall quality buttons', async () => {
   const qualityLabels = ['Again', 'Hard', 'Good', 'Easy'];
 
   for (const quality of qualityLabels) {
@@ -348,7 +347,7 @@ it('should test recall quality buttons', async () => {
       await page.goto('http://localhost:5173', { waitUntil: 'networkidle2' });
     });
 
-    it('should navigate between sections using sidebar', async () => {
+    test('should navigate between sections using sidebar', async () => {
       const navigationItems = ['Dashboard', 'Study', 'Progress', 'Settings'];
 
       for (const navItem of navigationItems) {
@@ -398,7 +397,7 @@ it('should test recall quality buttons', async () => {
       }
     });
 
-    it('should test header navigation', async () => {
+    test('should test header navigation', async () => {
       const headerNavItems = ['Dashboard', 'Study', 'Progress', 'Settings'];
 
       for (const navItem of headerNavItems) {
@@ -425,7 +424,7 @@ it('should test recall quality buttons', async () => {
       }
     });
 
-    it('should test sidebar toggle functionality', async () => {
+    test('should test sidebar toggle functionality', async () => {
       // Test on mobile viewport
       await page.setViewport({ width: 375, height: 667 });
 
@@ -459,7 +458,7 @@ it('should test recall quality buttons', async () => {
       await page.goto('http://localhost:5173', { waitUntil: 'networkidle2' });
     });
 
-    it('should test session control buttons', async () => {
+    test('should test session control buttons', async () => {
       const sessionButtons = ['Pause Session', 'Resume Session', 'Take Break', 'End Session'];
 
       for (const buttonText of sessionButtons) {
@@ -500,7 +499,7 @@ it('should test recall quality buttons', async () => {
       await page.goto('http://localhost:5173', { waitUntil: 'networkidle2' });
     });
 
-    it('should test touch gestures on flashcard', async () => {
+    test('should test touch gestures on flashcard', async () => {
       await page.setViewport({ width: 375, height: 667 }); // Mobile viewport
 
       const flashcard = await page.$('[data-testid="flashcard"], .flashcard, .card');
@@ -537,7 +536,7 @@ it('should test recall quality buttons', async () => {
   });
 
   describe('Error Handling and Reporting', () => {
-    it('should generate comprehensive test report', async () => {
+    test('should generate comprehensive test report', async () => {
       const report = {
         summary: {
           totalElementsFound: testResults.elementsFound.buttons?.length + testResults.elementsFound.links?.length + testResults.elementsFound.inputs?.length + testResults.elementsFound.customClickable?.length || 0,
@@ -569,7 +568,7 @@ it('should test recall quality buttons', async () => {
       console.log(`   - Recomendaciones: ${report.summary.totalRecommendations}`);
 
       // Assertions based on results
-      expect(report.summary.totalElementsFound).to.be.greaterThan(0);
+      expect(report.summary.totalElementsFound).toBeGreaterThan(0);
 
       // More flexible error rate check - allow higher error rate for dynamic SPAs
       const errorRate = report.summary.totalClicksAttempted > 0 ?
@@ -588,10 +587,10 @@ it('should test recall quality buttons', async () => {
       }
 
       // Success criteria: we found elements AND at least some clicks worked
-      expect(report.summary.totalClicksSuccessful).to.be.at.least(1);
+      expect(report.summary.totalClicksSuccessful).toBeGreaterThanOrEqual(1);
     });
 
-    it('should identify problematic elements', async () => {
+    test('should identify problematic elements', async () => {
       const problematicElements = testResults.errors.filter(error =>
         error.type === 'click_error' || error.type === 'navigation_error'
       );

@@ -324,16 +324,16 @@ export const SyncProgressModal: React.FC<SyncProgressModalProps> = ({
   userId
 }) => {
   const syncStatus = useSyncStatus();
-  const [syncResult, setSyncResult] = useState<any>(null);
+  const [syncResult, setSyncResult] = useState<{ success: boolean; error?: string; data?: unknown } | null>(null);
 
   const handleSync = async () => {
     if (!userId) return;
 
     try {
       const result = await hybridStorage.forceSync(userId);
-      setSyncResult(result);
+      setSyncResult({ success: true, data: result });
     } catch (error) {
-      setSyncResult({ error: error instanceof Error ? error.message : 'Sync failed' });
+      setSyncResult({ success: false, error: error instanceof Error ? error.message : 'Sync failed' });
     }
   };
 

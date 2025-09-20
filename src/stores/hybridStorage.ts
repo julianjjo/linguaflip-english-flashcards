@@ -13,10 +13,10 @@ import type {
 } from '../types/database';
 
 // Import MongoDB services conditionally (server-side only)
-let flashcardsService: any = null;
-let studySessionsService: any = null;
-let studyStatisticsService: any = null;
-let syncService: any = null;
+let flashcardsService: unknown = null;
+let studySessionsService: unknown = null;
+let studyStatisticsService: unknown = null;
+let syncService: unknown = null;
 
 // Lazy load services only when needed and on server side
 const loadServices = async () => {
@@ -262,7 +262,7 @@ export class HybridStorage {
     // Try to fetch from MongoDB (only if services are available)
     if (flashcardsService) {
       try {
-        const result = await flashcardsService.getDueFlashcards(userId, {
+        const result = await (flashcardsService as any).getDueFlashcards(userId, {
           limit: 1000,
           includeSuspended: true
         });
@@ -280,7 +280,7 @@ export class HybridStorage {
       await loadServices();
       if (flashcardsService) {
         try {
-          const result = await flashcardsService.getDueFlashcards(userId, {
+          const result = await (flashcardsService as any).getDueFlashcards(userId, {
             limit: 1000,
             includeSuspended: true
           });
@@ -326,10 +326,10 @@ export class HybridStorage {
 
           if (flashcard.id) {
             // Update existing
-            await flashcardsService.updateFlashcard(flashcard.id.toString(), mongoCard, userId);
+            await (flashcardsService as any).updateFlashcard(flashcard.id.toString(), mongoCard, userId);
           } else {
             // Create new
-            const result = await flashcardsService.createFlashcard(mongoCard, userId);
+            const result = await (flashcardsService as any).createFlashcard(mongoCard, userId);
             if (result.success && result.data) {
               // Update local cache with MongoDB ID
               const updatedCard = { ...flashcard, id: parseInt(result.data.cardId) };
@@ -359,7 +359,7 @@ export class HybridStorage {
     // Try to sync with MongoDB
     if (this.syncStatusStore.get().isOnline) {
       try {
-        await flashcardsService.deleteFlashcard(flashcardId.toString(), userId);
+        await (flashcardsService as any).deleteFlashcard(flashcardId.toString(), userId);
       } catch (error) {
         console.error('Failed to delete flashcard from MongoDB:', error);
         this.scheduleRetry('delete_flashcard', userId, { flashcardId });
@@ -382,7 +382,7 @@ export class HybridStorage {
     }
 
     try {
-      const result = await studySessionsService.getUserStudySessions(userId, {
+      const result = await (studySessionsService as any).getUserStudySessions(userId, {
         limit: 100,
         sortBy: 'startTime',
         sortOrder: -1
@@ -412,7 +412,7 @@ export class HybridStorage {
     if (this.syncStatusStore.get().isOnline) {
       try {
         const mongoSession = this.convertLocalSessionToMongo(session, userId);
-        await studySessionsService.createStudySession(mongoSession, userId);
+        await (studySessionsService as any).createStudySession(mongoSession, userId);
       } catch (error) {
         console.error('Failed to sync study session to MongoDB:', error);
         this.scheduleRetry('study_session', userId, session);
@@ -435,7 +435,7 @@ export class HybridStorage {
     }
 
     try {
-      const result = await studyStatisticsService.getStudyStatisticsByDate(userId, new Date(), 'daily');
+      const result = await (studyStatisticsService as any).getStudyStatisticsByDate(userId, new Date(), 'daily');
 
       if (result.success && result.data) {
         const stats = this.convertMongoStatsToLocal(result.data);
@@ -509,8 +509,8 @@ export class HybridStorage {
     try {
       const mongoCards = flashcards.map(card => this.convertLocalFlashcardToMongo(card, userId));
 
-      const result = await syncService.syncFromLocal(userId, {
-        flashcards: mongoCards as any
+      const result = await (syncService as any).syncFromLocal(userId, {
+        flashcards: mongoCards
       }, {
         resolveConflicts: this.config.conflictResolutionStrategy === 'manual' ? 'merge' : this.config.conflictResolutionStrategy,
         skipExisting: false,
@@ -535,8 +535,8 @@ export class HybridStorage {
     try {
       const mongoSessions = sessions.map(session => this.convertLocalSessionToMongo(session, userId));
 
-      const result = await syncService.syncFromLocal(userId, {
-        studySessions: mongoSessions as any
+      const result = await (syncService as any).syncFromLocal(userId, {
+        studySessions: mongoSessions
       }, {
         resolveConflicts: this.config.conflictResolutionStrategy === 'manual' ? 'merge' : this.config.conflictResolutionStrategy,
         skipExisting: false,
@@ -576,7 +576,7 @@ export class HybridStorage {
           this.convertLocalFlashcardToMongo(card, userId)
         );
 
-        const flashcardsResult = await syncService.migrateUserData(userId, {
+        const flashcardsResult = await (syncService as any).migrateUserData(userId, {
           flashcards: mongoCards
         });
 
@@ -593,7 +593,7 @@ export class HybridStorage {
           this.convertLocalSessionToMongo(session, userId)
         );
 
-        const sessionsResult = await syncService.migrateUserData(userId, {
+        const sessionsResult = await (syncService as any).migrateUserData(userId, {
           studySessions: mongoSessions
         });
 
@@ -699,13 +699,13 @@ export class HybridStorage {
     }
   }
 
-  private isCacheExpired(cacheEntry: CacheEntry<any>): boolean {
+  private isCacheExpired(cacheEntry: CacheEntry<unknown>): boolean {
     const now = new Date();
     const age = now.getTime() - cacheEntry.timestamp.getTime();
     return age > this.config.cacheExpiryMs;
   }
 
-  private scheduleRetry(operation: string, userId: string, data: any): void {
+  private scheduleRetry(operation: string, userId: string, data: unknown): void {
     // Only run on client side
     if (typeof window === 'undefined') {
       return;
@@ -727,7 +727,7 @@ export class HybridStorage {
     this.syncStatusStore.setKey('retryCount', currentStatus.retryCount + 1);
   }
 
-  private async performRetry(operation: string, userId: string, data: any): Promise<void> {
+  private async performRetry(operation: string, userId: string, data: unknown): Promise<void> {
     const currentStatus = this.syncStatusStore.get();
 
     if (currentStatus.retryCount >= this.config.maxRetryAttempts) {
@@ -738,13 +738,13 @@ export class HybridStorage {
     try {
       switch (operation) {
         case 'flashcard':
-          await this.saveFlashcard(userId, data);
+          await this.saveFlashcard(userId, data as FlashcardData);
           break;
         case 'study_session':
-          await this.saveStudySession(userId, data);
+          await this.saveStudySession(userId, data as StudySession);
           break;
         case 'delete_flashcard':
-          await this.deleteFlashcard(userId, data.flashcardId);
+          await this.deleteFlashcard(userId, (data as any).flashcardId);
           break;
       }
 
@@ -851,17 +851,17 @@ export class HybridStorage {
     };
   }
 
-  private convertMongoStatsToLocal(stats: any): ProgressStats {
-    // Convert MongoDB stats to local ProgressStats format
+  private convertMongoStatsToLocal(stats: Record<string, unknown>): ProgressStats {
+    // Convert MongoDB stats to local ProgressStats format with proper type conversion
     return {
-      totalCards: stats.totalCards || 0,
-      cardsMastered: stats.matureCards || 0,
-      cardsInProgress: stats.learningCards || 0,
-      cardsNew: stats.newCards || 0,
+      totalCards: Number(stats.totalCards) || 0,
+      cardsMastered: Number(stats.matureCards) || 0,
+      cardsInProgress: Number(stats.learningCards) || 0,
+      cardsNew: Number(stats.newCards) || 0,
       currentStreak: 0, // Would need to calculate from session data
       longestStreak: 0,
-      totalStudyTime: stats.totalStudyTime || 0,
-      averageAccuracy: stats.averageAccuracy || 0,
+      totalStudyTime: Number(stats.totalStudyTime) || 0,
+      averageAccuracy: Number(stats.averageAccuracy) || 0,
       studySessionsToday: 0,
       studySessionsThisWeek: 0,
       studySessionsThisMonth: 0

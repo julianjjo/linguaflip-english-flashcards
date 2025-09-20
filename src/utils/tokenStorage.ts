@@ -175,7 +175,7 @@ export class SecureTokenStorage {
 
       const expiryTimestamp = parseInt(expiryTime);
       return Date.now() > expiryTimestamp;
-    } catch (error) {
+    } catch {
       return true;
     }
   }
@@ -190,7 +190,7 @@ export class SecureTokenStorage {
 
       const expiryTimestamp = parseInt(expiryTime);
       return Math.max(0, expiryTimestamp - Date.now());
-    } catch (error) {
+    } catch {
       return 0;
     }
   }

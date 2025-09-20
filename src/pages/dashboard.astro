@@ -18,7 +18,8 @@ import AppProvider from '../components/AppProvider.tsx';
   <meta name="twitter:description" content="Métricas y estadísticas de tu aprendizaje" />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" set:html={
+  {/* eslint-disable-next-line astro/no-set-html-directive */}
+  <script type="application/ld+json" is:inline set:html={
     JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebApplication",

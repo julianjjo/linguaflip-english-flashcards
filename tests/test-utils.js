@@ -1,273 +1,398 @@
-import testConfig from './test-config.js';
+// Test Utilities for MongoDB Integration Tests
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MongoClient } = require('mongodb');
 
-/**
- * Test Utilities
- * Helper functions for testing infrastructure
- */
+// Global test database instance for sharing across test files
+let globalTestDb = null;
 
-/**
- * Sleep utility for delays
- */
-export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-/**
- * Dynamic timeout based on environment
- */
-export const getDynamicTimeout = (baseTimeout = 5000) => {
-  const config = testConfig.getTimeouts();
-  const multiplier = process.env.CI ? 2 : 1; // Double timeout in CI
-  return Math.max(baseTimeout, config.elementWait * multiplier);
-};
-
-/**
- * Wait for element with dynamic timeout
- */
-export const waitForElement = async (page, selector, options = {}) => {
-  const timeout = getDynamicTimeout(options.timeout || 5000);
-  const visible = options.visible !== false;
-
-  try {
-    const element = await page.waitForSelector(selector, {
-      timeout,
-      visible
-    });
-    return element;
-  } catch (error) {
-    throw new Error(`Element ${selector} not found within ${timeout}ms: ${error.message}`);
+// Function to get or create shared test database
+async function getTestDatabase() {
+  if (!globalTestDb) {
+    globalTestDb = new TestDatabaseSetup();
+    await globalTestDb.setup();
   }
-};
+  return globalTestDb;
+}
 
-/**
- * Wait for page load with dynamic timeout
- */
-export const waitForPageLoad = async (page, options = {}) => {
-  const config = testConfig.getTimeouts();
-  const timeout = options.timeout || config.pageLoad;
+// Function to setup production services with test database
+async function setupProductionServicesForTesting() {
+  const testDb = await getTestDatabase();
+  const { uri } = testDb;
+  
+  // Set environment variables that production services will read
+  process.env.NODE_ENV = 'test';
+  process.env.MONGODB_URI = uri;
+  process.env.MONGODB_DATABASE = 'linguaflip_test';
+  process.env.JWT_SECRET = 'test-jwt-secret-for-production-services';
+  process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-for-production-services';
+  
+  return testDb;
+}
 
-  try {
-    await page.waitForLoadState('networkidle', { timeout });
-  } catch (error) {
-    console.warn(`Page load timeout after ${timeout}ms, continuing...`);
+class TestDatabaseSetup {
+  constructor() {
+    this.mongoServer = null;
+    this.client = null;
+    this.db = null;
+    this.isConnected = false;
   }
-};
 
-/**
- * Retry function for flaky operations
- */
-export const retry = async (fn, options = {}) => {
-  const {
-    maxRetries = 3,
-    delay = 1000,
-    backoff = 2,
-    onRetry = null
-  } = options;
-
-  let lastError;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  async setup() {
     try {
-      return await fn();
+      // Start MongoDB Memory Server
+      this.mongoServer = await MongoMemoryServer.create();
+      const mongoUri = this.mongoServer.getUri();
+      
+      // Connect to memory server
+      this.client = new MongoClient(mongoUri, {
+        maxPoolSize: 5,
+        serverSelectionTimeoutMS: 5000
+      });
+      
+      await this.client.connect();
+      this.db = this.client.db('linguaflip_test');
+      this.isConnected = true;
+      
+      console.log('Test database setup completed');
+      return { client: this.client, db: this.db, uri: mongoUri };
     } catch (error) {
-      lastError = error;
+      console.error('Test database setup failed:', error);
+      throw error;
+    }
+  }
 
-      if (attempt < maxRetries) {
-        const currentDelay = delay * Math.pow(backoff, attempt - 1);
+  async cleanup() {
+    try {
+      if (this.client) {
+        await this.client.close();
+      }
+      if (this.mongoServer) {
+        await this.mongoServer.stop();
+      }
+      this.isConnected = false;
+      console.log('Test database cleanup completed');
+    } catch (error) {
+      console.error('Test database cleanup failed:', error);
+    }
+  }
 
-        if (onRetry) {
-          onRetry(error, attempt, maxRetries);
+  async clearDatabase() {
+    if (!this.db || !this.isConnected) {
+      throw new Error('Database not connected');
+    }
+    
+    const collections = await this.db.listCollections().toArray();
+    for (const collection of collections) {
+      await this.db.collection(collection.name).deleteMany({});
+    }
+  }
+
+  getDatabase() {
+    if (!this.db || !this.isConnected) {
+      throw new Error('Database not connected');
+    }
+    return this.db;
+  }
+
+  getClient() {
+    if (!this.client || !this.isConnected) {
+      throw new Error('Database not connected');
+    }
+    return this.client;
+  }
+}
+
+// Mock Services that work with test database
+class TestFlashcardsService {
+  constructor(db) {
+    this.db = db;
+    this.collection = db.collection('flashcards');
+  }
+
+  async createFlashcard(cardData, userId) {
+    try {
+      const now = new Date();
+      const flashcard = {
+        ...cardData,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+        sm2: {
+          easeFactor: 2.5,
+          interval: 1,
+          repetitions: 0,
+          nextReviewDate: now,
+          totalReviews: 0,
+          correctStreak: 0,
+          incorrectStreak: 0,
+          qualityResponses: []
+        },
+        statistics: {
+          timesCorrect: 0,
+          timesIncorrect: 0,
+          averageResponseTime: 0,
+          lastDifficulty: 'medium'
         }
-
-        console.log(`⚠️ Attempt ${attempt}/${maxRetries} failed, retrying in ${currentDelay}ms...`);
-        await sleep(currentDelay);
-      }
-    }
-  }
-
-  throw new Error(`Operation failed after ${maxRetries} attempts: ${lastError.message}`);
-};
-
-/**
- * Parallel test execution helper
- */
-export const runParallel = async (tests, options = {}) => {
-  const config = testConfig.getParallelConfig();
-
-  if (!config.enabled) {
-    console.log('ℹ️ Parallel execution disabled, running tests sequentially');
-    const results = [];
-    for (const test of tests) {
-      results.push(await test());
-    }
-    return results;
-  }
-
-  const maxConcurrent = options.maxConcurrent || config.maxConcurrent;
-  console.log(`🚀 Running ${tests.length} tests with max ${maxConcurrent} concurrent`);
-
-  const results = [];
-  const running = new Set();
-
-  for (let i = 0; i < tests.length; i++) {
-    // Wait if we've reached the concurrency limit
-    while (running.size >= maxConcurrent) {
-      await Promise.race(running);
-    }
-
-    const testPromise = (async () => {
-      try {
-        const result = await tests[i]();
-        results[i] = result;
-      } catch (error) {
-        results[i] = { error: error.message };
-      } finally {
-        running.delete(testPromise);
-      }
-    })();
-
-    running.add(testPromise);
-  }
-
-  // Wait for all remaining tests to complete
-  await Promise.all(running);
-
-  return results;
-};
-
-/**
- * Browser setup helper with configuration
- */
-export const setupBrowser = async (puppeteer, options = {}) => {
-  const config = testConfig.getBrowserConfig();
-
-  const launchOptions = {
-    headless: options.headless !== undefined ? options.headless : config.headless,
-    args: [
-      ...config.args,
-      ...(options.args || [])
-    ],
-    ...options.launchOptions
-  };
-
-  console.log(`🌐 Launching browser (headless: ${launchOptions.headless})`);
-  return await puppeteer.launch(launchOptions);
-};
-
-/**
- * Page setup helper
- */
-export const setupPage = async (browser, options = {}) => {
-  const config = testConfig.getTimeouts();
-  const page = await browser.newPage();
-
-  // Set default viewport
-  await page.setViewport({
-    width: options.width || 1280,
-    height: options.height || 720
-  });
-
-  // Set default timeouts
-  page.setDefaultTimeout(config.elementWait);
-  page.setDefaultNavigationTimeout(config.pageLoad);
-
-  // Capture console errors
-  if (options.captureErrors !== false) {
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        console.warn('🚨 Page console error:', msg.text());
-      }
-    });
-
-    page.on('pageerror', error => {
-      console.error('🚨 Page error:', error.message);
-    });
-  }
-
-  return page;
-};
-
-/**
- * Environment-aware URL resolver
- */
-export const resolveUrl = (path = '') => {
-  const baseUrl = testConfig.getBaseURL();
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${baseUrl}${cleanPath}`;
-};
-
-/**
- * Mock-aware API URL resolver
- */
-export const resolveApiUrl = (endpoint) => {
-  const mockConfig = testConfig.getMockConfig();
-
-  if (mockConfig.useMocks) {
-    // Return mock server URL for mocked endpoints
-    if (endpoint.includes('gemini') && mockConfig.mockGemini) {
-      return `http://localhost:3001/gemini${endpoint.replace('/api/gemini', '')}`;
-    }
-    if (endpoint.includes('speech') && mockConfig.mockSpeech) {
-      return `http://localhost:3001/speech${endpoint.replace('/api/speech', '')}`;
-    }
-    if (endpoint.includes('picsum') && mockConfig.mockImages) {
-      return `http://localhost:3001/picsum${endpoint.replace('https://picsum.photos', '')}`;
-    }
-  }
-
-  // Return original URL for non-mocked endpoints
-  return endpoint;
-};
-
-/**
- * Performance measurement helper
- */
-export const measurePerformance = async (fn, label = 'operation') => {
-  const startTime = Date.now();
-  console.log(`⏱️ Starting ${label}...`);
-
-  try {
-    const result = await fn();
-    const duration = Date.now() - startTime;
-    console.log(`✅ ${label} completed in ${duration}ms`);
-    return { result, duration };
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    console.error(`❌ ${label} failed after ${duration}ms:`, error.message);
-    throw error;
-  }
-};
-
-/**
- * Memory usage logger
- */
-export const logMemoryUsage = () => {
-  const usage = process.memoryUsage();
-  console.log('📊 Memory usage:', {
-    rss: `${Math.round(usage.rss / 1024 / 1024)}MB`,
-    heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
-    heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
-    external: `${Math.round(usage.external / 1024 / 1024)}MB`
-  });
-};
-
-/**
- * Cleanup helper for tests
- */
-export const cleanup = async (resources = []) => {
-  const errors = [];
-
-  for (const resource of resources) {
-    try {
-      if (resource && typeof resource.close === 'function') {
-        await resource.close();
-      } else if (resource && typeof resource.stop === 'function') {
-        await resource.stop();
-      }
+      };
+      
+      const result = await this.collection.insertOne(flashcard);
+      
+      return {
+        success: true,
+        data: { ...flashcard, _id: result.insertedId }
+      };
     } catch (error) {
-      errors.push(error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 
-  if (errors.length > 0) {
-    console.warn('⚠️ Some resources failed to cleanup:', errors);
+  async getFlashcardById(cardId, userId) {
+    try {
+      const card = await this.collection.findOne({ cardId, userId });
+      return {
+        success: true,
+        data: card
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
+
+  async processReviewResponse(cardId, quality, responseTime, userId) {
+    try {
+      const card = await this.collection.findOne({ cardId, userId });
+      if (!card) {
+        return { success: false, error: 'Card not found' };
+      }
+
+      // Simple SM-2 calculation
+      const currentSM2 = card.sm2;
+      const wasCorrect = quality >= 3;
+      
+      let newEaseFactor = currentSM2.easeFactor;
+      let newInterval = currentSM2.interval;
+      let newRepetitions = currentSM2.repetitions;
+      
+      if (wasCorrect) {
+        // Update ease factor
+        newEaseFactor = Math.max(1.3, currentSM2.easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+        
+        // Update interval and repetitions
+        if (newRepetitions === 0) {
+          newInterval = 1;
+        } else if (newRepetitions === 1) {
+          newInterval = 6;
+        } else {
+          newInterval = Math.round(newInterval * newEaseFactor);
+        }
+        newRepetitions++;
+      } else {
+        // Reset on failure
+        newRepetitions = 0;
+        newInterval = 1;
+        newEaseFactor = Math.max(1.3, newEaseFactor - 0.2);
+      }
+      
+      const nextReviewDate = new Date(Date.now() + newInterval * 24 * 60 * 60 * 1000);
+      
+      const updates = {
+        $set: {
+          'sm2.easeFactor': newEaseFactor,
+          'sm2.interval': newInterval,
+          'sm2.repetitions': newRepetitions,
+          'sm2.nextReviewDate': nextReviewDate,
+          'sm2.lastReviewed': new Date(),
+          'sm2.totalReviews': currentSM2.totalReviews + 1,
+          'sm2.correctStreak': wasCorrect ? currentSM2.correctStreak + 1 : 0,
+          'sm2.incorrectStreak': wasCorrect ? 0 : currentSM2.incorrectStreak + 1,
+          'statistics.timesCorrect': wasCorrect ? card.statistics.timesCorrect + 1 : card.statistics.timesCorrect,
+          'statistics.timesIncorrect': wasCorrect ? card.statistics.timesIncorrect : card.statistics.timesIncorrect + 1,
+          updatedAt: new Date()
+        },
+        $push: {
+          'sm2.qualityResponses': quality
+        }
+      };
+      
+      await this.collection.updateOne({ cardId, userId }, updates);
+      
+      const updatedCard = await this.collection.findOne({ cardId, userId });
+      return {
+        success: true,
+        data: updatedCard
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  async getDueFlashcards(userId, options = {}) {
+    try {
+      const query = { userId };
+      
+      if (options.includeSuspended) {
+        // When including suspended cards, get all cards regardless of due date
+        // No additional filters
+      } else {
+        // Normal query: only due cards that are not suspended
+        query['sm2.nextReviewDate'] = { $lte: new Date() };
+        query['sm2.isSuspended'] = { $ne: true };
+      }
+      
+      if (options.category) {
+        query.category = options.category;
+      }
+      
+      const cards = await this.collection
+        .find(query)
+        .limit(options.limit || 50)
+        .sort({ 'sm2.nextReviewDate': 1 })
+        .toArray();
+      
+      return {
+        success: true,
+        data: cards
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  async getFlashcardsByCategory(userId, category, options = {}) {
+    try {
+      const cards = await this.collection
+        .find({ userId, category })
+        .limit(options.limit || 50)
+        .skip(options.skip || 0)
+        .sort({ createdAt: -1 })
+        .toArray();
+      
+      return {
+        success: true,
+        data: cards
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  async searchFlashcards(userId, searchTerm, options = {}) {
+    try {
+      const query = {
+        userId,
+        $or: [
+          { front: new RegExp(searchTerm, 'i') },
+          { back: new RegExp(searchTerm, 'i') }
+        ]
+      };
+      
+      if (options.category) {
+        query.category = options.category;
+      }
+      
+      const cards = await this.collection
+        .find(query)
+        .limit(options.limit || 20)
+        .toArray();
+      
+      return {
+        success: true,
+        data: cards
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  async suspendFlashcard(cardId, suspended, reason, userId) {
+    try {
+      const updates = {
+        'sm2.isSuspended': suspended,
+        'sm2.suspensionReason': suspended ? reason : null,
+        updatedAt: new Date()
+      };
+      
+      if (suspended) {
+        updates['sm2.nextReviewDate'] = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      }
+      
+      await this.collection.updateOne({ cardId, userId }, { $set: updates });
+      
+      const updatedCard = await this.collection.findOne({ cardId, userId });
+      return {
+        success: true,
+        data: updatedCard
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  async getFlashcardStats(userId) {
+    try {
+      const pipeline = [
+        { $match: { userId } },
+        {
+          $group: {
+            _id: null,
+            totalCards: { $sum: 1 },
+            newCards: { $sum: { $cond: [{ $eq: ['$sm2.repetitions', 0] }, 1, 0] } },
+            learningCards: { $sum: { $cond: [{ $and: [{ $gt: ['$sm2.repetitions', 0] }, { $lt: ['$sm2.repetitions', 5] }] }, 1, 0] } },
+            matureCards: { $sum: { $cond: [{ $gte: ['$sm2.repetitions', 5] }, 1, 0] } },
+            suspendedCards: { $sum: { $cond: [{ $eq: ['$sm2.isSuspended', true] }, 1, 0] } },
+            averageEaseFactor: { $avg: '$sm2.easeFactor' },
+            averageInterval: { $avg: '$sm2.interval' },
+            totalReviews: { $sum: '$sm2.totalReviews' }
+          }
+        }
+      ];
+      
+      const result = await this.collection.aggregate(pipeline).toArray();
+      
+      return {
+        success: true,
+        data: result[0] || {
+          totalCards: 0,
+          newCards: 0,
+          learningCards: 0,
+          matureCards: 0,
+          suspendedCards: 0,
+          averageEaseFactor: 0,
+          averageInterval: 0,
+          totalReviews: 0
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+}
+
+module.exports = {
+  TestDatabaseSetup,
+  TestFlashcardsService
 };

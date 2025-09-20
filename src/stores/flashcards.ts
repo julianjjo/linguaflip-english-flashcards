@@ -7,10 +7,13 @@ export const flashcardsStore = atom<FlashcardData[]>([]);
 // Estado de la flashcard actual
 export const currentCardStore = atom<FlashcardData | null>(null);
 
+// Navigation view types
+type NavigationView = 'study' | 'dashboard' | 'progress' | 'settings';
+
 // Estado de navegación
 export const navigationStore = map({
-  currentView: 'study' as 'study' | 'dashboard' | 'progress' | 'settings',
-  previousView: null as string | null,
+  currentView: 'study' as NavigationView,
+  previousView: null as NavigationView | null,
 });
 
 // Estado de carga y sincronización
@@ -18,8 +21,8 @@ export const flashcardsLoadingStore = atom<boolean>(false);
 export const flashcardsErrorStore = atom<string | null>(null);
 
 // Lazy-loaded hybrid storage (client-side only)
-let hybridStorageInstance: any = null;
-let syncStatusStore: any = null;
+let hybridStorageInstance: unknown = null;
+let syncStatusStore: unknown = null;
 
 const getHybridStorage = async () => {
   if (typeof window === 'undefined') {
@@ -67,7 +70,7 @@ export const flashcardsActions = {
         return;
       }
 
-      const flashcards = await hybridStorage.getFlashcards(user);
+      const flashcards = await (hybridStorage as any).getFlashcards(user);
       flashcardsStore.set(flashcards);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load flashcards';
@@ -94,7 +97,7 @@ export const flashcardsActions = {
 
       const hybridStorage = await getHybridStorage();
       if (hybridStorage) {
-        await hybridStorage.saveFlashcard(user, flashcard);
+        await (hybridStorage as any).saveFlashcard(user, flashcard);
       }
 
       // Actualizar el store local inmediatamente para UI responsiva
@@ -149,7 +152,7 @@ export const flashcardsActions = {
 
       const hybridStorage = await getHybridStorage();
       if (hybridStorage) {
-        await hybridStorage.deleteFlashcard(user, id);
+        await (hybridStorage as any).deleteFlashcard(user, id);
       }
 
       // Actualizar el store local
@@ -205,7 +208,7 @@ export const flashcardsActions = {
     try {
       const hybridStorage = await getHybridStorage();
       if (hybridStorage) {
-        await hybridStorage.forceSync(user);
+        await (hybridStorage as any).forceSync(user);
       }
     } catch (error) {
       console.error('Failed to force sync:', error);
@@ -232,7 +235,7 @@ export const navigationActions = {
     const current = navigationStore.get();
     if (current.previousView) {
       navigationStore.set({
-        currentView: current.previousView as any,
+        currentView: current.previousView,
         previousView: null,
       });
     }

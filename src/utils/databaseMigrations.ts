@@ -55,7 +55,7 @@ const migrations: Migration[] = [
       for (const [collectionName, indexes] of Object.entries(DatabaseIndexes)) {
         const collection = db.collection(collectionName);
         for (const indexDef of indexes) {
-          const indexSpec: any = { ...indexDef.key };
+          const indexSpec = { ...indexDef.key } as any;
           if (indexDef.options) {
             await collection.createIndex(indexSpec, indexDef.options);
           } else {
@@ -207,7 +207,7 @@ const migrations: Migration[] = [
       const collections = ['users', 'flashcards', 'study_sessions', 'study_statistics'];
 
       for (const collectionName of collections) {
-        let schema: any = null;
+        let schema: Record<string, unknown> | null = null;
 
         // Safely access schema by collection name
         switch (collectionName) {
@@ -495,7 +495,7 @@ export async function getDatabaseHealthWithMigrations(): Promise<{
       lastMigration: migrationHistory.length > 0 ? migrationHistory[0].appliedAt : undefined,
       collections: collectionNames
     };
-  } catch (error) {
+  } catch {
     return {
       status: 'error',
       currentVersion: 'unknown',

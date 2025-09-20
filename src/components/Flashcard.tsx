@@ -135,7 +135,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
       case 'S':
         if (e.ctrlKey || e.metaKey) {
           e.preventDefault();
-          handlePlaySound(e as any, cardData.english);
+          handlePlaySound(e as unknown as React.MouseEvent<HTMLElement>, cardData.english);
         }
         break;
     }
