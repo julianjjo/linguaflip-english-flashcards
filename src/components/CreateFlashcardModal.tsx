@@ -28,24 +28,24 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
-    english: '',
-    spanish: '',
-    exampleEnglish: '',
-    exampleSpanish: '',
+    english: 'Hello',
+    spanish: 'Hola',
+    exampleEnglish: 'Hello, how are you today?',
+    exampleSpanish: 'Hola, ¿cómo estás hoy?',
     category: 'general',
     image: '',
-    tags: ''
+    tags: 'básico, saludo, común'
   });
 
   const resetForm = () => {
     setFormData({
-      english: '',
-      spanish: '',
-      exampleEnglish: '',
-      exampleSpanish: '',
+      english: 'Hello',
+      spanish: 'Hola',
+      exampleEnglish: 'Hello, how are you today?',
+      exampleSpanish: 'Hola, ¿cómo estás hoy?',
       category: 'general',
       image: '',
-      tags: ''
+      tags: 'básico, saludo, común'
     });
     setError(null);
   };
