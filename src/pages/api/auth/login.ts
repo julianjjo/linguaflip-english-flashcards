@@ -120,7 +120,9 @@ export const POST: APIRoute = async ({ request }) => {
     
     // Set multiple cookies
     if (cookies.length > 0) {
-      response.headers.set('Set-Cookie', cookies);
+      cookies.forEach(cookie => {
+        response.headers.append('Set-Cookie', cookie);
+      });
     }
 
     return response;
