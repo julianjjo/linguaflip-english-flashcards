@@ -1,5 +1,4 @@
 import { defineMiddleware } from 'astro:middleware';
-import { verifyAccessToken } from './services/auth';
 import { SecurityAuditor } from './utils/security';
 
 // Define protected routes that require authentication
@@ -52,8 +51,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
     accessToken = authHeader.substring(7);
   }
 
-  // If no bearer token, try to get from localStorage (client-side)
-  // For SSR, we'll rely on the auth state being passed from client
+  // If no bearer token, try to get from cookies
+  if (!accessToken) {
+    const cookieHeader = request.headers.get('Cookie');
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie) => {
+        const [key, value] = cookie.trim().split('=');
+        if (key && value) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+      
+      accessToken = cookies.accessToken || null;
+    }
+  }
   
   // Try to verify the token if it exists
   let isAuthenticated = false;
@@ -67,14 +79,27 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (accessToken) {
     try {
-      const tokenResult = await verifyAccessToken(accessToken);
-      if (tokenResult.success && tokenResult.data) {
+      // Only verify JWT signature without database lookup
+      const jwt = await import('jsonwebtoken');
+      const jwtSecret = process.env.JWT_SECRET || 'default-jwt-secret-change-in-production';
+      
+      const decoded = jwt.default.verify(accessToken, jwtSecret) as {
+        userId: string;
+        email?: string;
+        username?: string;
+        role?: string;
+        type: string;
+        iat?: number;
+        exp?: number;
+      };
+      
+      if (decoded.type === 'access' && decoded.userId) {
         isAuthenticated = true;
         user = {
-          userId: tokenResult.data.userId || '',
-          email: tokenResult.data.email,
-          username: tokenResult.data.username,
-          role: tokenResult.data.role
+          userId: decoded.userId,
+          email: decoded.email,
+          username: decoded.username,
+          role: decoded.role
         };
         
         // Store user info in locals for use in pages

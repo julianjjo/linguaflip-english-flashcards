@@ -188,8 +188,9 @@ export class AuthService {
         },
         authentication: {
           password: hashedPassword,
-          emailVerified: false,
+          emailVerified: true, // Set to true for testing purposes
           emailVerificationToken,
+          emailVerifiedAt: new Date(),
           refreshTokens: [],
         },
         security: {

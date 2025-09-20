@@ -27,6 +27,17 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks: (id) => {
+            // Exclude server-only modules completely from client bundle
+            if (id.includes('mongodb') || 
+                id.includes('bcrypt') || 
+                id.includes('jsonwebtoken') ||
+                id.includes('/services/') ||
+                id.includes('/utils/database') ||
+                id.includes('/utils/migration') ||
+                id.includes('/pages/api/')) {
+              return undefined; // Don't bundle server-only modules
+            }
+
             // Vendor libraries
             if (id.includes('node_modules')) {
               if (id.includes('react') || id.includes('react-dom')) {
@@ -41,7 +52,7 @@ export default defineConfig({
               return 'vendor';
             }
 
-            // Application chunks
+            // Application chunks - client-side only
             if (id.includes('/hooks/')) {
               return 'hooks';
             }
@@ -54,7 +65,7 @@ export default defineConfig({
               }
               return 'ui-components';
             }
-            if (id.includes('/utils/')) {
+            if (id.includes('/utils/') && !id.includes('database') && !id.includes('migration')) {
               return 'utils';
             }
           }
@@ -73,12 +84,15 @@ export default defineConfig({
         '@google/genai',
         'mongodb',
         'whatwg-url',
-        'webidl-conversions'
+        'webidl-conversions',
+        'bcrypt',
+        'jsonwebtoken'
       ]
     },
-    // Exclude server-side modules from client bundle
+    // Configure SSR externals to keep server-only modules out of client bundle
     ssr: {
-      noExternal: ['mongodb', 'whatwg-url', 'webidl-conversions']
+      external: ['mongodb', 'bcrypt', 'jsonwebtoken', 'crypto', 'whatwg-url', 'webidl-conversions'],
+      noExternal: []
     }
   },
   image: {

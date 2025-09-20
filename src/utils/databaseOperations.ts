@@ -2,6 +2,9 @@ import { Collection, ObjectId } from 'mongodb';
 import { getDatabase, dbConnection } from './database.ts';
 import type { DatabaseOperationResult, BulkOperationResult } from '../types/database.ts';
 
+// In-memory storage for offline mode
+const offlineStorage = new Map<string, Map<string, Record<string, unknown>>>();
+
 // Simplified database operations class
 export class DatabaseOperations {
   private collectionName: string;
@@ -9,6 +12,10 @@ export class DatabaseOperations {
 
   constructor(collectionName: string) {
     this.collectionName = collectionName;
+    // Initialize offline storage for this collection
+    if (!offlineStorage.has(collectionName)) {
+      offlineStorage.set(collectionName, new Map());
+    }
   }
 
   // Initialize collection
@@ -44,12 +51,17 @@ export class DatabaseOperations {
       if (!collection) {
         console.log(`Database offline: Simulating create operation for ${this.collectionName}`);
         const now = new Date();
+        const mockId = `mock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         const mockDocument = {
           ...document,
-          _id: `mock_${Date.now()}_${Math.random().toString(36).        substring(2, 11)}`,  // Use substring instead of deprecated substr
+          _id: mockId,
           createdAt: now,
           updatedAt: now,
         };
+
+        // Store in offline storage
+        const collectionStore = offlineStorage.get(this.collectionName)!;
+        collectionStore.set(mockId, mockDocument);
 
         return {
           success: true,
@@ -97,9 +109,29 @@ export class DatabaseOperations {
     try {
       const collection = await this.initializeCollection();
 
-      // If collection is null (offline mode), return null data
+      // If collection is null (offline mode), search in offline storage
       if (!collection) {
         console.log(`Database offline: Simulating findOne operation for ${this.collectionName}`);
+        const collectionStore = offlineStorage.get(this.collectionName)!;
+        
+        // Simple filter matching for offline mode
+        for (const [id, doc] of collectionStore) {
+          let matches = true;
+          for (const [key, value] of Object.entries(filter)) {
+            if (doc[key] !== value) {
+              matches = false;
+              break;
+            }
+          }
+          if (matches) {
+            return {
+              success: true,
+              data: doc,
+              operationTime: Date.now() - startTime,
+            };
+          }
+        }
+        
         return {
           success: true,
           data: null,
@@ -166,6 +198,34 @@ export class DatabaseOperations {
       // If collection is null (offline mode), simulate update
       if (!collection) {
         console.log(`Database offline: Simulating updateOne operation for ${this.collectionName}`);
+        const collectionStore = offlineStorage.get(this.collectionName)!;
+        
+        // Find document to update
+        for (const [id, doc] of collectionStore) {
+          let matches = true;
+          for (const [key, value] of Object.entries(filter)) {
+            if (doc[key] !== value) {
+              matches = false;
+              break;
+            }
+          }
+          if (matches) {
+            // Apply update - handle both direct update and $set syntax
+            const updateData = update.$set ? update.$set as Record<string, unknown> : update;
+            const updatedDoc = {
+              ...doc,
+              ...updateData,
+              updatedAt: new Date(),
+            };
+            collectionStore.set(id, updatedDoc);
+            return {
+              success: true,
+              data: updatedDoc,
+              operationTime: Date.now() - startTime,
+            };
+          }
+        }
+        
         return {
           success: true,
           data: null,

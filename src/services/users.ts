@@ -36,8 +36,16 @@ export class UsersService {
       // Sanitize input data
       const sanitizedData = this.sanitizeUserData(userData);
 
+      // Add timestamps for validation
+      const now = new Date();
+      const dataWithTimestamps = {
+        ...sanitizedData,
+        createdAt: now,
+        updatedAt: now,
+      };
+
       // Validate against schema
-      const validation = validateDocument(sanitizedData, UserSchema);
+      const validation = validateDocument(dataWithTimestamps, UserSchema);
       if (!validation.isValid) {
         throw new ValidationError(
           `User validation failed: ${validation.errors.join(', ')}`,

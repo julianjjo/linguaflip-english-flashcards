@@ -13,13 +13,14 @@ import AppProvider from '../components/AppProvider.tsx';
   <meta property="og:description" content="Únete a LinguaFlip para aprender inglés con flashcards inteligentes" />
   <meta property="og:type" content="website" />
 
-  <AppProvider client:only="react">
-    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div class="max-w-md w-full">
-        <!-- Theme Toggle -->
+  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+      <!-- Theme Toggle -->
+      <AppProvider client:only="react">
         <div class="absolute top-4 right-4">
           <ThemeToggle variant="icon" size="md" client:load />
         </div>
+      </AppProvider>
 
         <!-- Registration Card -->
         <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -204,13 +205,12 @@ import AppProvider from '../components/AppProvider.tsx';
         </div>
       </div>
     </div>
-  </AppProvider>
 
-  <script>
+  <script is:inline>
     // Password visibility toggle
-    function togglePasswordVisibility(inputId: string) {
-      const input = document.getElementById(inputId) as HTMLInputElement;
-      const button = input?.nextElementSibling as HTMLButtonElement;
+    function togglePasswordVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      const button = input?.nextElementSibling;
       const icon = button?.querySelector('svg');
 
       if (input && icon) {
@@ -225,8 +225,8 @@ import AppProvider from '../components/AppProvider.tsx';
     }
 
     // Client-side password validation
-    function validatePassword(password: string): { valid: boolean; errors: string[] } {
-      const errors: string[] = [];
+    function validatePassword(password) {
+      const errors = [];
       
       if (password.length < 8) {
         errors.push('La contraseña debe tener al menos 8 caracteres');
@@ -253,12 +253,12 @@ import AppProvider from '../components/AppProvider.tsx';
       registerForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        const emailInput = document.getElementById('email') as HTMLInputElement;
-        const usernameInput = document.getElementById('username') as HTMLInputElement;
-        const passwordInput = document.getElementById('password') as HTMLInputElement;
-        const confirmPasswordInput = document.getElementById('confirmPassword') as HTMLInputElement;
-        const termsInput = document.getElementById('terms') as HTMLInputElement;
-        const registerButton = document.getElementById('registerButton') as HTMLButtonElement;
+        const emailInput = document.getElementById('email');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const termsInput = document.getElementById('terms');
+        const registerButton = document.getElementById('registerButton');
         const buttonText = document.getElementById('buttonText');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const errorMessage = document.getElementById('errorMessage');

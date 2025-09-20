@@ -13,13 +13,14 @@ import AppProvider from '../components/AppProvider.tsx';
   <meta property="og:description" content="Accede a tu cuenta para continuar aprendiendo inglés" />
   <meta property="og:type" content="website" />
 
-  <AppProvider client:only="react">
-    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div class="max-w-md w-full">
-        <!-- Theme Toggle -->
+  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+      <!-- Theme Toggle -->
+      <AppProvider client:only="react">
         <div class="absolute top-4 right-4">
           <ThemeToggle variant="icon" size="md" client:load />
         </div>
+      </AppProvider>
 
         <!-- Login Card -->
         <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -166,92 +167,27 @@ import AppProvider from '../components/AppProvider.tsx';
         </div>
       </div>
     </div>
-  </AppProvider>
 
-  <script>
-    // Password visibility toggle
-    function togglePasswordVisibility(inputId: string) {
-      const input = document.getElementById(inputId) as HTMLInputElement;
-      const button = document.getElementById(`toggle-${inputId}`) as HTMLButtonElement;
-      const icon = button?.querySelector('svg');
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Password visibility toggle
+      function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input?.nextElementSibling;
+        const icon = button?.querySelector('svg');
 
-      if (input && icon) {
-        if (input.type === 'password') {
-          input.type = 'text';
-          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
-        } else {
-          input.type = 'password';
-          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+        if (input && icon) {
+          if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+          } else {
+            input.type = 'password';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+          }
         }
       }
-    }
 
-    // Login form submission
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const emailInput = document.getElementById('email') as HTMLInputElement;
-        const passwordInput = document.getElementById('password') as HTMLInputElement;
-        const loginButton = document.getElementById('loginButton') as HTMLButtonElement;
-        const buttonText = document.getElementById('buttonText');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorMessage = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-
-        if (!emailInput || !passwordInput || !loginButton || !buttonText || !loadingSpinner || !errorMessage || !errorText) {
-          return;
-        }
-
-        const email = emailInput.value;
-        const password = passwordInput.value;
-
-        // Show loading state
-        loginButton.disabled = true;
-        buttonText.textContent = 'Iniciando sesión...';
-        loadingSpinner.classList.remove('hidden');
-        errorMessage.classList.add('hidden');
-
-      try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          // Store tokens
-          localStorage.setItem('linguaflip_auth_token', data.data.accessToken);
-          localStorage.setItem('linguaflip_refresh_token', data.data.refreshToken);
-          localStorage.setItem('linguaflip_user', JSON.stringify(data.data.user));
-
-          // Redirect to dashboard
-          window.location.href = '/dashboard';
-        } else {
-          // Show error
-          errorText.textContent = data.error || 'Error al iniciar sesión';
-          errorMessage.classList.remove('hidden');
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        errorText.textContent = 'Error de conexión. Inténtalo de nuevo.';
-        errorMessage.classList.remove('hidden');
-      } finally {
-        // Reset loading state
-        loginButton.disabled = false;
-        buttonText.textContent = 'Iniciar Sesión';
-        loadingSpinner.classList.add('hidden');
-      }
-    });
-  }
-
-    // Setup password toggle buttons
-    document.addEventListener('DOMContentLoaded', () => {
+      // Setup password toggle buttons
       const toggleButtons = document.querySelectorAll('[onclick*="togglePasswordVisibility"]');
       toggleButtons.forEach(button => {
         const onclick = button.getAttribute('onclick');
@@ -263,6 +199,70 @@ import AppProvider from '../components/AppProvider.tsx';
           }
         }
       });
+
+      // Login form submission
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+
+          const emailInput = document.getElementById('email');
+          const passwordInput = document.getElementById('password');
+          const loginButton = document.getElementById('loginButton');
+          const buttonText = document.getElementById('buttonText');
+          const loadingSpinner = document.getElementById('loadingSpinner');
+          const errorMessage = document.getElementById('errorMessage');
+          const errorText = document.getElementById('errorText');
+
+          if (!emailInput || !passwordInput || !loginButton || !buttonText || !loadingSpinner || !errorMessage || !errorText) {
+            return;
+          }
+
+          const email = emailInput.value;
+          const password = passwordInput.value;
+
+          // Show loading state
+          loginButton.disabled = true;
+          buttonText.textContent = 'Iniciando sesión...';
+          loadingSpinner.classList.remove('hidden');
+          errorMessage.classList.add('hidden');
+
+          try {
+            const response = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+              // Store tokens
+              localStorage.setItem('linguaflip_auth_token', data.data.accessToken);
+              localStorage.setItem('linguaflip_refresh_token', data.data.refreshToken);
+              localStorage.setItem('linguaflip_user', JSON.stringify(data.data.user));
+
+              // Redirect to dashboard
+              window.location.href = '/dashboard';
+            } else {
+              // Show error
+              errorText.textContent = data.error || 'Error al iniciar sesión';
+              errorMessage.classList.remove('hidden');
+            }
+          } catch (error) {
+            console.error('Login error:', error);
+            errorText.textContent = 'Error de conexión. Inténtalo de nuevo.';
+            errorMessage.classList.remove('hidden');
+          } finally {
+            // Reset loading state
+            loginButton.disabled = false;
+            buttonText.textContent = 'Iniciar Sesión';
+            loadingSpinner.classList.add('hidden');
+          }
+        });
+      }
     });
   </script>
 </MainLayout>

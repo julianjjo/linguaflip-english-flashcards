@@ -99,12 +99,28 @@ export const POST: APIRoute = async ({ request }) => {
       }
     );
 
-    // Set refresh token cookie
-    if (result.data?.tokens?.refreshToken) {
-      response.headers.set(
-        'Set-Cookie',
-        `refreshToken=${result.data.tokens.refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/`
+    // Set cookies for both access and refresh tokens
+    const cookies = [];
+    
+    // Set access token cookie (shorter expiry for security)
+    if (result.data?.tokens?.accessToken) {
+      const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
+      cookies.push(
+        `accessToken=${result.data.tokens.accessToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${15 * 60}; Path=/`
       );
+    }
+    
+    // Set refresh token cookie (longer expiry)
+    if (result.data?.tokens?.refreshToken) {
+      const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
+      cookies.push(
+        `refreshToken=${result.data.tokens.refreshToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/`
+      );
+    }
+    
+    // Set multiple cookies
+    if (cookies.length > 0) {
+      response.headers.set('Set-Cookie', cookies);
     }
 
     return response;
