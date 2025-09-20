@@ -35,7 +35,7 @@ describe('LinguaFlip Design Tests', () => {
   });
 
   describe('Page Loading', () => {
-    test('should load the main page successfully', async () {
+    test('should load the main page successfully', async () => {
       jest.setTimeout(getDynamicTimeout(30000));
 
       try {
@@ -52,7 +52,7 @@ describe('LinguaFlip Design Tests', () => {
       }
     });
 
-    test('should have proper HTTP status', async () {
+    test('should have proper HTTP status', async () => {
       jest.setTimeout(getDynamicTimeout(15000));
 
       const url = resolveUrl();
@@ -62,7 +62,7 @@ describe('LinguaFlip Design Tests', () => {
       console.log(`✅ HTTP status correcto (${status})`);
     });
 
-    test('should load within reasonable time', async () {
+    test('should load within reasonable time', async () => {
       jest.setTimeout(getDynamicTimeout(20000));
 
       const startTime = Date.now();
