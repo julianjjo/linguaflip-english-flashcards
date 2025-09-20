@@ -8,7 +8,7 @@ export enum RecallQuality {
 }
 
 interface RecallQualityControlsProps {
-  onRate: (quality: RecallQuality) => void;
+  onRate: ((quality: RecallQuality) => void) | string;
 }
 
 const RecallQualityControls: React.FC<RecallQualityControlsProps> = ({ onRate }) => {
@@ -19,12 +19,24 @@ const RecallQualityControls: React.FC<RecallQualityControlsProps> = ({ onRate })
     { label: 'Easy', quality: RecallQuality.EASY, color: 'bg-green-500 hover:bg-green-600', textColor: 'text-white' },
   ];
 
+  const handleRate = (quality: RecallQuality) => {
+    if (typeof onRate === 'function') {
+      onRate(quality);
+    } else if (typeof onRate === 'string') {
+      // Call global function
+      const globalFn = (window as any)[onRate];
+      if (typeof globalFn === 'function') {
+        globalFn(quality);
+      }
+    }
+  };
+
   return (
     <div className="mt-6 w-full max-w-md grid grid-cols-2 sm:grid-cols-4 gap-3 px-2">
       {qualityButtons.map(({ label, quality, color, textColor }) => (
         <button
           key={label}
-          onClick={() => onRate(quality)}
+          onClick={() => handleRate(quality)}
           className={`touch-target p-4 rounded-lg font-semibold text-base ${textColor} ${color} transition-all duration-200 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 focus:ring-offset-2 focus:ring-offset-slate-200 touch-feedback focus-mobile`}
           aria-label={`Rate recall as ${label}`}
         >

@@ -52,7 +52,7 @@ export const setCurrentUser = (userId: string) => {
 
 // Acciones para flashcards con integración MongoDB
 export const flashcardsActions = {
-  // Cargar flashcards desde el almacenamiento híbrido
+  // Cargar flashcards desde el almacenamiento híbrido y API
   async loadFlashcards(userId?: string): Promise<void> {
     const user = userId || currentUserId;
     if (!user) {
@@ -64,6 +64,24 @@ export const flashcardsActions = {
       flashcardsLoadingStore.set(true);
       flashcardsErrorStore.set(null);
 
+      // Try to load from API first (if authenticated)
+      try {
+        const response = await fetch('/api/flashcards/list', {
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.flashcards) {
+            flashcardsStore.set(data.data.flashcards);
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.warn('API load failed, falling back to hybrid storage:', apiError);
+      }
+
+      // Fallback to hybrid storage
       const hybridStorage = await getHybridStorage();
       if (!hybridStorage) {
         console.warn('Hybrid storage not available (server-side)');
@@ -81,7 +99,7 @@ export const flashcardsActions = {
     }
   },
 
-  // Guardar flashcard con sincronización MongoDB
+  // Guardar flashcard con sincronización MongoDB y API
   async saveFlashcard(flashcard: FlashcardData, userId?: string): Promise<void> {
     const user = userId || currentUserId;
     if (!user) {
@@ -95,9 +113,47 @@ export const flashcardsActions = {
       flashcardsLoadingStore.set(true);
       flashcardsErrorStore.set(null);
 
-      const hybridStorage = await getHybridStorage();
-      if (hybridStorage) {
-        await (hybridStorage as any).saveFlashcard(user, flashcard);
+      // Try API first (if authenticated)
+      let apiSuccess = false;
+      try {
+        const endpoint = flashcard.id ? `/api/flashcards/${flashcard.id}` : '/api/flashcards/create';
+        const method = flashcard.id ? 'PUT' : 'POST';
+        
+        const response = await fetch(endpoint, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            english: flashcard.english,
+            spanish: flashcard.spanish,
+            exampleEnglish: flashcard.exampleEnglish,
+            exampleSpanish: flashcard.exampleSpanish,
+            image: flashcard.image,
+            category: flashcard.category || 'general',
+            tags: flashcard.tags || []
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.flashcard) {
+            // Update flashcard with server data
+            flashcard = data.data.flashcard;
+            apiSuccess = true;
+          }
+        }
+      } catch (apiError) {
+        console.warn('API save failed, falling back to hybrid storage:', apiError);
+      }
+
+      // Fallback to hybrid storage if API failed
+      if (!apiSuccess) {
+        const hybridStorage = await getHybridStorage();
+        if (hybridStorage) {
+          await (hybridStorage as any).saveFlashcard(user, flashcard);
+        }
       }
 
       // Actualizar el store local inmediatamente para UI responsiva
@@ -134,7 +190,7 @@ export const flashcardsActions = {
     }
   },
 
-  // Eliminar flashcard con sincronización MongoDB
+  // Eliminar flashcard con sincronización MongoDB y API
   async deleteFlashcard(id: number, userId?: string): Promise<void> {
     const user = userId || currentUserId;
     if (!user) {
@@ -150,9 +206,30 @@ export const flashcardsActions = {
       flashcardsLoadingStore.set(true);
       flashcardsErrorStore.set(null);
 
-      const hybridStorage = await getHybridStorage();
-      if (hybridStorage) {
-        await (hybridStorage as any).deleteFlashcard(user, id);
+      // Try API first (if authenticated)
+      let apiSuccess = false;
+      try {
+        const response = await fetch(`/api/flashcards/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            apiSuccess = true;
+          }
+        }
+      } catch (apiError) {
+        console.warn('API delete failed, falling back to hybrid storage:', apiError);
+      }
+
+      // Fallback to hybrid storage if API failed
+      if (!apiSuccess) {
+        const hybridStorage = await getHybridStorage();
+        if (hybridStorage) {
+          await (hybridStorage as any).deleteFlashcard(user, id);
+        }
       }
 
       // Actualizar el store local
@@ -212,6 +289,73 @@ export const flashcardsActions = {
       }
     } catch (error) {
       console.error('Failed to force sync:', error);
+    }
+  },
+
+  // Procesar respuesta de calidad (SM-2)
+  async processQualityResponse(cardId: number, quality: number, responseTime: number = 0, userId?: string): Promise<void> {
+    const user = userId || currentUserId;
+    if (!user) {
+      console.warn('No user ID provided for processing quality response');
+      return;
+    }
+
+    try {
+      flashcardsLoadingStore.set(true);
+      flashcardsErrorStore.set(null);
+
+      // Try API first (if authenticated)
+      let apiSuccess = false;
+      try {
+        const response = await fetch(`/api/flashcards/${cardId}/review`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            quality,
+            responseTime
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.flashcard) {
+            // Update local store with new SM-2 values
+            const current = flashcardsStore.get();
+            const updatedCards = current.map(card => 
+              card.id === cardId ? data.data.flashcard : card
+            );
+            flashcardsStore.set(updatedCards);
+            apiSuccess = true;
+          }
+        }
+      } catch (apiError) {
+        console.warn('API quality response failed:', apiError);
+      }
+
+      // If API failed, just update locally with basic calculation
+      if (!apiSuccess) {
+        const current = flashcardsStore.get();
+        const updatedCards = current.map(card => {
+          if (card.id === cardId) {
+            return {
+              ...card,
+              lastReviewed: new Date().toISOString(),
+              reviewCount: (card.reviewCount || 0) + 1
+            };
+          }
+          return card;
+        });
+        flashcardsStore.set(updatedCards);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process quality response';
+      flashcardsErrorStore.set(errorMessage);
+      console.error('Failed to process quality response:', error);
+    } finally {
+      flashcardsLoadingStore.set(false);
     }
   },
 

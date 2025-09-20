@@ -4,14 +4,36 @@ import { SecurityAuditor } from '../../../utils/security';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    // Get authorization header
+    // Get access token from cookies or Authorization header
+    let accessToken: string | null = null;
+
+    // First try Authorization header
     const authHeader = request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      accessToken = authHeader.substring(7);
+    }
+
+    // If no bearer token, try to get from cookies
+    if (!accessToken) {
+      const cookieHeader = request.headers.get('Cookie');
+      if (cookieHeader) {
+        const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          if (key && value) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+        
+        accessToken = cookies.accessToken || null;
+      }
+    }
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!accessToken) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authorization header missing or invalid'
+          error: 'No authentication token provided'
         }),
         {
           status: 401,
@@ -19,8 +41,6 @@ export const GET: APIRoute = async ({ request }) => {
         }
       );
     }
-
-    const accessToken = authHeader.substring(7);
 
     // Get client IP for logging
     const clientIP = request.headers.get('x-forwarded-for') || 

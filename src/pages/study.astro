@@ -1,73 +1,12 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import Navigation from '../components/Navigation.astro';
-
-// Importar componentes React como islands de Astro
-import StudyComponents from '@/components/StudyComponents.tsx';
 import ThemeToggle from '../components/ThemeToggle.tsx';
+import AuthenticatedApp from '../components/AuthenticatedApp.tsx';
+import RecallQualityControls from '../components/RecallQualityControls.tsx';
 
-// Importar stores y hooks
-import { flashcardsStore, flashcardsActions } from '../stores/flashcards.ts';
-
-// Datos de ejemplo para desarrollo
-const sampleCards = [
-  {
-    id: 1,
-    english: "Hello",
-    spanish: "Hola",
-    exampleEnglish: "Hello, how are you today?",
-    exampleSpanish: "Hola, ¿cómo estás hoy?",
-    image: null,
-    difficulty: 1,
-    lastReviewed: null,
-    nextReview: new Date().toISOString(),
-    reviewCount: 0,
-    easeFactor: 2.5,
-    easinessFactor: 2.5,
-    interval: 1,
-    repetitions: 0,
-    dueDate: new Date().toISOString()
-  },
-  {
-    id: 2,
-    english: "Thank you",
-    spanish: "Gracias",
-    exampleEnglish: "Thank you for your help.",
-    exampleSpanish: "Gracias por tu ayuda.",
-    image: null,
-    difficulty: 1,
-    lastReviewed: null,
-    nextReview: new Date().toISOString(),
-    reviewCount: 0,
-    easeFactor: 2.5,
-    easinessFactor: 2.5,
-    interval: 1,
-    repetitions: 0,
-    dueDate: new Date().toISOString()
-  },
-  {
-    id: 3,
-    english: "Goodbye",
-    spanish: "Adiós",
-    exampleEnglish: "Goodbye, see you tomorrow.",
-    exampleSpanish: "Adiós, nos vemos mañana.",
-    image: null,
-    difficulty: 1,
-    lastReviewed: null,
-    nextReview: new Date().toISOString(),
-    reviewCount: 0,
-    easeFactor: 2.5,
-    easinessFactor: 2.5,
-    interval: 1,
-    repetitions: 0,
-    dueDate: new Date().toISOString()
-  }
-];
-
-// Inicializar con datos de ejemplo si no hay flashcards
-if (flashcardsStore.get().length === 0) {
-  flashcardsActions.setFlashcards(sampleCards as any);
-}
+// Check if user is authenticated
+const isAuthenticated = Astro.locals.isAuthenticated || false;
+const user = Astro.locals.user || null;
 ---
 
 <MainLayout
@@ -82,371 +21,412 @@ if (flashcardsStore.get().length === 0) {
   <meta name="twitter:title" content="Estudiar Inglés - LinguaFlip" />
   <meta name="twitter:description" content="Sistema inteligente de aprendizaje de inglés" />
 
-  <!-- Schema.org structured data -->
-  {/* eslint-disable-next-line astro/no-set-html-directive */}
-  <script type="application/ld+json" is:inline set:html={
-    JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "LinguaFlip Study",
-      "description": "Aplicación de estudio de flashcards para aprender inglés",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web Browser",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
-    })
-  } />
-
   <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div class="flex">
-        <!-- Main Content -->
-        <main class="flex-1 p-6 lg:pl-72">
-          <div class="max-w-4xl mx-auto">
-          <!-- Page Header -->
-          <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
-                  Sesión de Estudio
-                </h1>
-                <p class="text-neutral-600 dark:text-neutral-300">
-                  Estudia tus flashcards y mejora tu inglés
-                </p>
-              </div>
-
-              <!-- Session Controls -->
-              <div class="flex items-center gap-3">
-                <!-- Theme Toggle -->
-                <ThemeToggle variant="icon" size="md" client:load />
-
-                <div class="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-sm border border-neutral-200 dark:border-gray-600">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-300">Progreso</div>
-                  <div class="text-lg font-semibold text-primary-600 dark:text-primary-400" id="session-progress">
-                    0 / {sampleCards.length}
-                  </div>
-                </div>
-
-                <button
-                  class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  id="start-session-btn"
-                >
-                  Iniciar Sesión
-                </button>
-              </div>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="w-full bg-neutral-200 dark:bg-gray-700 rounded-full h-2 mb-6">
-              <div
-                class="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
-                id="progress-bar"
-                style="width: 0%"
-              ></div>
-            </div>
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+              LinguaFlip
+            </h1>
           </div>
-
-          <!-- Study Area -->
-          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8 border border-gray-200 dark:border-gray-700" id="study-area">
-            <!-- Loading State -->
-            <div class="flex items-center justify-center py-16" id="loading-state">
-              <div class="text-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto mb-4"></div>
-                <p class="text-neutral-600 dark:text-neutral-300">Cargando flashcards...</p>
-              </div>
-            </div>
-
-            <!-- Study Content -->
-            <div class="hidden" id="study-content">
-              <!-- Study Components Island -->
-              <StudyComponents
-                cardData={sampleCards[0] as any}
-                client:only="react"
-              />
-
-              <!-- Study Stats -->
-              <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4" id="study-stats">
-                <div class="bg-neutral-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                  <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="cards-studied">0</div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-300">Estudiadas</div>
-                </div>
-                <div class="bg-neutral-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                  <div class="text-2xl font-bold text-success-600 dark:text-success-400" id="correct-answers">0</div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-300">Correctas</div>
-                </div>
-                <div class="bg-neutral-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                  <div class="text-2xl font-bold text-warning-600 dark:text-warning-400" id="accuracy">0%</div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-300">Precisión</div>
-                </div>
-                <div class="bg-neutral-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                  <div class="text-2xl font-bold text-secondary-600 dark:text-secondary-400" id="time-spent">0:00</div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-300">Tiempo</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Completion State -->
-            <div class="hidden text-center py-16" id="completion-state">
-              <div class="max-w-md mx-auto">
-                <div class="text-6xl mb-4">🎉</div>
-                <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
-                  ¡Sesión Completada!
-                </h2>
-                <p class="text-neutral-600 dark:text-neutral-300 mb-6">
-                  Has completado todos los flashcards de esta sesión.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                  <a
-                    href="/dashboard"
-                    class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    Ver Progreso
-                  </a>
-                  <button
-                    class="border border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
-                    onclick="window.location.reload()"
-                  >
-                    Estudiar de Nuevo
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div class="flex items-center space-x-4">
+            <ThemeToggle variant="icon" size="md" client:load />
           </div>
-
-          <!-- Navigation -->
-          <Navigation
-            currentCardOrder={1}
-            reviewDeckSize={sampleCards.length}
-          />
-          </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </header>
 
-  <!-- Study Session Script - Simplified for Astro Islands -->
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Sesión de Estudio
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300">
+          Estudia tus flashcards y mejora tu inglés
+        </p>
+      </div>
+
+      <!-- Study Area -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div id="study-container">
+          <!-- Loading State -->
+          <div class="flex items-center justify-center py-16" id="loading-state">
+            <div class="text-center">
+              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto mb-4"></div>
+              <p class="text-gray-600 dark:text-gray-300">Cargando flashcards...</p>
+            </div>
+          </div>
+
+          <!-- No Cards State -->
+          <div class="hidden text-center py-16" id="no-cards-state">
+            <div class="max-w-md mx-auto">
+              <div class="text-6xl mb-4">📚</div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                ¡Crea tu primera flashcard!
+              </h2>
+              <p class="text-gray-600 dark:text-gray-300 mb-6">
+                No tienes flashcards aún. Crea una para comenzar a estudiar.
+              </p>
+              <button
+                id="create-first-card-btn"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Crear Mi Primera Flashcard
+              </button>
+            </div>
+          </div>
+
+          <!-- Auth Required State -->
+          <div class="hidden text-center py-16" id="auth-required-state">
+            <div class="max-w-md mx-auto">
+              <div class="text-6xl mb-4">🔐</div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Inicia Sesión para Estudiar
+              </h2>
+              <p class="text-gray-600 dark:text-gray-300 mb-6">
+                Necesitas iniciar sesión para acceder a tus flashcards y estudiar.
+              </p>
+              <button
+                id="login-btn"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 mr-3"
+              >
+                Iniciar Sesión
+              </button>
+              <button
+                id="register-btn"
+                class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Registrarse
+              </button>
+            </div>
+          </div>
+
+          <!-- Study Content -->
+          <div class="hidden" id="study-content">
+            <div class="text-center mb-6">
+              <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">Progreso</div>
+              <div class="text-lg font-semibold text-primary-600 dark:text-primary-400" id="session-progress">
+                0 / 0
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+                <div
+                  class="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
+                  id="progress-bar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Flashcard Display -->
+            <div class="mb-8" id="flashcard-container">
+              <!-- Flashcard will be inserted here -->
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-col items-center space-y-4">
+              <!-- Flip Button -->
+              <button
+                id="flip-btn"
+                class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Voltear
+              </button>
+              
+              <!-- Recall Quality Controls -->
+              <div id="recall-controls" style="display: none;">
+                <RecallQualityControls onRate="rateCurrentCard" client:load />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="mt-8 text-center">
+        <a
+          href="/dashboard"
+          class="inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Volver al Dashboard
+        </a>
+      </div>
+    </main>
+
+    <!-- Authentication Modal -->
+    <AuthenticatedApp client:load />
+  </div>
+
   <script>
-    import { flashcardsStore, flashcardsActions } from '../stores/flashcards.ts';
-    import { studySessionStore, studySessionActions } from '../stores/study.ts';
+    class StudyPageManager {
 
-    class StudySessionManager {
-      currentCardIndex: number;
-      sessionStartTime: number | null;
-      cards: any[];
-      
       constructor() {
+        this.isAuthenticated = false;
+        this.user = null;
+        this.flashcards = [];
         this.currentCardIndex = 0;
-        this.sessionStartTime = null;
-        this.cards = [];
+        this.isFlipped = false;
+        this.cardStartTime = Date.now();
         this.init();
       }
 
-      init() {
-        this.setupEventListeners();
-        this.loadCards();
-      }
+      async init() {
+        // Check authentication status
+        await this.checkAuth();
+        
+        if (!this.isAuthenticated) {
+          this.showAuthRequired();
+          this.setupAuthButtons();
+          return;
+        }
 
-      setupEventListeners() {
-        const startBtn = document.getElementById('start-session-btn');
-        if (startBtn) {
-          startBtn.addEventListener('click', () => this.startSession());
+        // Load flashcards
+        await this.loadFlashcards();
+        
+        if (this.flashcards.length === 0) {
+          this.showNoCards();
+          this.setupCreateCardButton();
+        } else {
+          this.showStudyContent();
+          this.setupStudyControls();
+          this.displayCurrentCard();
         }
       }
 
-      loadCards() {
-        // Load cards from store
-        this.cards = flashcardsStore.get();
-        if (this.cards.length === 0) {
-          // Load sample cards if none exist
-          this.cards = [
-            {
-              id: 1,
-              english: "Hello",
-              spanish: "Hola",
-              exampleEnglish: "Hello, how are you today?",
-              exampleSpanish: "Hola, ¿cómo estás hoy?",
-              image: null,
-              difficulty: 1,
-              lastReviewed: null,
-              nextReview: new Date().toISOString(),
-              reviewCount: 0,
-              easeFactor: 2.5,
-              interval: 1
-            },
-            {
-              id: 2,
-              english: "Thank you",
-              spanish: "Gracias",
-              exampleEnglish: "Thank you for your help.",
-              exampleSpanish: "Gracias por tu ayuda.",
-              image: null,
-              difficulty: 1,
-              lastReviewed: null,
-              nextReview: new Date().toISOString(),
-              reviewCount: 0,
-              easeFactor: 2.5,
-              interval: 1
-            },
-            {
-              id: 3,
-              english: "Goodbye",
-              spanish: "Adiós",
-              exampleEnglish: "Goodbye, see you tomorrow.",
-              exampleSpanish: "Adiós, nos vemos mañana.",
-              image: null,
-              difficulty: 1,
-              lastReviewed: null,
-              nextReview: new Date().toISOString(),
-              reviewCount: 0,
-              easeFactor: 2.5,
-              interval: 1
-            }
-          ];
-          flashcardsActions.setFlashcards(this.cards);
+      async checkAuth() {
+        try {
+          const response = await fetch('/api/auth/me', {
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            this.isAuthenticated = data.success;
+            this.user = data.data?.user || null;
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
         }
       }
 
-      startSession() {
-        this.sessionStartTime = Date.now();
-        studySessionActions.startSession();
-        this.showStudyContent();
-        this.updateProgress();
+      async loadFlashcards() {
+        if (!this.isAuthenticated) return;
+
+        try {
+          const response = await fetch('/api/flashcards', {
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            this.flashcards = data.data?.flashcards || [];
+          }
+        } catch (error) {
+          console.error('Failed to load flashcards:', error);
+        }
+      }
+
+      showAuthRequired() {
+        this.hideAll();
+        const authState = document.getElementById('auth-required-state');
+        if (authState) {
+          authState.classList.remove('hidden');
+        }
+      }
+
+      showNoCards() {
+        this.hideAll();
+        const noCardsState = document.getElementById('no-cards-state');
+        if (noCardsState) {
+          noCardsState.classList.remove('hidden');
+        }
       }
 
       showStudyContent() {
-        const loadingState = document.getElementById('loading-state');
+        this.hideAll();
         const studyContent = document.getElementById('study-content');
-        const startBtn = document.getElementById('start-session-btn');
+        if (studyContent) {
+          studyContent.classList.remove('hidden');
+        }
+      }
+
+      hideAll() {
+        const states = ['loading-state', 'no-cards-state', 'auth-required-state', 'study-content'];
+        states.forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.classList.add('hidden');
+          }
+        });
+      }
+
+      setupAuthButtons() {
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+
+        if (loginBtn) {
+          loginBtn.addEventListener('click', () => {
+            // Trigger login modal through global event
+            window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'login' } }));
+          });
+        }
+
+        if (registerBtn) {
+          registerBtn.addEventListener('click', () => {
+            // Trigger register modal through global event
+            window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }));
+          });
+        }
+      }
+
+      setupCreateCardButton() {
+        const createBtn = document.getElementById('create-first-card-btn');
+        if (createBtn) {
+          createBtn.addEventListener('click', () => {
+            // Trigger create flashcard modal
+            window.dispatchEvent(new CustomEvent('open-create-modal'));
+          });
+        }
+      }
+
+      setupStudyControls() {
+        const flipBtn = document.getElementById('flip-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        if (flipBtn) {
+          flipBtn.addEventListener('click', () => this.flipCard());
+        }
+
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => this.nextCard());
+        }
+      }
+
+      displayCurrentCard() {
+        if (this.flashcards.length === 0) return;
+
+        const card = this.flashcards[this.currentCardIndex];
+        const container = document.getElementById('flashcard-container');
         
-        if (loadingState) loadingState.classList.add('hidden');
-        if (studyContent) studyContent.classList.remove('hidden');
-        if (startBtn) startBtn.style.display = 'none';
+        if (container && card) {
+          const front = this.isFlipped ? card.back || card.spanish : card.front || card.english;
+          const isBack = this.isFlipped;
+          
+          container.innerHTML = `
+            <div class="bg-gradient-to-br ${isBack ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'} text-white rounded-xl p-8 text-center min-h-[200px] flex items-center justify-center cursor-pointer" onclick="studyManager.flipCard()">
+              <div>
+                <div class="text-2xl font-bold mb-2">${front}</div>
+                <div class="text-sm opacity-75">${isBack ? 'Español' : 'Inglés'}</div>
+              </div>
+            </div>
+          `;
+        }
+
+        this.updateProgress();
+      }
+
+      flipCard() {
+        this.isFlipped = !this.isFlipped;
+        this.displayCurrentCard();
+        
+        const recallControls = document.getElementById('recall-controls');
+        if (recallControls) {
+          recallControls.style.display = this.isFlipped ? 'block' : 'none';
+        }
+      }
+
+      async rateCard(quality) {
+        if (this.flashcards.length === 0) return;
+
+        const card = this.flashcards[this.currentCardIndex];
+        if (!card) return;
+
+        try {
+          const response = await fetch('/api/flashcards/review', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              cardId: card.id,
+              quality: quality,
+              responseTime: Date.now() - this.cardStartTime || 0
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Update the flashcard in our local array
+            const updatedCard = data.data.flashcard;
+            if (updatedCard) {
+              this.flashcards[this.currentCardIndex] = updatedCard;
+            }
+
+            // Move to next card
+            this.nextCard();
+          } else {
+            console.error('Failed to rate card:', data.error);
+          }
+        } catch (error) {
+          console.error('Error rating card:', error);
+        }
+      }
+
+      nextCard() {
+        this.currentCardIndex = (this.currentCardIndex + 1) % this.flashcards.length;
+        this.isFlipped = false;
+        this.cardStartTime = Date.now();
+        this.displayCurrentCard();
+        
+        const recallControls = document.getElementById('recall-controls');
+        if (recallControls) {
+          recallControls.style.display = 'none';
+        }
       }
 
       updateProgress() {
-        const progress = ((this.currentCardIndex + 1) / this.cards.length) * 100;
-        const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('session-progress');
-
+        const progressBar = document.getElementById('progress-bar');
+        
+        if (progressText) {
+          progressText.textContent = `${this.currentCardIndex + 1} / ${this.flashcards.length}`;
+        }
+        
         if (progressBar) {
+          const progress = ((this.currentCardIndex + 1) / this.flashcards.length) * 100;
           progressBar.style.width = `${progress}%`;
         }
-
-        if (progressText) {
-          progressText.textContent = `${this.currentCardIndex + 1} / ${this.cards.length}`;
-        }
-
-        // Update stats
-        this.updateStats();
-      }
-
-      updateStats() {
-        const session = studySessionStore.get();
-        const accuracy = session.cardsStudied > 0
-          ? Math.round((session.correctAnswers / session.cardsStudied) * 100)
-          : 0;
-
-        const cardsStudiedEl = document.getElementById('cards-studied');
-        const correctAnswersEl = document.getElementById('correct-answers');
-        const accuracyEl = document.getElementById('accuracy');
-        const timeSpentEl = document.getElementById('time-spent');
-        
-        if (cardsStudiedEl) {
-          cardsStudiedEl.textContent = session.cardsStudied.toString();
-        }
-        if (correctAnswersEl) {
-          correctAnswersEl.textContent = session.correctAnswers.toString();
-        }
-        if (accuracyEl) {
-          accuracyEl.textContent = `${accuracy}%`;
-        }
-
-        // Update time
-        if (this.sessionStartTime && timeSpentEl) {
-          const elapsed = Math.floor((Date.now() - Number(this.sessionStartTime)) / 1000);
-          const minutes = Math.floor(elapsed / 60);
-          const seconds = elapsed % 60;
-          timeSpentEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
       }
     }
 
-    // Initialize study session when DOM is loaded
+    // Initialize when DOM is loaded
+    let studyManager;
     document.addEventListener('DOMContentLoaded', () => {
-      new StudySessionManager();
+      studyManager = new StudyPageManager();
+    });
+
+    // Global function for RecallQualityControls to call
+    window.rateCurrentCard = (quality) => {
+      if (studyManager) {
+        studyManager.rateCard(quality);
+      }
+    };
+
+    // Listen for auth events to reload the page
+    window.addEventListener('auth-success', () => {
+      window.location.reload();
+    });
+
+    // Listen for flashcard creation to reload
+    window.addEventListener('flashcard-created', () => {
+      window.location.reload();
     });
   </script>
-
-  <style>
-    /* Custom styles for the study page */
-    .flashcard-mobile {
-      perspective: 1000px;
-    }
-
-    .card-front,
-    .card-back {
-      backface-visibility: hidden;
-    }
-
-    .rotate-y-180 {
-      transform: rotateY(180deg);
-    }
-
-    .perspective {
-      perspective: 1000px;
-    }
-
-    .transform-style-preserve-3d {
-      transform-style: preserve-3d;
-    }
-
-    .backface-hidden {
-      backface-visibility: hidden;
-    }
-
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-      .text-mobile-2xl {
-        font-size: 1.5rem;
-      }
-
-      .text-mobile-xl {
-        font-size: 1.25rem;
-      }
-
-      .p-mobile {
-        padding: 1rem;
-      }
-
-      .space-mobile-y > * + * {
-        margin-top: 0.75rem;
-      }
-    }
-
-    /* Touch feedback */
-    .touch-target {
-      min-height: 44px;
-      min-width: 44px;
-    }
-
-    .touch-feedback:active {
-      transform: scale(0.95);
-    }
-
-    /* Swipe indicator */
-    .swipe-indicator {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-    }
-
-    /* Focus styles for accessibility */
-    .focus-mobile:focus {
-      outline: 2px solid var(--color-primary-500);
-      outline-offset: 2px;
-    }
-  </style>
 </MainLayout>
