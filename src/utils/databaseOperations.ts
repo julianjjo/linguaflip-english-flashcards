@@ -2,6 +2,9 @@ import { Collection, ObjectId } from 'mongodb';
 import { getDatabase, dbConnection } from './database.ts';
 import type { DatabaseOperationResult, BulkOperationResult } from '../types/database.ts';
 
+// In-memory storage for offline mode
+const offlineStorage = new Map<string, Map<string, Record<string, unknown>>>();
+
 // Simplified database operations class
 export class DatabaseOperations {
   private collectionName: string;
@@ -9,6 +12,10 @@ export class DatabaseOperations {
 
   constructor(collectionName: string) {
     this.collectionName = collectionName;
+    // Initialize offline storage for this collection
+    if (!offlineStorage.has(collectionName)) {
+      offlineStorage.set(collectionName, new Map());
+    }
   }
 
   // Initialize collection
@@ -34,7 +41,7 @@ export class DatabaseOperations {
   }
 
   // Create operation with timestamps
-  async create(document: any): Promise<DatabaseOperationResult<any>> {
+  async create(document: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>>> {
     const startTime = Date.now();
 
     try {
@@ -44,12 +51,17 @@ export class DatabaseOperations {
       if (!collection) {
         console.log(`Database offline: Simulating create operation for ${this.collectionName}`);
         const now = new Date();
+        const mockId = `mock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         const mockDocument = {
           ...document,
-          _id: `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          _id: mockId,
           createdAt: now,
           updatedAt: now,
         };
+
+        // Store in offline storage
+        const collectionStore = offlineStorage.get(this.collectionName)!;
+        collectionStore.set(mockId, mockDocument);
 
         return {
           success: true,
@@ -91,15 +103,35 @@ export class DatabaseOperations {
   }
 
   // Find single document
-  async findOne(filter: any, options?: any): Promise<DatabaseOperationResult<any>> {
+  async findOne(filter: Record<string, unknown>, options?: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
     const startTime = Date.now();
 
     try {
       const collection = await this.initializeCollection();
 
-      // If collection is null (offline mode), return null data
+      // If collection is null (offline mode), search in offline storage
       if (!collection) {
         console.log(`Database offline: Simulating findOne operation for ${this.collectionName}`);
+        const collectionStore = offlineStorage.get(this.collectionName)!;
+        
+        // Simple filter matching for offline mode
+        for (const [id, doc] of collectionStore) {
+          let matches = true;
+          for (const [key, value] of Object.entries(filter)) {
+            if (doc[key] !== value) {
+              matches = false;
+              break;
+            }
+          }
+          if (matches) {
+            return {
+              success: true,
+              data: doc,
+              operationTime: Date.now() - startTime,
+            };
+          }
+        }
+        
         return {
           success: true,
           data: null,
@@ -124,7 +156,7 @@ export class DatabaseOperations {
   }
 
   // Find multiple documents
-  async findMany(filter: any = {}, options?: any): Promise<DatabaseOperationResult<any[]>> {
+  async findMany(filter: Record<string, unknown> = {}, options?: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
     const startTime = Date.now();
 
     try {
@@ -157,7 +189,7 @@ export class DatabaseOperations {
   }
 
   // Update single document
-  async updateOne(filter: any, update: any, options?: { upsert?: boolean }): Promise<DatabaseOperationResult<any>> {
+  async updateOne(filter: Record<string, unknown>, update: Record<string, unknown>, options?: { upsert?: boolean }): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
     const startTime = Date.now();
 
     try {
@@ -166,6 +198,34 @@ export class DatabaseOperations {
       // If collection is null (offline mode), simulate update
       if (!collection) {
         console.log(`Database offline: Simulating updateOne operation for ${this.collectionName}`);
+        const collectionStore = offlineStorage.get(this.collectionName)!;
+        
+        // Find document to update
+        for (const [id, doc] of collectionStore) {
+          let matches = true;
+          for (const [key, value] of Object.entries(filter)) {
+            if (doc[key] !== value) {
+              matches = false;
+              break;
+            }
+          }
+          if (matches) {
+            // Apply update - handle both direct update and $set syntax
+            const updateData = update.$set ? update.$set as Record<string, unknown> : update;
+            const updatedDoc = {
+              ...doc,
+              ...updateData,
+              updatedAt: new Date(),
+            };
+            collectionStore.set(id, updatedDoc);
+            return {
+              success: true,
+              data: updatedDoc,
+              operationTime: Date.now() - startTime,
+            };
+          }
+        }
+        
         return {
           success: true,
           data: null,
@@ -177,7 +237,7 @@ export class DatabaseOperations {
       const updateWithTimestamp = {
         ...update,
         $set: {
-          ...update.$set,
+          ...(update.$set && typeof update.$set === 'object' ? update.$set as Record<string, unknown> : {}),
           updatedAt: new Date(),
         },
       };
@@ -213,7 +273,7 @@ export class DatabaseOperations {
   }
 
   // Update multiple documents
-  async updateMany(filter: any, update: any): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
+  async updateMany(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
     const startTime = Date.now();
 
     try {
@@ -232,7 +292,7 @@ export class DatabaseOperations {
       const updateWithTimestamp = {
         ...update,
         $set: {
-          ...update.$set,
+          ...(update.$set && typeof update.$set === 'object' ? update.$set as Record<string, unknown> : {}),
           updatedAt: new Date(),
         },
       };
@@ -258,7 +318,7 @@ export class DatabaseOperations {
   }
 
   // Delete single document
-  async deleteOne(filter: any): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+  async deleteOne(filter: Record<string, unknown>): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
     const startTime = Date.now();
 
     try {
@@ -295,7 +355,7 @@ export class DatabaseOperations {
   }
 
   // Delete multiple documents
-  async deleteMany(filter: any): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+  async deleteMany(filter: Record<string, unknown>): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
     const startTime = Date.now();
 
     try {
@@ -332,7 +392,7 @@ export class DatabaseOperations {
   }
 
   // Count documents
-  async count(filter: any = {}): Promise<DatabaseOperationResult<number>> {
+  async count(filter: Record<string, unknown> = {}): Promise<DatabaseOperationResult<number>> {
     const startTime = Date.now();
 
     try {
@@ -365,7 +425,7 @@ export class DatabaseOperations {
   }
 
   // Check if document exists
-  async exists(filter: any): Promise<DatabaseOperationResult<boolean>> {
+  async exists(filter: Record<string, unknown>): Promise<DatabaseOperationResult<boolean>> {
     const startTime = Date.now();
 
     try {
@@ -398,7 +458,7 @@ export class DatabaseOperations {
   }
 
   // Bulk operations
-  async bulkWrite(operations: any[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
+  async bulkWrite(operations: Record<string, unknown>[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
     const startTime = Date.now();
 
     try {
@@ -423,7 +483,7 @@ export class DatabaseOperations {
         };
       }
 
-      const result = await collection.bulkWrite(operations);
+      const result = await collection.bulkWrite(operations as any[]);
 
       const bulkResult: BulkOperationResult = {
         success: result.ok === 1,
@@ -449,7 +509,7 @@ export class DatabaseOperations {
   }
 
   // Aggregation pipeline
-  async aggregate(pipeline: any[], options?: { allowDiskUse?: boolean }): Promise<DatabaseOperationResult<any[]>> {
+  async aggregate(pipeline: Record<string, unknown>[], options?: { allowDiskUse?: boolean }): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
     const startTime = Date.now();
 
     try {
@@ -482,7 +542,7 @@ export class DatabaseOperations {
   }
 
   // Create indexes
-  async createIndexes(indexes: Array<{ key: Record<string, 1 | -1>; options?: any }>): Promise<DatabaseOperationResult<string[]>> {
+  async createIndexes(indexes: Array<{ key: Record<string, 1 | -1>; options?: Record<string, unknown> }>): Promise<DatabaseOperationResult<string[]>> {
     const startTime = Date.now();
 
     try {
@@ -517,7 +577,7 @@ export class DatabaseOperations {
   }
 
   // Get distinct values
-  async distinct(field: string, filter: any = {}): Promise<DatabaseOperationResult<any[]>> {
+  async distinct(field: string, filter: Record<string, unknown> = {}): Promise<DatabaseOperationResult<unknown[]>> {
     const startTime = Date.now();
 
     try {
@@ -581,7 +641,7 @@ export const databaseUtils = {
   },
 
   // Validate document structure
-  validateDocument(document: any, requiredFields: string[]): Error | null {
+  validateDocument(document: Record<string, unknown>, requiredFields: string[]): Error | null {
     for (const field of requiredFields) {
       if (!(field in document) || document[field] === null || document[field] === undefined) {
         return new Error(`Missing required field: ${field}`);

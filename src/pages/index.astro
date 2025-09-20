@@ -42,7 +42,8 @@ import AppProvider from '../components/AppProvider.tsx';
   <meta name="apple-mobile-web-app-title" content="LinguaFlip" />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" set:html={
+  {/* eslint-disable-next-line astro/no-set-html-directive */}
+  <script type="application/ld+json" is:inline set:html={
     JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -74,7 +75,8 @@ import AppProvider from '../components/AppProvider.tsx';
   } />
 
   <!-- Breadcrumbs Schema -->
-  <script type="application/ld+json" set:html={
+  {/* eslint-disable-next-line astro/no-set-html-directive */}
+  <script type="application/ld+json" is:inline set:html={
     JSON.stringify({
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",

@@ -119,13 +119,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     }
   }, [quality, cleanCache]);
 
-  const getFallbackImage = (): string => {
+  const getFallbackImage = useCallback((): string => {
     if (fallbackSrc) return fallbackSrc;
 
     // Generate a Picsum fallback based on alt text hash
     const hash = alt.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return `https://picsum.photos/320/180?random=${hash}`;
-  };
+  }, [fallbackSrc, alt]);
 
   const handleImageLoad = useCallback(() => {
     setIsLoading(false);

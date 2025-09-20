@@ -53,10 +53,10 @@ export class StudySessionsService {
       }
 
       // Check for duplicate sessionId for this user
-      await this.checkForDuplicateSession(sanitizedData.userId, sanitizedData.sessionId);
+      await this.checkForDuplicateSession(sanitizedData.userId as string, sanitizedData.sessionId as string);
 
       // Create study session
-      const result = await dbOps.create(sanitizedData);
+      const result = await dbOps.create(sanitizedData) as DatabaseOperationResult<StudySessionDocument>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -79,7 +79,7 @@ export class StudySessionsService {
     userId: string
   ): Promise<DatabaseOperationResult<StudySessionDocument>> {
     return safeAsync(async () => {
-      const result = await dbOps.findOne({ sessionId, userId });
+      const result = await dbOps.findOne({ sessionId, userId }) as DatabaseOperationResult<StudySessionDocument | null>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -99,7 +99,7 @@ export class StudySessionsService {
         );
       }
 
-      return result;
+      return result as DatabaseOperationResult<StudySessionDocument>;
     }, { operation: 'get_study_session_by_id', collection: COLLECTION_NAME, userId });
   }
 
@@ -221,7 +221,7 @@ export class StudySessionsService {
     } = {}
   ): Promise<DatabaseOperationResult<StudySessionDocument[]>> {
     return safeAsync(async () => {
-      const query: any = { userId };
+      const query: Record<string, unknown> = { userId };
 
       // Add date range filter
       if (options.dateRange) {
@@ -244,7 +244,7 @@ export class StudySessionsService {
         limit: options.limit || 50,
         skip: options.skip || 0,
         sort: { [sortBy]: sortOrder }
-      });
+      }) as DatabaseOperationResult<StudySessionDocument[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -265,9 +265,18 @@ export class StudySessionsService {
   async getStudySessionStats(
     userId: string,
     dateRange?: { start: Date; end: Date }
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<{
+    totalSessions: number;
+    completedSessions: number;
+    totalDuration: number;
+    averageDuration: number;
+    totalCardsStudied: number;
+    averageCardsPerSession: number;
+    averagePerformance: number;
+    sessionsByType: string[];
+  }>> {
     return safeAsync(async () => {
-      const matchStage: any = { userId };
+      const matchStage: Record<string, unknown> = { userId };
 
       if (dateRange) {
         matchStage.startTime = {
@@ -327,7 +336,7 @@ export class StudySessionsService {
         }
       ];
 
-      const result = await dbOps.aggregate(pipeline);
+      const result = await dbOps.aggregate(pipeline) as DatabaseOperationResult<Record<string, unknown>[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -351,7 +360,16 @@ export class StudySessionsService {
           sessionTypeBreakdown: {}
         },
         operationTime: result.operationTime
-      };
+      } as DatabaseOperationResult<{
+        totalSessions: number;
+        completedSessions: number;
+        totalDuration: number;
+        averageDuration: number;
+        totalCardsStudied: number;
+        averageCardsPerSession: number;
+        averagePerformance: number;
+        sessionsByType: string[];
+      }>;
     }, { operation: 'get_study_session_stats', collection: COLLECTION_NAME, userId });
   }
 
@@ -392,7 +410,7 @@ export class StudySessionsService {
           limit,
           sort: { startTime: -1 }
         }
-      );
+      ) as DatabaseOperationResult<StudySessionDocument[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -418,7 +436,7 @@ export class StudySessionsService {
       const sessionsResult = await dbOps.findMany(
         { userId, endTime: { $ne: null } },
         { sort: { startTime: -1 } }
-      );
+      ) as DatabaseOperationResult<StudySessionDocument[]>;
 
       if (!sessionsResult.success) {
         throw new DatabaseError(
@@ -447,11 +465,11 @@ export class StudySessionsService {
   /**
    * Sanitize study session data
    */
-  private sanitizeSessionData(sessionData: any): any {
+  private sanitizeSessionData(sessionData: Record<string, unknown>): Record<string, unknown> {
     const sanitized = { ...sessionData };
 
     // Sanitize string fields if any
-    if (sanitized.sessionType) sanitized.sessionType = sanitizeInput(sanitized.sessionType);
+    if (sanitized.sessionType) sanitized.sessionType = sanitizeInput(sanitized.sessionType as string);
 
     return sanitized;
   }
@@ -475,7 +493,11 @@ export class StudySessionsService {
   /**
    * Calculate session performance metrics
    */
-  private calculateSessionPerformance(cardsStudied: StudySessionDocument['cardsStudied']): any {
+  private calculateSessionPerformance(cardsStudied: StudySessionDocument['cardsStudied']): {
+    overallScore: number;
+    improvement: number;
+    focusAreas: string[];
+  } {
     if (!cardsStudied || cardsStudied.length === 0) {
       return {
         overallScore: 0,
@@ -486,14 +508,14 @@ export class StudySessionsService {
 
     // Calculate basic metrics
     const totalCards = cardsStudied.length;
-    const correctCards = cardsStudied.filter((card: any) => card.wasCorrect).length;
+    const correctCards = cardsStudied.filter(card => (card as { wasCorrect?: boolean }).wasCorrect).length;
     const retentionRate = (correctCards / totalCards) * 100;
 
     // Calculate average response time
-    const avgResponseTime = cardsStudied.reduce((sum: number, card: any) => sum + (card.responseTime || 0), 0) / totalCards;
+    const avgResponseTime = cardsStudied.reduce((sum: number, card) => sum + ((card as { responseTime?: number }).responseTime || 0), 0) / totalCards;
 
     // Calculate consistency (standard deviation of response times)
-    const responseTimes = cardsStudied.map((card: any) => card.responseTime || 0);
+    const responseTimes = cardsStudied.map(card => (card as { responseTime?: number }).responseTime || 0);
     const mean = responseTimes.reduce((sum: number, time: number) => sum + time, 0) / responseTimes.length;
     const variance = responseTimes.reduce((sum: number, time: number) => sum + Math.pow(time - mean, 2), 0) / responseTimes.length;
     const consistency = Math.sqrt(variance);
@@ -514,9 +536,7 @@ export class StudySessionsService {
     return {
       overallScore,
       improvement: 0, // Would need historical data to calculate
-      focusAreas,
-      retentionRate,
-      consistency
+      focusAreas
     };
   }
 

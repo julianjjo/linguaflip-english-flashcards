@@ -1,6 +1,7 @@
 // Database Types for LinguaFlip MongoDB Operations
 
-import type { ObjectId, Document } from 'mongodb';
+import { ObjectId } from 'mongodb';
+import type { Document } from 'mongodb';
 
 // Base database document interface
 export interface BaseDocument extends Document {
@@ -159,7 +160,7 @@ export interface StudyStatisticsDocument extends BaseDocument {
 }
 
 // Database operation result types
-export interface DatabaseOperationResult<T = any> {
+export interface DatabaseOperationResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -266,12 +267,12 @@ export interface DatabaseIndexes {
 
 // Aggregation pipeline types
 export interface AggregationPipeline {
-  $match?: Record<string, any>;
-  $group?: Record<string, any>;
+  $match?: Record<string, unknown>;
+  $group?: Record<string, unknown>;
   $sort?: Record<string, 1 | -1>;
   $limit?: number;
   $skip?: number;
-  $project?: Record<string, any>;
+  $project?: Record<string, unknown>;
   $lookup?: {
     from: string;
     localField: string;
@@ -313,14 +314,14 @@ export class DatabaseError extends Error {
   public readonly operation: string;
   public readonly collection?: string;
   public readonly timestamp: Date;
-  public readonly details?: any;
+  public readonly details?: Record<string, unknown>;
 
   constructor(
     message: string,
     code: string = 'DATABASE_ERROR',
     operation: string = 'unknown',
     collection?: string,
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'DatabaseError';
@@ -354,7 +355,7 @@ export class DatabaseError extends Error {
 }
 
 export class ConnectionError extends DatabaseError {
-  constructor(message: string, operation: string = 'connect', details?: any) {
+  constructor(message: string, operation: string = 'connect', details?: Record<string, unknown>) {
     super(message, 'CONNECTION_ERROR', operation, undefined, details);
     this.name = 'ConnectionError';
   }
@@ -362,15 +363,15 @@ export class ConnectionError extends DatabaseError {
 
 export class ValidationError extends DatabaseError {
   public readonly field?: string;
-  public readonly value?: any;
+  public readonly value?: unknown;
 
   constructor(
     message: string,
     operation: string = 'validate',
     collection?: string,
     field?: string,
-    value?: any,
-    details?: any
+    value?: unknown,
+    details?: Record<string, unknown>
   ) {
     super(message, 'VALIDATION_ERROR', operation, collection, details);
     this.name = 'ValidationError';
@@ -390,7 +391,7 @@ export class NotFoundError extends DatabaseError {
     operation: string = 'find',
     collection?: string,
     documentId?: string,
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message, 'NOT_FOUND_ERROR', operation, collection, details);
     this.name = 'NotFoundError';
@@ -403,15 +404,15 @@ export class NotFoundError extends DatabaseError {
  */
 export class DuplicateError extends DatabaseError {
   public readonly field?: string;
-  public readonly value?: any;
+  public readonly value?: unknown;
 
   constructor(
     message: string,
     operation: string = 'insert',
     collection?: string,
     field?: string,
-    value?: any,
-    details?: any
+    value?: unknown,
+    details?: Record<string, unknown>
   ) {
     super(message, 'DUPLICATE_ERROR', operation, collection, details);
     this.name = 'DuplicateError';
@@ -433,7 +434,7 @@ export class PermissionError extends DatabaseError {
     collection?: string,
     userId?: string,
     requiredPermission?: string,
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message, 'PERMISSION_ERROR', operation, collection, details);
     this.name = 'PermissionError';
@@ -452,7 +453,7 @@ export class RateLimitError extends DatabaseError {
     message: string,
     operation: string = 'rate_limit',
     retryAfter?: number,
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message, 'RATE_LIMIT_ERROR', operation, undefined, details);
     this.name = 'RateLimitError';
@@ -473,7 +474,7 @@ export class SM2Error extends DatabaseError {
     collection: string = 'flashcards',
     quality?: number,
     currentInterval?: number,
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message, 'SM2_ERROR', operation, collection, details);
     this.name = 'SM2Error';
@@ -497,7 +498,7 @@ export class BulkOperationError extends DatabaseError {
     successfulCount: number = 0,
     failedCount: number = 0,
     errors: Array<{ index: number; error: Error }> = [],
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message, 'BULK_OPERATION_ERROR', operation, collection, details);
     this.name = 'BulkOperationError';
@@ -519,7 +520,7 @@ export class MigrationError extends DatabaseError {
     operation: string = 'migration',
     migrationId?: string,
     version?: string,
-    details?: any
+    details?: Record<string, unknown>
   ) {
     super(message, 'MIGRATION_ERROR', operation, undefined, details);
     this.name = 'MigrationError';
@@ -592,7 +593,8 @@ export class ErrorHandler {
 
     // Add context information
     if (context) {
-      (dbError as any).details = {
+      const dbErrorWithDetails = dbError as DatabaseError & { details: Record<string, unknown> };
+      dbErrorWithDetails.details = {
         ...dbError.details,
         context: {
           operation: context.operation,
@@ -619,7 +621,13 @@ export class ErrorHandler {
   /**
    * Handle MongoDB-specific errors
    */
-  private handleMongoError(error: any, context?: {
+  private handleMongoError(error: Error & { 
+    code?: number; 
+    keyPattern?: Record<string, unknown>; 
+    keyValue?: Record<string, unknown>; 
+    name: string;
+    message: string;
+  }, context?: {
     operation?: string;
     collection?: string;
   }): DatabaseError {
@@ -745,7 +753,6 @@ export async function safeAsync<T>(
  * Validate ObjectId format
  */
 export function validateObjectId(id: string, fieldName: string = 'id'): void {
-  const { ObjectId } = require('mongodb');
   if (!ObjectId.isValid(id)) {
     throw new ValidationError(
       `Invalid ObjectId format for field '${fieldName}': ${id}`,

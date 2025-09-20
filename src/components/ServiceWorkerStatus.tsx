@@ -59,7 +59,7 @@ const ServiceWorkerStatus: React.FC = () => {
               Offline Support Not Available
             </h3>
             <div className="mt-2 text-sm text-yellow-700">
-              <p>Your browser doesn't support Service Workers. Offline functionality will not be available.</p>
+              <p>Your browser doesn&apos;t support Service Workers. Offline functionality will not be available.</p>
             </div>
           </div>
         </div>

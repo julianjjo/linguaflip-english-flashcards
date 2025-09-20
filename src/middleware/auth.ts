@@ -7,11 +7,21 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { SecurityAuditor } from '../utils/security';
+import { SecurityAuditor, DatabaseRateLimiter } from '../utils/security';
 import { PermissionError, ValidationError } from '../types/database';
+
+// JWT payload interface
+interface JWTPayload {
+  userId: string;
+  email?: string;
+  type: 'access';
+  iat?: number;
+  exp?: number;
+}
 
 // Extend Express Request interface to include user
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: {
@@ -47,7 +57,7 @@ function extractTokenFromHeader(authHeader: string | undefined): string | null {
  */
 function extractClientInfo(req: Request) {
   return {
-    ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+    ipAddress: req.ip || req.socket?.remoteAddress || 'unknown',
     userAgent: req.get('User-Agent') || 'unknown',
     forwardedFor: req.get('X-Forwarded-For'),
     realIP: req.get('X-Real-IP'),
@@ -75,7 +85,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     }
 
     // Verify token
-    const decoded = (jwt.verify as any)(token, AUTH_CONFIG.jwtSecret);
+    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret) as JWTPayload;
 
     if (!decoded || !decoded.userId) {
       SecurityAuditor.logSecurityEvent(
@@ -180,7 +190,7 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
     }
 
     // Verify token if present
-    const decoded = (jwt.verify as any)(token, AUTH_CONFIG.jwtSecret);
+    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret) as JWTPayload;
 
     if (decoded && decoded.userId) {
       req.user = decoded;
@@ -193,7 +203,7 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
     req.userAgent = clientInfo.userAgent;
 
     next();
-  } catch (error) {
+  } catch {
     // For optional auth, we don't fail on token errors
     // Just continue without authentication
     const clientInfo = extractClientInfo(req);
@@ -208,7 +218,7 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   // First check if user is authenticated
-  requireAuth(req, res, (err?: any) => {
+  requireAuth(req, res, (err: unknown) => {
     if (err || !req.user) {
       return; // Error already handled by requireAuth
     }
@@ -222,8 +232,9 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 /**
  * User ownership middleware - ensures user can only access their own data
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function requireOwnership(req: Request, res: Response, next: NextFunction) {
-  requireAuth(req, res, (err?: any) => {
+  requireAuth(req, res, (err: unknown) => {
     if (err || !req.user) {
       return; // Error already handled by requireAuth
     }
@@ -263,7 +274,6 @@ export function authRateLimit(req: Request, res: Response, next: NextFunction) {
   const identifier = clientInfo.ipAddress;
 
   // Use the existing rate limiter from security utils
-  const { DatabaseRateLimiter } = require('../utils/security');
 
   if (!DatabaseRateLimiter.checkRateLimit('auth', identifier)) {
     SecurityAuditor.logSecurityEvent(
@@ -366,6 +376,7 @@ export function authLogging(req: Request, res: Response, next: NextFunction) {
 /**
  * Combined authentication middleware with all security features
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function secureAuth(required: boolean = true) {
   const middlewares = [
     securityHeaders,
@@ -386,7 +397,8 @@ export function secureAuth(required: boolean = true) {
 /**
  * Authentication error handler
  */
-export function authErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function authErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   if (err instanceof PermissionError) {
     SecurityAuditor.logSecurityEvent(
       'PERMISSION_DENIED',

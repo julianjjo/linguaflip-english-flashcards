@@ -72,11 +72,11 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
 
 export class FeatureFlagService {
   private flags: Record<string, FeatureFlag>;
-  private environment: string;
+  private environment: 'development' | 'staging' | 'production';
   private userId?: string;
   private storageKey = 'linguaflip-feature-flags';
 
-  constructor(environment: string = 'development', userId?: string) {
+  constructor(environment: 'development' | 'staging' | 'production' = 'development', userId?: string) {
     this.environment = environment;
     this.userId = userId;
     this.flags = this.loadFlags();
@@ -258,7 +258,7 @@ export class FeatureFlagService {
   getConfig(): FeatureFlagConfig {
     return {
       flags: this.flags,
-      environment: this.environment as any,
+      environment: this.environment,
       userId: this.userId
     };
   }
@@ -315,9 +315,9 @@ let featureFlagInstance: FeatureFlagService | null = null;
 /**
  * Get or create feature flag service instance
  */
-export const getFeatureFlags = (environment?: string, userId?: string): FeatureFlagService => {
+export const getFeatureFlags = (environment?: 'development' | 'staging' | 'production', userId?: string): FeatureFlagService => {
   if (!featureFlagInstance || environment || userId) {
-    const env = environment || (process.env.NODE_ENV as string) || 'development';
+    const env = environment || (process.env.NODE_ENV as 'development' | 'staging' | 'production') || 'development';
     featureFlagInstance = new FeatureFlagService(env, userId);
   }
   return featureFlagInstance;

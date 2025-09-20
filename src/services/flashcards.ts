@@ -74,10 +74,10 @@ export class FlashcardsService {
       }
 
       // Check for duplicate cardId for this user
-      await this.checkForDuplicateCard(sanitizedData.userId, sanitizedData.cardId);
+      await this.checkForDuplicateCard(sanitizedData.userId as string, sanitizedData.cardId as string);
 
       // Create flashcard
-      const result = await dbOps.create(completeCardData);
+      const result = await dbOps.create(completeCardData) as DatabaseOperationResult<FlashcardDocument>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -100,7 +100,7 @@ export class FlashcardsService {
     userId: string
   ): Promise<DatabaseOperationResult<FlashcardDocument>> {
     return safeAsync(async () => {
-      const result = await dbOps.findOne({ cardId, userId });
+      const result = await dbOps.findOne({ cardId, userId }) as DatabaseOperationResult<FlashcardDocument | null>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -120,7 +120,7 @@ export class FlashcardsService {
         );
       }
 
-      return result;
+      return result as DatabaseOperationResult<FlashcardDocument>;
     }, { operation: 'get_flashcard_by_id', collection: COLLECTION_NAME, userId });
   }
 
@@ -253,7 +253,7 @@ export class FlashcardsService {
   ): Promise<DatabaseOperationResult<FlashcardDocument[]>> {
     return safeAsync(async () => {
       const now = new Date();
-      const query: any = {
+      const query: Record<string, unknown> = {
         userId,
         'sm2.nextReviewDate': { $lte: now }
       };
@@ -276,7 +276,7 @@ export class FlashcardsService {
       const result = await dbOps.findMany(query, {
         limit: options.limit || 50,
         sort: { 'sm2.nextReviewDate': 1 } // Oldest due cards first
-      });
+      }) as DatabaseOperationResult<FlashcardDocument[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -307,7 +307,7 @@ export class FlashcardsService {
           skip: options.skip || 0,
           sort: { createdAt: -1 }
         }
-      );
+      ) as DatabaseOperationResult<FlashcardDocument[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -331,7 +331,7 @@ export class FlashcardsService {
     options: { limit?: number; category?: string } = {}
   ): Promise<DatabaseOperationResult<FlashcardDocument[]>> {
     return safeAsync(async () => {
-      const query: any = {
+      const query: Record<string, unknown> = {
         userId,
         $or: [
           { front: new RegExp(searchTerm, 'i') },
@@ -350,7 +350,7 @@ export class FlashcardsService {
       const result = await dbOps.findMany(query, {
         limit: options.limit || 20,
         sort: { createdAt: -1 }
-      });
+      }) as DatabaseOperationResult<FlashcardDocument[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -375,7 +375,7 @@ export class FlashcardsService {
     userId: string
   ): Promise<DatabaseOperationResult<FlashcardDocument>> {
     return safeAsync(async () => {
-      const updates: any = {
+      const updates: Record<string, unknown> = {
         'sm2.isSuspended': suspended,
         'sm2.suspensionReason': suspended ? reason : null
       };
@@ -443,9 +443,18 @@ export class FlashcardsService {
   async getFlashcardStats(
     userId: string,
     cardId?: string
-  ): Promise<DatabaseOperationResult<any>> {
+  ): Promise<DatabaseOperationResult<{
+    totalCards: number;
+    newCards: number;
+    learningCards: number;
+    matureCards: number;
+    suspendedCards: number;
+    averageEaseFactor: number;
+    averageInterval: number;
+    totalReviews: number;
+  }>> {
     return safeAsync(async () => {
-      const matchStage: any = { userId };
+      const matchStage: Record<string, unknown> = { userId };
 
       if (cardId) {
         matchStage.cardId = cardId;
@@ -479,7 +488,7 @@ export class FlashcardsService {
         }
       ];
 
-      const result = await dbOps.aggregate(pipeline);
+      const result = await dbOps.aggregate(pipeline) as DatabaseOperationResult<Record<string, unknown>[]>;
 
       if (!result.success) {
         throw new DatabaseError(
@@ -503,7 +512,16 @@ export class FlashcardsService {
           totalReviews: 0
         },
         operationTime: result.operationTime
-      };
+      } as DatabaseOperationResult<{
+        totalCards: number;
+        newCards: number;
+        learningCards: number;
+        matureCards: number;
+        suspendedCards: number;
+        averageEaseFactor: number;
+        averageInterval: number;
+        totalReviews: number;
+      }>;
     }, { operation: 'get_flashcard_stats', collection: COLLECTION_NAME, userId });
   }
 
@@ -514,16 +532,18 @@ export class FlashcardsService {
   /**
    * Sanitize flashcard data
    */
-  private sanitizeCardData(cardData: any): any {
+  private sanitizeCardData(cardData: Record<string, unknown>): Record<string, unknown> {
     const sanitized = { ...cardData };
 
-    // Sanitize string fields
-    if (sanitized.front) sanitized.front = sanitizeInput(sanitized.front);
-    if (sanitized.back) sanitized.back = sanitizeInput(sanitized.back);
-    if (sanitized.exampleFront) sanitized.exampleFront = sanitizeInput(sanitized.exampleFront);
-    if (sanitized.exampleBack) sanitized.exampleBack = sanitizeInput(sanitized.exampleBack);
-    if (sanitized.category) sanitized.category = sanitizeInput(sanitized.category);
-    if (sanitized.tags) sanitized.tags = sanitized.tags.map((tag: string) => sanitizeInput(tag));
+    // Sanitize string fields with proper type assertions
+    if (sanitized.front) sanitized.front = sanitizeInput(String(sanitized.front));
+    if (sanitized.back) sanitized.back = sanitizeInput(String(sanitized.back));
+    if (sanitized.exampleFront) sanitized.exampleFront = sanitizeInput(String(sanitized.exampleFront));
+    if (sanitized.exampleBack) sanitized.exampleBack = sanitizeInput(String(sanitized.exampleBack));
+    if (sanitized.category) sanitized.category = sanitizeInput(String(sanitized.category));
+    if (sanitized.tags && Array.isArray(sanitized.tags)) {
+      sanitized.tags = sanitized.tags.map((tag: unknown) => sanitizeInput(String(tag)));
+    }
 
     return sanitized;
   }
@@ -547,23 +567,28 @@ export class FlashcardsService {
   /**
    * Calculate new SM-2 parameters based on quality response
    */
-  private calculateNewSM2Params(currentSM2: any, quality: number): any {
+  private calculateNewSM2Params(currentSM2: Record<string, unknown>, quality: number): Record<string, unknown> {
     const newSM2 = { ...currentSM2 };
 
+    // Type assertions for arithmetic operations
+    const easeFactor = Number(currentSM2.easeFactor) || 2.5;
+    const repetitions = Number(currentSM2.repetitions) || 0;
+    const interval = Number(currentSM2.interval) || 1;
+
     // Calculate new ease factor
-    newSM2.easeFactor = Math.max(1.3, currentSM2.easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+    newSM2.easeFactor = Math.max(1.3, easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
 
     // Calculate new interval
     if (quality >= 3) {
       // Correct response
-      if (currentSM2.repetitions === 0) {
+      if (repetitions === 0) {
         newSM2.interval = 1;
-      } else if (currentSM2.repetitions === 1) {
+      } else if (repetitions === 1) {
         newSM2.interval = 6;
       } else {
-        newSM2.interval = Math.round(currentSM2.interval * newSM2.easeFactor);
+        newSM2.interval = Math.round(interval * Number(newSM2.easeFactor));
       }
-      newSM2.repetitions = currentSM2.repetitions + 1;
+      newSM2.repetitions = repetitions + 1;
     } else {
       // Incorrect response
       newSM2.repetitions = 0;
@@ -571,14 +596,17 @@ export class FlashcardsService {
     }
 
     // Calculate next review date
-    newSM2.nextReviewDate = calculateNextReviewDate(newSM2.interval, newSM2.easeFactor, quality);
+    newSM2.nextReviewDate = calculateNextReviewDate(Number(newSM2.interval), Number(newSM2.easeFactor), quality);
 
-    // Update streaks
+    // Update streaks with proper type conversion
+    const correctStreak = Number(currentSM2.correctStreak) || 0;
+    const incorrectStreak = Number(currentSM2.incorrectStreak) || 0;
+    
     if (quality >= 3) {
-      newSM2.correctStreak = (currentSM2.correctStreak || 0) + 1;
+      newSM2.correctStreak = correctStreak + 1;
       newSM2.incorrectStreak = 0;
     } else {
-      newSM2.incorrectStreak = (currentSM2.incorrectStreak || 0) + 1;
+      newSM2.incorrectStreak = incorrectStreak + 1;
       newSM2.correctStreak = 0;
     }
 
@@ -588,25 +616,30 @@ export class FlashcardsService {
   /**
    * Update card statistics based on review response
    */
-  private updateCardStatistics(currentStats: any, quality: number, responseTime: number): any {
+  private updateCardStatistics(currentStats: Record<string, unknown>, quality: number, responseTime: number): Record<string, unknown> {
     const newStats = { ...currentStats };
+
+    // Type assertions for safe arithmetic operations
+    const timesCorrect = Number(currentStats.timesCorrect) || 0;
+    const timesIncorrect = Number(currentStats.timesIncorrect) || 0;
+    const averageResponseTime = Number(currentStats.averageResponseTime) || 0;
 
     // Update correct/incorrect counts
     if (quality >= 3) {
-      newStats.timesCorrect = (currentStats.timesCorrect || 0) + 1;
+      newStats.timesCorrect = timesCorrect + 1;
     } else {
-      newStats.timesIncorrect = (currentStats.timesIncorrect || 0) + 1;
+      newStats.timesIncorrect = timesIncorrect + 1;
     }
 
     // Update average response time
-    const totalResponses = (newStats.timesCorrect || 0) + (newStats.timesIncorrect || 0);
+    const totalResponses = Number(newStats.timesCorrect) + Number(newStats.timesIncorrect);
     if (totalResponses > 0) {
-      const currentTotalTime = (currentStats.averageResponseTime || 0) * (totalResponses - 1);
+      const currentTotalTime = averageResponseTime * (totalResponses - 1);
       newStats.averageResponseTime = (currentTotalTime + responseTime) / totalResponses;
     }
 
     // Update difficulty based on performance
-    const correctRate = (newStats.timesCorrect || 0) / totalResponses;
+    const correctRate = Number(newStats.timesCorrect) / totalResponses;
     if (correctRate >= 0.8) {
       newStats.lastDifficulty = 'easy';
     } else if (correctRate >= 0.6) {

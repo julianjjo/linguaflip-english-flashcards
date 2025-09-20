@@ -1,6 +1,4 @@
 // Comprehensive MongoDB Integration Test Suite
-import 'mocha';
-import { expect } from 'chai';
 import { MongoClient } from 'mongodb';
 import { getMockMongoDBServer } from './mongodb-mock-server.js';
 import { validateMongoDBEnvironment, buildSecureConnectionString, sanitizeConnectionString } from '../src/utils/security.ts';
@@ -20,10 +18,10 @@ const TEST_CONFIG = {
 };
 
 describe('MongoDB Integration Tests', () => {
-  let mockServer;
-  let client;
-  let db;
-  let dbOps;
+  let mockServer: any;
+  let client: MongoClient;
+  let db: any;
+  let dbOps: any;
 
   beforeAll(async () => {
     try {
@@ -48,7 +46,7 @@ describe('MongoDB Integration Tests', () => {
       console.error('Failed to setup test database:', error);
       throw error;
     }
-  }, 30000);
+  });
 
   afterAll(async () => {
     try {
@@ -94,9 +92,9 @@ describe('MongoDB Integration Tests', () => {
       const testUri = 'mongodb+srv://user:password123@cluster.mongodb.net/db';
       const sanitized = sanitizeConnectionString(testUri);
 
-      expect(sanitized).not.toContain('password123');
-      expect(sanitized).toContain('user');
-      expect(sanitized).toContain('****');
+      expect(sanitized).not.toMatch(/password123/);
+      expect(sanitized).toMatch(/user/);
+      expect(sanitized).toMatch(/\*\*\*\*/);
     });
 
     test('should establish database connection successfully', async () => {
@@ -313,7 +311,7 @@ describe('MongoDB Integration Tests', () => {
   describe('Aggregation & Analytics', () => {
     let analyticsOps;
 
-    before(async () => {
+    beforeAll(async () => {
       analyticsOps = new DatabaseOperations(TEST_CONFIG.testCollections.studyStatistics);
 
       // Seed test data

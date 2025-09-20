@@ -209,7 +209,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
           ) : (
             <>
               <p>
-                You've studied on <strong>{studyDays}</strong> days in the past {months} months.
+                You&apos;ve studied on <strong>{studyDays}</strong> days in the past {months} months.
               </p>
               <p>
                 Your average daily study time is <strong>{Math.round(averageDailyTime)} minutes</strong>.

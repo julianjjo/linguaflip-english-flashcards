@@ -175,7 +175,7 @@ export class SecureTokenStorage {
 
       const expiryTimestamp = parseInt(expiryTime);
       return Date.now() > expiryTimestamp;
-    } catch (error) {
+    } catch {
       return true;
     }
   }
@@ -190,7 +190,7 @@ export class SecureTokenStorage {
 
       const expiryTimestamp = parseInt(expiryTime);
       return Math.max(0, expiryTimestamp - Date.now());
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
@@ -309,7 +309,7 @@ export class SecureTokenStorage {
  */
 export class TokenRefreshManager {
   private static refreshPromise: Promise<string> | null = null;
-  private static refreshTimer: NodeJS.Timeout | null = null;
+  private static refreshTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
 
   /**

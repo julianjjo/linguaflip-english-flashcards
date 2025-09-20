@@ -28,6 +28,21 @@ export interface MigrationResult {
   duration: number;
 }
 
+// Backup data interface
+interface BackupData {
+  flashcards?: FlashcardData[];
+  studySessions?: StudySession[];
+  progressStats?: ProgressStats;
+  studyProfiles?: StudyProfile[];
+  userPreferences?: Record<string, unknown>;
+  studySettings?: Record<string, unknown>;
+  _metadata: {
+    createdAt: string;
+    version: string;
+    type: string;
+  };
+}
+
 /**
  * Data Migration Manager Class
  */
@@ -293,7 +308,7 @@ export class DataMigrationManager {
    * Create backup of current localStorage data
    */
   createBackup(): string {
-    const backup: Record<string, any> = {};
+    const backup: Partial<BackupData> = {};
 
     // Backup relevant keys
     const keysToBackup = [
@@ -308,7 +323,7 @@ export class DataMigrationManager {
     for (const key of keysToBackup) {
       const data = localStorage.getItem(key);
       if (data) {
-        backup[key] = JSON.parse(data);
+        (backup as Record<string, unknown>)[key] = JSON.parse(data);
       }
     }
 
@@ -336,7 +351,7 @@ export class DataMigrationManager {
 
       // Restore data
       for (const [key, data] of Object.entries(backup)) {
-        if (key !== '_metadata') {
+        if (key !== '_metadata' && key in backup) {
           localStorage.setItem(key, JSON.stringify(data));
         }
       }

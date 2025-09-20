@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
@@ -19,6 +19,11 @@ interface ToastProps {
 const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [progress, setProgress] = useState(100);
+
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => onClose(toast.id), 300); // Wait for exit animation
+  }, [onClose, toast.id]);
 
   useEffect(() => {
     // Trigger entrance animation
@@ -49,12 +54,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
 
       return () => clearTimeout(timer);
     }
-  }, [toast.id, toast.duration, toast.persistent]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(() => onClose(toast.id), 300); // Wait for exit animation
-  };
+  }, [toast.id, toast.duration, toast.persistent, handleClose]);
 
   const getIcon = () => {
     switch (toast.type) {

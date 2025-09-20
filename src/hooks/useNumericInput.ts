@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 /**
  * Custom hook for handling numeric input changes with validation and constraints
@@ -24,7 +24,7 @@ import { useCallback } from 'react';
  * <input onChange={handleNumericChange('volume')} />
  * ```
  */
-export const useNumericInput = <T extends Record<string, any>>(
+export const useNumericInput = <T extends Record<string, number | string>>(
   updateFunction: (updates: Partial<T>) => void,
   options: {
     min?: number;

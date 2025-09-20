@@ -31,7 +31,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
 
       showSuccess('Configuración guardada', 'Tus preferencias han sido actualizadas correctamente.');
       onClose();
-    } catch (error) {
+    } catch {
       showError('Error al guardar', 'No se pudieron guardar los cambios. Inténtalo de nuevo.');
     } finally {
       setIsSyncing(false);
@@ -54,7 +54,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
       // Force sync of user preferences
       await hybridStorage.forceSync(userId);
       showSuccess('Preferencias sincronizadas', 'Tus configuraciones se han sincronizado con la nube.');
-    } catch (error) {
+    } catch {
       showError('Error de sincronización', 'No se pudieron sincronizar las preferencias.');
     } finally {
       setIsSyncing(false);
@@ -124,7 +124,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="theme-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Tema
                 </label>
                 <ThemeToggle variant="button" />
@@ -139,10 +139,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="speech-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Velocidad de voz
                 </label>
                 <input
+                  id="speech-rate"
                   type="range"
                   min="0.5"
                   max="2"
@@ -155,10 +156,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="speech-pitch" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Tono de voz
                 </label>
                 <input
+                  id="speech-pitch"
                   type="range"
                   min="0"
                   max="2"
@@ -171,10 +173,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="speech-volume" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Volumen
                 </label>
                 <input
+                  id="speech-volume"
                   type="range"
                   min="0"
                   max="1"
@@ -187,10 +190,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="auto-play-audio" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Audio automático
                 </label>
                 <button
+                  id="auto-play-audio"
                   onClick={() => updatePreference('autoPlayAudio', !preferences.autoPlayAudio)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     preferences.autoPlayAudio ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -213,10 +217,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="daily-goal" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Meta diaria de tarjetas
                 </label>
                 <input
+                  id="daily-goal"
                   type="number"
                   min="1"
                   max="100"
@@ -227,10 +232,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="session-duration" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Duración de sesión (minutos)
                 </label>
                 <input
+                  id="session-duration"
                   type="number"
                   min="5"
                   max="120"
@@ -241,10 +247,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="show-progress" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Mostrar progreso
                 </label>
                 <button
+                  id="show-progress"
                   onClick={() => updatePreference('showProgress', !preferences.showProgress)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     preferences.showProgress ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -267,10 +274,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="high-contrast" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Alto contraste
                 </label>
                 <button
+                  id="high-contrast"
                   onClick={() => updatePreference('highContrast', !preferences.highContrast)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     preferences.highContrast ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -285,10 +293,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="large-text" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Texto grande
                 </label>
                 <button
+                  id="large-text"
                   onClick={() => updatePreference('largeText', !preferences.largeText)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     preferences.largeText ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -303,10 +312,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose, userId }) 
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="reduce-motion" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Reducir animaciones
                 </label>
                 <button
+                  id="reduce-motion"
                   onClick={() => updatePreference('reduceMotion', !preferences.reduceMotion)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     preferences.reduceMotion ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'

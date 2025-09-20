@@ -90,21 +90,25 @@ class ErrorBoundary extends React.Component<
 }
 
 // Hook for creating lazy components
-export const createLazyComponent = <T extends React.ComponentType<any>>(
+export const createLazyComponent = <T extends React.ComponentType<Record<string, unknown>>>(
   importFunc: () => Promise<{ default: T }>,
   fallback?: React.ReactNode
 ) => {
   const LazyComponent = React.lazy(importFunc);
 
-  return (props: React.ComponentProps<T>) => (
+  const WrappedComponent = (props: any) => (
     <LazyWrapper fallback={fallback}>
       <LazyComponent {...props} />
     </LazyWrapper>
   );
+  
+  WrappedComponent.displayName = `LazyWrapper(Component)`;
+  
+  return WrappedComponent;
 };
 
 // Preload function for critical components
-export const preloadComponent = <T extends React.ComponentType<any>>(
+export const preloadComponent = <T extends React.ComponentType<Record<string, unknown>>>(
   importFunc: () => Promise<{ default: T }>
 ): Promise<void> => {
   return importFunc().then(() => {

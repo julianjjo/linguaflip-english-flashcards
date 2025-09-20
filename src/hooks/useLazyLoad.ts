@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface UseLazyLoadOptions {
   threshold?: number;
@@ -82,7 +82,7 @@ export const useLazyLoad = (options: UseLazyLoadOptions = {}): UseLazyLoadReturn
 };
 
 // Hook for lazy loading components with React.lazy
-export const useLazyComponent = <T extends React.ComponentType<any>>(
+export const useLazyComponent = <T extends React.ComponentType<Record<string, unknown>>>(
   importFunc: () => Promise<{ default: T }>,
   options: UseLazyLoadOptions = {}
 ) => {

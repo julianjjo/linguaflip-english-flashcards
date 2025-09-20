@@ -1,5 +1,7 @@
 // Security utilities for LinguaFlip MongoDB connection
 
+import crypto from 'crypto';
+
 // Environment variable validation
 export interface EnvironmentValidationResult {
   isValid: boolean;
@@ -62,7 +64,7 @@ export function validateMongoDBEnvironment(): EnvironmentValidationResult {
     }
 
     // Check for invalid characters in database name
-    const invalidChars = /[\/\\"\s]/;
+    const invalidChars = /[/\\"\s]/;
     if (invalidChars.test(databaseName)) {
       errors.push('Database name contains invalid characters');
     }
@@ -152,10 +154,9 @@ export class EnvironmentEncryptor {
 
   // Encrypt sensitive data
   static encrypt(text: string): string {
-    const crypto = require('crypto');
     const key = this.getEncryptionKey();
     const iv = crypto.randomBytes(this.ivLength);
-    const cipher = crypto.createCipher(this.algorithm, key);
+    const cipher = crypto.createCipheriv(this.algorithm, key, iv);
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -165,7 +166,6 @@ export class EnvironmentEncryptor {
 
   // Decrypt sensitive data
   static decrypt(encryptedText: string): string {
-    const crypto = require('crypto');
     const key = this.getEncryptionKey();
     const parts = encryptedText.split(':');
 
@@ -173,10 +173,10 @@ export class EnvironmentEncryptor {
       throw new Error('Invalid encrypted text format');
     }
 
-    const _iv = Buffer.from(parts[0], 'hex');
+    const iv = Buffer.from(parts[0], 'hex');
     const encrypted = parts[1];
 
-    const decipher = crypto.createDecipher(this.algorithm, key);
+    const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
 
@@ -189,11 +189,11 @@ export class SecurityAuditor {
   private static auditLog: Array<{
     timestamp: Date;
     action: string;
-    details: any;
+    details: Record<string, unknown>;
     severity: 'low' | 'medium' | 'high';
   }> = [];
 
-  static logSecurityEvent(action: string, details: any, severity: 'low' | 'medium' | 'high' = 'low'): void {
+  static logSecurityEvent(action: string, details: Record<string, unknown>, severity: 'low' | 'medium' | 'high' = 'low'): void {
     this.auditLog.push({
       timestamp: new Date(),
       action,
@@ -273,7 +273,7 @@ export class DatabaseRateLimiter {
 // Input sanitization utilities
 export class InputSanitizer {
   // Sanitize MongoDB query objects
-  static sanitizeQuery(query: any): any {
+  static sanitizeQuery(query: Record<string, unknown>): Record<string, unknown> {
     if (typeof query !== 'object' || query === null) {
       return query;
     }
@@ -296,7 +296,7 @@ export class InputSanitizer {
     // Recursively sanitize nested objects
     for (const key in sanitized) {
       if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
-        sanitized[key] = this.sanitizeQuery(sanitized[key]);
+        sanitized[key] = this.sanitizeQuery(sanitized[key] as Record<string, unknown>);
       }
     }
 
@@ -310,6 +310,7 @@ export class InputSanitizer {
     }
 
     // Remove null bytes and other dangerous characters
+    // eslint-disable-next-line no-control-regex
     let sanitized = input.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
 
     // Trim and limit length

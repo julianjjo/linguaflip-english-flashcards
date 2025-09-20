@@ -1,18 +1,13 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import Header from '../components/Header.astro';
-import Sidebar from '../components/Sidebar.astro';
 import Navigation from '../components/Navigation.astro';
 
 // Importar componentes React como islands de Astro
 import StudyComponents from '@/components/StudyComponents.tsx';
-import TouchGestureHandler from '@/components/TouchGestureHandler.tsx';
-import AppProvider from '@/components/AppProvider.tsx';
 import ThemeToggle from '../components/ThemeToggle.tsx';
 
 // Importar stores y hooks
 import { flashcardsStore, flashcardsActions } from '../stores/flashcards.ts';
-import { studySessionStore, studySessionActions } from '../stores/study.ts';
 
 // Datos de ejemplo para desarrollo
 const sampleCards = [
@@ -28,7 +23,10 @@ const sampleCards = [
     nextReview: new Date().toISOString(),
     reviewCount: 0,
     easeFactor: 2.5,
-    interval: 1
+    easinessFactor: 2.5,
+    interval: 1,
+    repetitions: 0,
+    dueDate: new Date().toISOString()
   },
   {
     id: 2,
@@ -42,7 +40,10 @@ const sampleCards = [
     nextReview: new Date().toISOString(),
     reviewCount: 0,
     easeFactor: 2.5,
-    interval: 1
+    easinessFactor: 2.5,
+    interval: 1,
+    repetitions: 0,
+    dueDate: new Date().toISOString()
   },
   {
     id: 3,
@@ -56,13 +57,16 @@ const sampleCards = [
     nextReview: new Date().toISOString(),
     reviewCount: 0,
     easeFactor: 2.5,
-    interval: 1
+    easinessFactor: 2.5,
+    interval: 1,
+    repetitions: 0,
+    dueDate: new Date().toISOString()
   }
 ];
 
 // Inicializar con datos de ejemplo si no hay flashcards
 if (flashcardsStore.get().length === 0) {
-  flashcardsActions.setFlashcards(sampleCards);
+  flashcardsActions.setFlashcards(sampleCards as any);
 }
 ---
 
@@ -79,7 +83,8 @@ if (flashcardsStore.get().length === 0) {
   <meta name="twitter:description" content="Sistema inteligente de aprendizaje de inglés" />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" set:html={
+  {/* eslint-disable-next-line astro/no-set-html-directive */}
+  <script type="application/ld+json" is:inline set:html={
     JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -157,7 +162,7 @@ if (flashcardsStore.get().length === 0) {
             <div class="hidden" id="study-content">
               <!-- Study Components Island -->
               <StudyComponents
-                cardData={sampleCards[0]}
+                cardData={sampleCards[0] as any}
                 client:only="react"
               />
 
@@ -226,6 +231,10 @@ if (flashcardsStore.get().length === 0) {
     import { studySessionStore, studySessionActions } from '../stores/study.ts';
 
     class StudySessionManager {
+      currentCardIndex: number;
+      sessionStartTime: number | null;
+      cards: any[];
+      
       constructor() {
         this.currentCardIndex = 0;
         this.sessionStartTime = null;
@@ -338,16 +347,27 @@ if (flashcardsStore.get().length === 0) {
           ? Math.round((session.correctAnswers / session.cardsStudied) * 100)
           : 0;
 
-        document.getElementById('cards-studied').textContent = session.cardsStudied.toString();
-        document.getElementById('correct-answers').textContent = session.correctAnswers.toString();
-        document.getElementById('accuracy').textContent = `${accuracy}%`;
+        const cardsStudiedEl = document.getElementById('cards-studied');
+        const correctAnswersEl = document.getElementById('correct-answers');
+        const accuracyEl = document.getElementById('accuracy');
+        const timeSpentEl = document.getElementById('time-spent');
+        
+        if (cardsStudiedEl) {
+          cardsStudiedEl.textContent = session.cardsStudied.toString();
+        }
+        if (correctAnswersEl) {
+          correctAnswersEl.textContent = session.correctAnswers.toString();
+        }
+        if (accuracyEl) {
+          accuracyEl.textContent = `${accuracy}%`;
+        }
 
         // Update time
-        if (this.sessionStartTime) {
-          const elapsed = Math.floor((Date.now() - this.sessionStartTime) / 1000);
+        if (this.sessionStartTime && timeSpentEl) {
+          const elapsed = Math.floor((Date.now() - Number(this.sessionStartTime)) / 1000);
           const minutes = Math.floor(elapsed / 60);
           const seconds = elapsed % 60;
-          document.getElementById('time-spent').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          timeSpentEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
       }
     }

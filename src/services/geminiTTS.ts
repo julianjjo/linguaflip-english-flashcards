@@ -6,6 +6,7 @@ import {
   SecurityError,
   loadSecurityConfig
 } from '../utils/security';
+import type { SecurityConfig } from '../utils/security';
 
 export interface TTSVoice {
   name: string;
@@ -75,7 +76,7 @@ export const GEMINI_VOICES: TTSVoice[] = [
 
 export class GeminiTTSService {
   private client: GoogleGenAI;
-  private securityConfig: any;
+  private securityConfig: SecurityConfig;
   private userIdentifier: string;
   private readonly model = 'gemini-2.5-flash-preview-tts';
 
@@ -93,14 +94,14 @@ export class GeminiTTSService {
     }
 
     // Use provided API key or load from secure config
-    const keyToUse = apiKey || this.securityConfig.geminiApiKey;
+    const keyToUse = apiKey || (this.securityConfig.geminiApiKey as string);
 
     // Validate API key format
-    if (!validateGeminiApiKey(keyToUse)) {
+    if (!validateGeminiApiKey(keyToUse as string)) {
       throw new SecurityError('Invalid API key format', 'INVALID_API_KEY_FORMAT');
     }
 
-    this.client = new GoogleGenAI(keyToUse);
+    this.client = new GoogleGenAI({ apiKey: keyToUse as string });
   }
 
   // If needed, request WAV/LINEAR16 from the API rather than converting here.
@@ -112,8 +113,8 @@ export class GeminiTTSService {
     // Check rate limiting
     const rateLimitResult = checkRateLimit(
       `tts-${this.userIdentifier}`,
-      this.securityConfig.rateLimitMaxRequests || 50,
-      this.securityConfig.rateLimitWindowMs || 60000
+      (this.securityConfig.rateLimitMaxRequests as number) || 50,
+      (this.securityConfig.rateLimitWindowMs as number) || 60000
     );
 
     if (!rateLimitResult.allowed) {
@@ -235,8 +236,8 @@ export class GeminiTTSService {
     // Same validation as generateSpeech
     const rateLimitResult = checkRateLimit(
       `tts-stream-${this.userIdentifier}`,
-      this.securityConfig.rateLimitMaxRequests || 50,
-      this.securityConfig.rateLimitWindowMs || 60000
+      (this.securityConfig.rateLimitMaxRequests as number) || 50,
+      (this.securityConfig.rateLimitWindowMs as number) || 60000
     );
 
     if (!rateLimitResult.allowed) {
@@ -287,8 +288,6 @@ export class GeminiTTSService {
         config: generateConfig
       });
 
-      let chunkCount = 0;
-
       for await (const chunk of response) {
         if (
           chunk.candidates &&
@@ -297,7 +296,6 @@ export class GeminiTTSService {
         ) {
           const inlineData = chunk.candidates[0].content.parts[0].inlineData;
           if (inlineData.data) {
-            chunkCount++;
             
             // Convert base64 string to Uint8Array if needed
             let audioData = typeof inlineData.data === 'string' 

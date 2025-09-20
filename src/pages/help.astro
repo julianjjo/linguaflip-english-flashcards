@@ -250,9 +250,11 @@ import AppProvider from '../components/AppProvider.tsx';
       scrollButtons.forEach(button => {
         button.addEventListener('click', () => {
           const sectionId = button.getAttribute('data-scroll');
-          const element = document.getElementById(sectionId);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+          if (sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth' });
+            }
           }
         });
       });
