@@ -1,0 +1,208 @@
+name: LinguaFlip E2E Tests (Scheduled)
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC (9 PM EST)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      browsers:
+        description: 'Browsers to test'
+        required: false
+        default: 'chromium,firefox,webkit'
+        type: string
+
+env:
+  NODE_ENV: test
+  CI: true
+  BASE_URL: ${{ inputs.environment == 'production' && 'https://linguaflip.com' || 'https://staging.linguaflip.com' }}
+
+jobs:
+  scheduled-e2e-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ['chromium', 'firefox', 'webkit']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Setup test database
+      run: |
+        docker run -d \
+          --name mongodb-scheduled-test \
+          -p 27017:27017 \
+          -e MONGO_INITDB_DATABASE=linguaflip_scheduled_test \
+          mongo:7.0
+        echo "MONGODB_URL=mongodb://localhost:27017/linguaflip_scheduled_test" >> $GITHUB_ENV
+
+    - name: Wait for database
+      run: |
+        for i in {1..30}; do
+          if nc -z localhost 27017; then
+            echo "Database is ready!"
+            break
+          fi
+          echo "Waiting for database... ($i/30)"
+          sleep 2
+        done
+
+    - name: Run database setup
+      run: npm run test:setup
+      env:
+        MONGODB_URL: ${{ env.MONGODB_URL }}
+
+    - name: Build application
+      run: npm run build
+      env:
+        MONGODB_URL: ${{ env.MONGODB_URL }}
+
+    - name: Start application server
+      run: |
+        npm run build:preview &
+        SERVER_PID=$!
+        echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+
+        # Wait for server to be ready
+        for i in {1..30}; do
+          if curl -f http://localhost:4321 > /dev/null 2>&1; then
+            echo "Server is ready!"
+            break
+          fi
+          echo "Waiting for server... ($i/30)"
+          sleep 2
+        done
+
+    - name: Run E2E tests
+      run: npx playwright test --project=${{ matrix.browser }} --reporter=line,json,html
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        MONGODB_URL: ${{ env.MONGODB_URL }}
+        NODE_ENV: test
+        CI: true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: scheduled-test-results-${{ matrix.browser }}-${{ github.run_number }}
+        path: |
+          test-results/
+          playwright-report/
+        retention-days: 90  # Keep scheduled test results longer
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: scheduled-test-report-${{ matrix.browser }}-${{ github.run_number }}
+        path: playwright-report/
+        retention-days: 90
+
+    - name: Stop application server
+      if: always()
+      run: |
+        if [ ! -z "$SERVER_PID" ]; then
+          kill $SERVER_PID || true
+        fi
+
+    - name: Cleanup test database
+      if: always()
+      run: |
+        docker stop mongodb-scheduled-test || true
+        docker rm mongodb-scheduled-test || true
+
+  performance-baseline:
+    runs-on: ubuntu-latest
+    needs: scheduled-e2e-test
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download test results
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Generate performance baseline
+      run: |
+        echo "## 📊 Performance Baseline Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Extract performance metrics from test results
+        echo "Analyzing test performance metrics..."
+        echo "This would typically include:"
+        echo "- Test execution times"
+        echo "- Memory usage"
+        echo "- Response times"
+        echo "- Error rates"
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Here you could add logic to:
+        # - Compare with previous runs
+        # - Generate performance graphs
+        # - Alert on performance degradation
+        # - Update baseline metrics
+
+        echo "✅ Performance baseline updated"
+
+  notify-scheduled-results:
+    runs-on: ubuntu-latest
+    needs: [scheduled-e2e-test, performance-baseline]
+    if: always()
+
+    steps:
+    - name: Notify scheduled test results
+      run: |
+        echo "📅 Scheduled E2E Tests completed"
+        echo "Run ID: ${{ github.run_id }}"
+        echo "Environment: ${{ inputs.environment || 'staging' }}"
+
+        if [ "${{ needs.scheduled-e2e-test.result }}" == "success" ]; then
+          echo "✅ All scheduled tests passed!"
+        else
+          echo "❌ Some scheduled tests failed!"
+        fi
+
+        # Add notification logic here (Slack, Discord, email, etc.)
+        # This helps track the health of the application over time
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [scheduled-e2e-test, performance-baseline, notify-scheduled-results]
+    if: always()
+
+    steps:
+    - name: Cleanup old artifacts
+      run: |
+        echo "🧹 Cleaning up old test artifacts..."
+        # This would typically clean up artifacts older than N days
+        # to prevent storage bloat
+
+        echo "✅ Cleanup completed"

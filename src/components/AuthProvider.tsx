@@ -1,11 +1,9 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { 
-  authStateAtom, 
-  initializeAuthStore, 
-  setUser, 
-  type User, 
-  type AuthState 
+import {
+  authStateAtom,
+  initializeAuthStore,
+  type AuthState
 } from '../stores/auth';
 import { flashcardsActions, setCurrentUser } from '../stores/flashcards';
 
@@ -77,7 +75,9 @@ export const useAuth = (): AuthContextType => {
         isAuthenticated: false,
         isLoading: false,
         user: null,
+        tokens: null,
         error: null,
+        lastActivity: null,
         initializeAuth: async () => {},
         loadUserFlashcards: async () => {}
       };

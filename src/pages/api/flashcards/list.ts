@@ -44,12 +44,11 @@ export const GET: APIRoute = async ({ request, url }) => {
         limit
       });
     } else {
-      // Get all user flashcards (we'll use getDueFlashcards with a future date)
-      result = await flashcardsService.getDueFlashcards(userId, {
-        limit: 1000, // Large limit to get all cards
-        includeSuspended: true
-      });
-    }
+       // Get all user flashcards
+       result = await flashcardsService.getAllFlashcards(userId, {
+         limit: 1000 // Large limit to get all cards
+       });
+     }
 
     if (!result.success) {
       return new Response(

@@ -1,0 +1,219 @@
+name: LinguaFlip E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      browsers:
+        description: 'Browsers to test (comma-separated)'
+        required: false
+        default: 'chromium,firefox,webkit'
+        type: string
+      node_version:
+        description: 'Node.js version'
+        required: false
+        default: '20.x'
+        type: string
+      environment:
+        description: 'Test environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  NODE_ENV: test
+  CI: true
+  BASE_URL: ${{ inputs.environment == 'production' && 'https://linguaflip.com' || 'https://staging.linguaflip.com' }}
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['18.x', '20.x', '22.x']
+        browser: ['chromium', 'firefox', 'webkit']
+        include:
+          - node-version: '20.x'
+            browser: 'chromium'
+            shard: '1/3'
+          - node-version: '20.x'
+            browser: 'chromium'
+            shard: '2/3'
+          - node-version: '20.x'
+            browser: 'chromium'
+            shard: '3/3'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Setup test database
+      run: |
+        docker run -d \
+          --name mongodb-test \
+          -p 27017:27017 \
+          -e MONGO_INITDB_DATABASE=linguaflip_test \
+          mongo:7.0
+        echo "MONGODB_URL=mongodb://localhost:27017/linguaflip_test" >> $GITHUB_ENV
+
+    - name: Wait for database
+      run: |
+        for i in {1..30}; do
+          if nc -z localhost 27017; then
+            echo "Database is ready!"
+            break
+          fi
+          echo "Waiting for database... ($i/30)"
+          sleep 2
+        done
+
+    - name: Run database migrations
+      run: |
+        npm run test:setup
+      env:
+        MONGODB_URL: ${{ env.MONGODB_URL }}
+
+    - name: Build application
+      run: npm run build
+      env:
+        MONGODB_URL: ${{ env.MONGODB_URL }}
+
+    - name: Start application server
+      run: |
+        npm run build:preview &
+        SERVER_PID=$!
+        echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+
+        # Wait for server to be ready
+        for i in {1..30}; do
+          if curl -f http://localhost:4321 > /dev/null 2>&1; then
+            echo "Server is ready!"
+            break
+          fi
+          echo "Waiting for server... ($i/30)"
+          sleep 2
+        done
+
+    - name: Run E2E tests
+      run: |
+        if [ "${{ matrix.shard }}" != "" ]; then
+          npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}
+        else
+          npx playwright test --project=${{ matrix.browser }}
+        fi
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        MONGODB_URL: ${{ env.MONGODB_URL }}
+        NODE_ENV: test
+        CI: true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.node-version }}-${{ matrix.browser }}-${{ matrix.shard != '' && matrix.shard || 'no-shard' }}
+        path: |
+          test-results/
+          playwright-report/
+        retention-days: 30
+
+    - name: Upload test videos
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-videos-${{ matrix.node-version }}-${{ matrix.browser }}
+        path: test-results/videos/
+        retention-days: 7
+
+    - name: Stop application server
+      if: always()
+      run: |
+        if [ ! -z "$SERVER_PID" ]; then
+          kill $SERVER_PID || true
+        fi
+
+    - name: Cleanup test database
+      if: always()
+      run: |
+        docker stop mongodb-test || true
+        docker rm mongodb-test || true
+
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: e2e-test
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Generate test summary
+      run: |
+        echo "## 📊 Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Count total test results
+        TOTAL_TESTS=$(find ./artifacts -name "results.json" -exec cat {} \; | jq '.stats.tests' | awk '{sum += $1} END {print sum}')
+        PASSED_TESTS=$(find ./artifacts -name "results.json" -exec cat {} \; | jq '.stats.passed' | awk '{sum += $1} END {print sum}')
+        FAILED_TESTS=$(find ./artifacts -name "results.json" -exec cat {} \; | jq '.stats.failed' | awk '{sum += $1} END {print sum}')
+
+        echo "**Total Tests:** $TOTAL_TESTS" >> $GITHUB_STEP_SUMMARY
+        echo "**Passed:** $PASSED_TESTS" >> $GITHUB_STEP_SUMMARY
+        echo "**Failed:** $FAILED_TESTS" >> $GITHUB_STEP_SUMMARY
+
+        if [ "$FAILED_TESTS" -gt 0 ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "❌ **Some tests failed!**" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **All tests passed!**" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [e2e-test, test-summary]
+    if: always() && (needs.e2e-test.result == 'failure' || needs.test-summary.result == 'failure')
+
+    steps:
+    - name: Notify on failure
+      run: |
+        echo "🚨 E2E Tests Failed!"
+        echo "Check the workflow run for details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+        # Here you can add Slack, Discord, or email notifications
+        # Example for Slack:
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"E2E Tests failed! Check: '"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"'"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify on success
+      if: needs.e2e-test.result == 'success' && needs.test-summary.result == 'success'
+      run: |
+        echo "✅ E2E Tests completed successfully!"

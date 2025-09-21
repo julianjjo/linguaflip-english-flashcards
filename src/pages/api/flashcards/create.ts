@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Generate unique card ID
-    const cardId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const cardId = `card_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     // Sanitize inputs
     const now = new Date();

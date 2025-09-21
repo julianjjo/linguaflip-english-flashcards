@@ -101,12 +101,12 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
 
       // Convert to local format and update store
       const newFlashcard = {
-        id: data.data.cardId, // Keep as string since backend uses string IDs
+        id: parseInt(data.data.cardId), // Convert string ID to number for FlashcardData compatibility
         english: formData.english.trim(),
         spanish: formData.spanish.trim(),
         exampleEnglish: formData.exampleEnglish.trim(),
         exampleSpanish: formData.exampleSpanish.trim(),
-        image: formData.image.trim() || null,
+        image: formData.image.trim() || undefined,
         category: formData.category,
         difficulty: 1,
         dueDate: new Date().toISOString(),

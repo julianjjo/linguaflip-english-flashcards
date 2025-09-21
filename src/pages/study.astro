@@ -3,11 +3,6 @@ import MainLayout from '../layouts/MainLayout.astro';
 import ThemeToggle from '../components/ThemeToggle.tsx';
 import AuthenticatedApp from '../components/AuthenticatedApp.tsx';
 import RecallQualityControls from '../components/RecallQualityControls.tsx';
-import UserProfile from '../components/UserProfile.tsx';
-
-// Check if user is authenticated
-const isAuthenticated = Astro.locals.isAuthenticated || false;
-const user = Astro.locals.user || null;
 ---
 
 <MainLayout
@@ -164,7 +159,39 @@ const user = Astro.locals.user || null;
   </div>
 
   <script>
+    interface Flashcard {
+      id: string;
+      english: string;
+      spanish: string;
+      front?: string;
+      back?: string;
+      exampleEnglish?: string;
+      exampleSpanish?: string;
+      image?: string;
+      category?: string;
+      tags?: string[];
+      reviewCount?: number;
+      lastReviewed?: string | null;
+      dueDate?: string;
+      interval?: number;
+      easinessFactor?: number;
+      repetitions?: number;
+    }
+
+    interface User {
+      userId: string;
+      email?: string;
+      username?: string;
+      role?: string;
+    }
+
     class StudyPageManager {
+      flashcards: Flashcard[];
+      currentCardIndex: number;
+      isFlipped: boolean;
+      cardStartTime: number;
+      isAuthenticated: boolean;
+      user: User | null;
 
       constructor() {
         this.isAuthenticated = false;
@@ -228,11 +255,11 @@ const user = Astro.locals.user || null;
             let flashcards = data.data?.flashcards || [];
             
             // Fix flashcards with null or invalid IDs
-            flashcards = flashcards.map(card => {
+            flashcards = flashcards.map((card: Flashcard) => {
               if (!card.id || card.id === null || card.id === undefined) {
                 console.log('Fixing card with null ID:', card.english);
                 // Generate a new ID for cards with missing IDs
-                card.id = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                card.id = `card_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
               }
               return card;
             });
@@ -354,7 +381,7 @@ const user = Astro.locals.user || null;
         }
       }
 
-      async rateCard(quality) {
+      async rateCard(quality: number): Promise<void> {
         if (this.flashcards.length === 0) return;
 
         const card = this.flashcards[this.currentCardIndex];
@@ -424,13 +451,20 @@ const user = Astro.locals.user || null;
     }
 
     // Initialize when DOM is loaded
-    let studyManager;
+    let studyManager: StudyPageManager;
     document.addEventListener('DOMContentLoaded', () => {
       studyManager = new StudyPageManager();
     });
 
+    // Extend Window interface to include rateCurrentCard
+    declare global {
+      interface Window {
+        rateCurrentCard: (quality: number) => void;
+      }
+    }
+
     // Global function for RecallQualityControls to call
-    window.rateCurrentCard = (quality) => {
+    window.rateCurrentCard = (quality: number): void => {
       if (studyManager) {
         studyManager.rateCard(quality);
       }

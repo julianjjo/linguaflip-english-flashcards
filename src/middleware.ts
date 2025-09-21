@@ -1,5 +1,4 @@
 import { defineMiddleware } from 'astro:middleware';
-import { SecurityAuditor } from './utils/security';
 
 // Define protected routes that require authentication
 const PROTECTED_ROUTES = [
@@ -15,14 +14,10 @@ const ADMIN_ROUTES = [
   '/admin'
 ];
 
-// Define public routes that should redirect authenticated users
-const PUBLIC_ONLY_ROUTES = [
-  '/login',
-  '/register'
-];
+// Public routes that should redirect authenticated users (currently unused)
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { url, request, redirect, locals } = context;
+  const { url, request, locals } = context;
   const pathname = url.pathname;
 
   // Skip middleware for API routes (they handle auth themselves)
@@ -116,9 +111,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname === route || pathname.startsWith(route + '/')
   );
 
-  const isPublicOnlyRoute = PUBLIC_ONLY_ROUTES.some(route => 
-    pathname === route || pathname.startsWith(route + '/')
-  );
 
   // Handle protected routes - for now just log, don't redirect
   if (isProtectedRoute || isAdminRoute) {

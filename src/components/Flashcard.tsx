@@ -33,35 +33,17 @@ const Flashcard: React.FC<FlashcardProps> = ({
      onNextCard,
      onPreviousCard,
      userId,
-     onCardUpdate,
      onQualityResponse
  }) => {
      const { speak, isSpeaking } = useAudioSystem();
      const { showError, showInfo, preferences } = useApp();
-   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-   const [isUpdatingCard, setIsUpdatingCard] = useState(false);
-   const [qualityResponse, setQualityResponse] = useState<number | null>(null);
+     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+     const [qualityResponse, setQualityResponse] = useState<number | null>(null);
 
    // Store subscriptions
    const isLoading = useStore(flashcardsLoadingStore);
    const error = useStore(flashcardsErrorStore);
 
-   // Handle card updates with MongoDB sync
-   const handleCardUpdate = async (updates: Partial<FlashcardData>) => {
-      if (!userId) return;
-
-      setIsUpdatingCard(true);
-      try {
-         const updatedCard = { ...cardData, ...updates };
-         await flashcardsActions.saveFlashcard(updatedCard, userId);
-         onCardUpdate?.(updatedCard);
-      } catch (error) {
-         console.error('Failed to update flashcard:', error);
-         showError('Error updating card', 'Failed to save changes to the server');
-      } finally {
-         setIsUpdatingCard(false);
-      }
-   };
 
    // Handle quality response for SM-2 algorithm
    const handleQualityResponse = async (quality: number) => {
@@ -151,7 +133,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
         ${preferences.highContrast ? 'high-contrast' : ''}
         ${preferences.largeText ? 'text-lg' : ''}
         ${preferences.reduceMotion ? 'motion-reduce' : ''}
-        ${isUpdatingCard ? 'opacity-75' : ''}
+        ${isLoading ? 'opacity-75' : ''}
       `}
       onClick={onFlip}
       onTouchStart={touchGestures.onTouchStart}
@@ -184,12 +166,12 @@ const Flashcard: React.FC<FlashcardProps> = ({
       )}
 
       {/* Loading overlay */}
-      {(isLoading || isUpdatingCard) && (
+      {isLoading && (
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20 rounded-2xl">
           <div className="bg-white/90 rounded-lg p-3 flex items-center space-x-2">
             <LoadingSpinner size="sm" color="primary" />
             <span className="text-sm text-gray-700">
-              {isUpdatingCard ? 'Updating card...' : 'Loading...'}
+              Loading...
             </span>
           </div>
         </div>
