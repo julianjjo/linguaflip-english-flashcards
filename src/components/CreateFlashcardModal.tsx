@@ -101,7 +101,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
 
       // Convert to local format and update store
       const newFlashcard = {
-        id: parseInt(data.data.cardId),
+        id: data.data.cardId, // Keep as string since backend uses string IDs
         english: formData.english.trim(),
         spanish: formData.spanish.trim(),
         exampleEnglish: formData.exampleEnglish.trim(),

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { flashcardsService } from '../../../services/flashcards';
 import { verifyToken } from '../../../utils/authHelpers';
 
-export const POST: APIRoute = async ({ request, params }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
     // Verify authentication
     const authResult = await verifyToken(request);
@@ -20,7 +20,10 @@ export const POST: APIRoute = async ({ request, params }) => {
     }
 
     const userId = authResult.data.userId;
-    const cardId = params.cardId;
+
+    // Parse request body
+    const body = await request.json();
+    const cardId = body.cardId;
 
     if (!cardId) {
       return new Response(
@@ -34,9 +37,6 @@ export const POST: APIRoute = async ({ request, params }) => {
         }
       );
     }
-
-    // Parse request body
-    const body = await request.json();
 
     // Validate required fields
     if (typeof body.quality !== 'number' || body.quality < 0 || body.quality > 5) {
@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     // Convert to frontend format
     const updatedCard = result.data;
     const flashcard = updatedCard ? {
-      id: parseInt(updatedCard.cardId),
+      id: updatedCard.cardId, // Keep as string to match frontend
       english: updatedCard.front,
       spanish: updatedCard.back,
       exampleEnglish: updatedCard.exampleFront,
