@@ -204,19 +204,21 @@ export class SecureTokenStorage {
       const dataBuffer = encoder.encode(data);
       const key = await this.getEncryptionKey();
 
+      // Generate a random IV that we can store alongside the ciphertext
+      const initializationVector = crypto.getRandomValues(new Uint8Array(12));
+
       const encrypted = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: crypto.getRandomValues(new Uint8Array(12)) },
+        { name: 'AES-GCM', iv: initializationVector },
         key,
         dataBuffer
       );
 
-      // Combine IV and encrypted data
-      const iv = new Uint8Array(encrypted.slice(0, 12));
-      const encryptedData = new Uint8Array(encrypted.slice(12));
+      const encryptedBytes = new Uint8Array(encrypted);
 
-      const combined = new Uint8Array(iv.length + encryptedData.length);
-      combined.set(iv);
-      combined.set(encryptedData, iv.length);
+      // Combine IV and encrypted data so it can be recovered during decryption
+      const combined = new Uint8Array(initializationVector.length + encryptedBytes.length);
+      combined.set(initializationVector);
+      combined.set(encryptedBytes, initializationVector.length);
 
       // Convert to base64 for storage
       return btoa(String.fromCharCode(...combined));
@@ -233,6 +235,10 @@ export class SecureTokenStorage {
   private static async decryptData(encryptedData: string): Promise<string> {
     try {
       const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      if (combined.length <= 12) {
+        throw new Error('Invalid encrypted data');
+      }
+
       const iv = combined.slice(0, 12);
       const encrypted = combined.slice(12);
 
