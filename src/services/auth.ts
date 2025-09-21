@@ -19,19 +19,17 @@ import {
   DatabaseError,
   ValidationError,
   PermissionError,
+  NotFoundError,
   safeAsync,
   validateRequired
 } from '../types/database.ts';
+import { getAuthConfig } from '../config/security';
 
 // Authentication configuration
 const AUTH_CONFIG = {
-  bcryptRounds: 12,
-  jwtSecret: (process.env.JWT_SECRET || 'default-jwt-secret-change-in-production') as string,
-  jwtRefreshSecret: (process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-in-production') as string,
+  ...getAuthConfig(),
   jwtExpiresIn: (process.env.JWT_EXPIRES_IN || '15m') as string,
   jwtRefreshExpiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as string,
-  maxLoginAttempts: parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5'),
-  lockoutDuration: parseInt(process.env.LOCKOUT_DURATION_MINUTES || '30') * 60 * 1000, // Convert to milliseconds
   passwordResetTokenExpires: parseInt(process.env.PASSWORD_RESET_EXPIRES_HOURS || '24') * 60 * 60 * 1000,
   emailVerificationTokenExpires: parseInt(process.env.EMAIL_VERIFICATION_EXPIRES_HOURS || '48') * 60 * 60 * 1000,
 };
@@ -152,15 +150,25 @@ export class AuthService {
         InputSanitizer.sanitizeString(registerData.username) : undefined;
 
       // Check if user already exists
-      const existingUser = await this.usersService.getUserByEmail(sanitizedEmail);
-      if (existingUser.success && existingUser.data) {
-        throw new ValidationError(
-          'User with this email already exists',
-          'register',
-          'users',
-          'email',
-          sanitizedEmail
-        );
+      try {
+        const existingUser = await this.usersService.getUserByEmail(sanitizedEmail);
+        if (existingUser.success && existingUser.data) {
+          throw new ValidationError(
+            'User with this email already exists',
+            'register',
+            'users',
+            'email',
+            sanitizedEmail
+          );
+        }
+      } catch (error) {
+        // If it's a NotFoundError, that's what we want (user doesn't exist)
+        if (error instanceof NotFoundError) {
+          // Continue with registration - this is expected
+        } else {
+          // Re-throw other errors
+          throw error;
+        }
       }
 
       // Hash password
@@ -185,17 +193,26 @@ export class AuthService {
           totalStudyTime: 0,
           averageRecallRate: 0,
           streakDays: 0,
+          lastStudyDate: null,
+          cardsMastered: 0,
+          totalSessions: 0,
         },
         authentication: {
           password: hashedPassword,
           emailVerified: true, // Set to true for testing purposes
           emailVerificationToken,
           emailVerifiedAt: new Date(),
+          passwordChangedAt: new Date(),
+          passwordResetToken: null,
+          passwordResetExpires: null,
           refreshTokens: [],
         },
         security: {
+          lastLogin: null,
+          lastLoginIP: null,
           loginAttempts: 0,
           accountLocked: false,
+          accountLockedUntil: null,
           suspiciousActivity: [],
         },
         profile: {
@@ -253,17 +270,29 @@ export class AuthService {
       const sanitizedEmail = InputSanitizer.sanitizeString(loginData.email);
 
       // Get user by email
-      const userResult = await this.usersService.getUserByEmail(sanitizedEmail);
-      if (!userResult.success || !userResult.data) {
-        // Don't reveal if email exists or not for security
-        throw new ValidationError(
-          'Invalid email or password',
-          'login',
-          'users'
-        );
+      let user: UserDocument;
+      try {
+        const userResult = await this.usersService.getUserByEmail(sanitizedEmail);
+        if (!userResult.success || !userResult.data) {
+          // Don't reveal if email exists or not for security
+          throw new ValidationError(
+            'Invalid email or password',
+            'login',
+            'users'
+          );
+        }
+        user = userResult.data;
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          // Don't reveal if email exists or not for security
+          throw new ValidationError(
+            'Invalid email or password',
+            'login',
+            'users'
+          );
+        }
+        throw error;
       }
-
-      const user = userResult.data;
 
       // Check if account is locked
       if (user.security.accountLocked) {
@@ -284,6 +313,7 @@ export class AuthService {
 
       // Verify password
       const isPasswordValid = await this.verifyPassword(loginData.password, user.authentication.password);
+      
       if (!isPasswordValid) {
         // Increment login attempts
         await this.incrementLoginAttempts(user.userId, loginData.ipAddress);
@@ -904,8 +934,13 @@ export class AuthService {
 export const authService = new AuthService();
 
 // Export wrapper functions for API endpoints
-export const login = async (email: string, password: string, _ipAddress?: string, deviceInfo?: string) => {
-  return authService.login({ email, password, deviceInfo: deviceInfo || 'Unknown Device' });
+export const login = async (email: string, password: string, ipAddress?: string, deviceInfo?: string) => {
+  return authService.login({ 
+    email, 
+    password, 
+    deviceInfo: deviceInfo || 'Unknown Device',
+    ipAddress: ipAddress || 'unknown'
+  });
 };
 
 export const register = async (data: { 

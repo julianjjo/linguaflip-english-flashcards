@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { login } from '../../../services/auth';
 import { checkRateLimit, SecurityError } from '../../../utils/security';
 import { InputSanitizer } from '../../../utils/security';
+import { getRateLimitConfig } from '../../../config/security';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -10,13 +11,14 @@ export const POST: APIRoute = async ({ request }) => {
                     request.headers.get('x-real-ip') || 
                     'unknown';
 
-    // Rate limiting
-    const rateLimitResult = checkRateLimit(`login:${clientIP}`, 5, 900000); // 5 attempts per 15 minutes
+    // Rate limiting - environment-based configuration
+    const rateLimitConfig = getRateLimitConfig('login');
+    const rateLimitResult = checkRateLimit(`login:${clientIP}`, rateLimitConfig.maxAttempts, rateLimitConfig.windowMs);
     if (!rateLimitResult.allowed) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Too many login attempts. Please try again later.',
+          error: rateLimitConfig.message,
           retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
         }),
         {
@@ -106,7 +108,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (result.data?.tokens?.accessToken) {
       const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
       cookies.push(
-        `accessToken=${result.data.tokens.accessToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${15 * 60}; Path=/`
+        `accessToken=${result.data.tokens.accessToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${2 * 60 * 60}; Path=/`
       );
     }
     

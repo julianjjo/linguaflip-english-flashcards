@@ -1,4 +1,4 @@
-// Minimal AppProvider for debugging
+// App Provider for global application context
 import React, { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 

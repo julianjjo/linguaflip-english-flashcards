@@ -25,7 +25,12 @@ export const POST: APIRoute = async ({ request }) => {
     const body = await request.json();
     const cardId = body.cardId;
 
+    // Debug logging
+    console.log('Review endpoint - received body:', JSON.stringify(body, null, 2));
+    console.log('Review endpoint - cardId:', cardId, 'type:', typeof cardId);
+
     if (!cardId) {
+      console.log('Review endpoint - Missing cardId, returning 400');
       return new Response(
         JSON.stringify({
           success: false,

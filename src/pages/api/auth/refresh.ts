@@ -75,12 +75,29 @@ export const POST: APIRoute = async ({ request }) => {
       }
     );
 
+    // Set multiple cookies
+    const cookies = [];
+    
+    // Set new access token cookie
+    if (result.data?.accessToken) {
+      const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
+      cookies.push(
+        `accessToken=${result.data.accessToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${2 * 60 * 60}; Path=/`
+      );
+    }
+    
     // Update refresh token cookie if a new one was provided
     if (result.data?.refreshToken) {
-      response.headers.set(
-        'Set-Cookie',
+      cookies.push(
         `refreshToken=${result.data.refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/`
       );
+    }
+    
+    // Set multiple cookies
+    if (cookies.length > 0) {
+      cookies.forEach(cookie => {
+        response.headers.append('Set-Cookie', cookie);
+      });
     }
 
     // Log security event

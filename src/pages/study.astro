@@ -225,7 +225,20 @@ const user = Astro.locals.user || null;
           
           if (response.ok) {
             const data = await response.json();
-            this.flashcards = data.data?.flashcards || [];
+            let flashcards = data.data?.flashcards || [];
+            
+            // Fix flashcards with null or invalid IDs
+            flashcards = flashcards.map(card => {
+              if (!card.id || card.id === null || card.id === undefined) {
+                console.log('Fixing card with null ID:', card.english);
+                // Generate a new ID for cards with missing IDs
+                card.id = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+              }
+              return card;
+            });
+            
+            this.flashcards = flashcards;
+            console.log('Loaded flashcards:', this.flashcards);
           }
         } catch (error) {
           console.error('Failed to load flashcards:', error);
@@ -348,6 +361,9 @@ const user = Astro.locals.user || null;
         if (!card) return;
 
         try {
+          console.log('Frontend - attempting to rate card:', card);
+          console.log('Frontend - cardId being sent:', card.id, 'type:', typeof card.id);
+          
           const response = await fetch('/api/flashcards/review', {
             method: 'POST',
             headers: {

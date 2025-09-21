@@ -65,14 +65,17 @@ const Flashcard: React.FC<FlashcardProps> = ({
 
    // Handle quality response for SM-2 algorithm
    const handleQualityResponse = async (quality: number) => {
-      if (!userId || !onQualityResponse) return;
+      if (!userId) return;
 
       setQualityResponse(quality);
       try {
-         await onQualityResponse(quality);
-         // Update card with new SM-2 values
-         const updatedCard = { ...cardData, lastReviewed: new Date().toISOString() };
-         await handleCardUpdate(updatedCard);
+         // Use the store's processQualityResponse function
+         await flashcardsActions.processQualityResponse(cardData.id, quality, 0, userId);
+         
+         // Call the optional callback
+         if (onQualityResponse) {
+           await onQualityResponse(quality);
+         }
       } catch (error) {
          console.error('Failed to process quality response:', error);
          showError('Error processing response', 'Failed to update card difficulty');
