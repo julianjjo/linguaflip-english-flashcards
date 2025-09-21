@@ -41,6 +41,9 @@ export interface FlashcardData {
   exampleEnglish?: string;
   exampleSpanish?: string;
   image?: string;
+  category?: string;
+  tags?: string[];
+  reviewCount?: number;
   // Spaced Repetition System (SRS) fields
   dueDate: string; // ISO date string (YYYY-MM-DD)
   interval: number; // Interval in days

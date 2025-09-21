@@ -3,6 +3,8 @@ import MainLayout from '../layouts/MainLayout.astro';
 import DashboardLayout from '../components/dashboard/DashboardLayout.tsx';
 import ThemeToggle from '../components/ThemeToggle.tsx';
 import AppProvider from '../components/AppProvider.tsx';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
 ---
 
 <MainLayout
@@ -32,7 +34,13 @@ import AppProvider from '../components/AppProvider.tsx';
 
   <AppProvider client:only="react">
     <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <!-- Header -->
+      <Header isSidebarOpen={false} />
+
       <div class="flex">
+        <!-- Sidebar -->
+        <Sidebar />
+
         <!-- Main Content -->
         <main class="flex-1 p-6 lg:pl-72">
           <!-- Page Header -->
@@ -70,4 +78,40 @@ import AppProvider from '../components/AppProvider.tsx';
       </div>
     </div>
   </AppProvider>
+
+  <script>
+    // Sidebar state management
+    let isSidebarOpen = false;
+
+    // Handle sidebar toggle from header
+    document.addEventListener('sidebarToggle', (_event) => {
+      isSidebarOpen = !isSidebarOpen;
+      const sidebar = document.querySelector('[data-sidebar]');
+
+      if (sidebar) {
+        if (isSidebarOpen) {
+          sidebar.classList.remove('-translate-x-full');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+        }
+      }
+
+      // Update header state
+      const headerEvent = new CustomEvent('sidebarStateChange', {
+        detail: { isOpen: isSidebarOpen }
+      });
+      document.dispatchEvent(headerEvent);
+    });
+
+    // Initialize sidebar state
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.querySelector('[data-sidebar]');
+      if (sidebar) {
+        sidebar.setAttribute('data-sidebar', '');
+        if (!isSidebarOpen) {
+          sidebar.classList.add('-translate-x-full');
+        }
+      }
+    });
+  </script>
 </MainLayout>

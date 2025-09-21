@@ -4,19 +4,82 @@ interface HeaderProps {
 }
 
 const { isSidebarOpen } = Astro.props as HeaderProps;
+
+// ==========================================
+// HEADER CONFIGURATION & DATA
+// ==========================================
+
+// Navigation Items
+const navigationItems = [
+  { href: "#", label: "Dashboard", isActive: false },
+  { href: "#", label: "Study", isActive: true },
+  { href: "#", label: "Progress", isActive: false },
+  { href: "#", label: "Settings", isActive: false }
+];
+
+// Quick Actions Configuration
+const quickActions = [
+  {
+    id: "help-button",
+    title: "Help",
+    iconPath: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+  },
+  {
+    id: "notifications-button",
+    title: "Notifications",
+    iconPath: "M15 17h5l-5 5v-5zM15 17H9a2 2 0 01-2-2V5a2 2 0 012-2h6a2 2 0 012 2v10a2 2 0 01-2 2z"
+  }
+];
+
+// User Menu Items
+const userMenuItems = [
+  { href: "#", label: "Profile Settings" },
+  { href: "#", label: "Study Statistics" },
+  { href: "#", label: "Help & Support" },
+  { href: "#", label: "Sign Out", isDivider: true }
+];
+
+// ==========================================
+// CSS CLASSES - ORGANIZED BY COMPONENT
+// ==========================================
+
+// Base transition and focus classes
+const BASE_TRANSITION = "transition-colors duration-200";
+const FOCUS_CLASSES = "focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500";
+
+// Navigation Link Classes
+const NAV_LINK_BASE_CLASSES = "px-3 py-2 text-sm font-medium";
+const NAV_LINK_INACTIVE_CLASSES = `${NAV_LINK_BASE_CLASSES} ${BASE_TRANSITION} text-neutral-700 hover:text-primary-600`;
+const NAV_LINK_ACTIVE_CLASSES = `${NAV_LINK_BASE_CLASSES} ${BASE_TRANSITION} text-primary-600 border-b-2 border-primary-600`;
+
+// Button Base Classes
+const BUTTON_BASE_CLASSES = "p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md";
+const BUTTON_CLASSES = `${BUTTON_BASE_CLASSES} ${BASE_TRANSITION} ${FOCUS_CLASSES}`;
+
+// Sidebar Toggle Classes
+const SIDEBAR_TOGGLE_CLASSES = "md:hidden touch-target p-3 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 touch-feedback";
+
+// User Menu Classes
+const USER_MENU_BUTTON_CLASSES = "flex items-center space-x-2 p-2 rounded-md hover:bg-neutral-100";
+const USER_MENU_CLASSES = `${USER_MENU_BUTTON_CLASSES} ${BASE_TRANSITION} ${FOCUS_CLASSES}`;
+
+// Dropdown Classes
+const DROPDOWN_MENU_CLASSES = "absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-neutral-200 hidden";
+const DROPDOWN_ITEM_CLASSES = "block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100";
 ---
 
 <header class="mobile-header">
   <div class="max-w-7xl mx-auto px-mobile">
     <div class="flex justify-between items-center h-16">
-      <!-- Left side - Logo and mobile menu button -->
+      <!-- Left Section: Logo and Mobile Menu -->
       <div class="flex items-center">
         <button
           id="sidebar-toggle"
-          class="md:hidden touch-target p-3 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 touch-feedback"
+          class={`${SIDEBAR_TOGGLE_CLASSES} ${FOCUS_CLASSES}`}
           aria-label="Toggle sidebar"
+          aria-expanded={isSidebarOpen ? "true" : "false"}
         >
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             {isSidebarOpen && (
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M6 18L18 6M6 6l12 12" />
             )}
@@ -33,70 +96,78 @@ const { isSidebarOpen } = Astro.props as HeaderProps;
         </div>
       </div>
 
-      <!-- Center - Navigation menu (hidden on mobile) -->
-      <nav class="hidden md:flex space-x-8">
-        <a href="#" class="text-neutral-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">
-          Dashboard
-        </a>
-        <a href="#" class="text-primary-600 border-b-2 border-primary-600 px-3 py-2 text-sm font-medium">
-          Study
-        </a>
-        <a href="#" class="text-neutral-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">
-          Progress
-        </a>
-        <a href="#" class="text-neutral-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">
-          Settings
-        </a>
+      <!-- Center Section: Navigation Menu -->
+      <nav class="hidden md:flex space-x-8" role="navigation" aria-label="Main navigation">
+        {navigationItems.map(item => (
+          <a
+            href={item.href}
+            class={item.isActive ? NAV_LINK_ACTIVE_CLASSES : NAV_LINK_INACTIVE_CLASSES}
+            aria-current={item.isActive ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        ))}
       </nav>
 
-      <!-- Right side - Quick actions and user menu -->
+      <!-- Right Section: Quick Actions and User Menu -->
       <div class="flex items-center space-x-4">
-        <!-- Quick action buttons -->
-        <div class="hidden sm:flex items-center space-x-2">
-          <button class="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors duration-200" title="Help">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-          <button class="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors duration-200" title="Notifications">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M15 17h5l-5 5v-5zM15 17H9a2 2 0 01-2-2V5a2 2 0 012-2h6a2 2 0 012 2v10a2 2 0 01-2 2z" />
-            </svg>
-          </button>
+        <!-- Quick Actions -->
+        <div class="hidden sm:flex items-center space-x-2" role="toolbar" aria-label="Quick actions">
+          {quickActions.map(action => (
+            <button
+              id={action.id}
+              class={BUTTON_CLASSES}
+              title={action.title}
+              aria-label={action.title}
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d={action.iconPath} />
+              </svg>
+            </button>
+          ))}
         </div>
 
-        <!-- User avatar and menu -->
-        <div class="relative">
+        <!-- User Menu -->
+        <div class="relative" id="user-menu-container">
           <button
-            class="flex items-center space-x-2 p-2 rounded-md hover:bg-neutral-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            id="user-menu-button"
+            class={USER_MENU_CLASSES}
+            aria-expanded="false"
+            aria-haspopup="true"
+            aria-controls="user-dropdown-menu"
           >
             <div class="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
               U
             </div>
-            <svg class="h-4 w-4 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-4 w-4 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
-          <!-- User dropdown menu -->
-          <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-neutral-200 hidden">
+          <!-- User Dropdown Menu -->
+          <div
+            id="user-dropdown-menu"
+            class={DROPDOWN_MENU_CLASSES}
+            role="menu"
+            aria-labelledby="user-menu-button"
+          >
             <div class="px-4 py-2 border-b border-neutral-200">
               <p class="text-sm font-medium text-neutral-900">User</p>
               <p class="text-xs text-neutral-500">user@example.com</p>
             </div>
-            <a href="#" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">
-              Profile Settings
-            </a>
-            <a href="#" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">
-              Study Statistics
-            </a>
-            <a href="#" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">
-              Help & Support
-            </a>
-            <div class="border-t border-neutral-200"></div>
-            <a href="#" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">
-              Sign Out
-            </a>
+            {userMenuItems.map((item) => (
+              item.isDivider ? (
+                <div class="border-t border-neutral-200"></div>
+              ) : (
+                <a
+                  href={item.href}
+                  class={DROPDOWN_ITEM_CLASSES}
+                  role="menuitem"
+                >
+                  {item.label}
+                </a>
+              )
+            ))}
           </div>
         </div>
       </div>
@@ -105,33 +176,237 @@ const { isSidebarOpen } = Astro.props as HeaderProps;
 </header>
 
 <script>
-  // Handle sidebar toggle
-  const sidebarToggle = document.getElementById('sidebar-toggle');
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', () => {
-      // This would need to communicate with parent component
-      console.log('Sidebar toggle clicked');
-    });
+  // ==========================================
+  // HEADER FUNCTIONALITY MODULES
+  // ==========================================
+
+  /**
+   * Utility functions for DOM manipulation
+   */
+  const DOMUtils = {
+    /**
+     * Get element by ID with error handling
+     */
+    getElementById(id: string): HTMLElement | null {
+      return document.getElementById(id);
+    },
+
+    /**
+     * Dispatch custom event with consistent structure
+     */
+    dispatchCustomEvent(eventName: string, detail: any): void {
+      const event = new CustomEvent(eventName, {
+        bubbles: true,
+        detail: { ...detail, source: 'header' }
+      });
+      document.dispatchEvent(event);
+    },
+
+    /**
+     * Toggle aria-expanded attribute
+     */
+    toggleAriaExpanded(element: HTMLElement): void {
+      const isExpanded = element.getAttribute('aria-expanded') === 'true';
+      element.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    }
+  };
+
+  /**
+   * Sidebar functionality module
+   */
+  const SidebarModule = {
+    /**
+     * Initialize sidebar toggle functionality
+     */
+    initializeToggle(): void {
+      const sidebarToggle = DOMUtils.getElementById('sidebar-toggle');
+      if (!sidebarToggle) return;
+
+      sidebarToggle.addEventListener('click', () => {
+        DOMUtils.dispatchCustomEvent('sidebarToggle', {});
+      });
+    },
+
+    /**
+     * Listen for sidebar state changes
+     */
+    initializeStateListener(): void {
+      document.addEventListener('sidebarStateChange', (event: any) => {
+        const { isOpen } = event.detail;
+        const sidebarToggle = DOMUtils.getElementById('sidebar-toggle');
+
+        if (sidebarToggle) {
+          sidebarToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+      });
+    }
+  };
+
+  /**
+   * User menu functionality module
+   */
+  const UserMenuModule = {
+    /**
+     * Initialize user menu dropdown functionality
+     */
+    initialize(): void {
+      const userMenuButton = DOMUtils.getElementById('user-menu-button');
+      const userMenu = DOMUtils.getElementById('user-dropdown-menu');
+
+      if (!userMenuButton || !userMenu) return;
+
+      this.attachEventListeners(userMenuButton, userMenu);
+    },
+
+    /**
+     * Attach all event listeners for user menu
+     */
+    attachEventListeners(button: HTMLElement, menu: HTMLElement): void {
+      // Toggle menu on button click
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        DOMUtils.toggleAriaExpanded(button);
+        menu.classList.toggle('hidden');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        const target = e.target as Element;
+        const isClickInsideMenu = button.contains(target as Node) ||
+                                 menu.contains(target as Node);
+
+        if (!isClickInsideMenu && !menu.classList.contains('hidden')) {
+          this.closeMenu(button, menu);
+        }
+      });
+
+      // Handle keyboard navigation
+      button.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !menu.classList.contains('hidden')) {
+          this.closeMenu(button, menu);
+          button.focus();
+        }
+      });
+    },
+
+    /**
+     * Close user menu
+     */
+    closeMenu(button: HTMLElement, menu: HTMLElement): void {
+      menu.classList.add('hidden');
+      button.setAttribute('aria-expanded', 'false');
+    }
+  };
+
+  /**
+   * Quick actions functionality module
+   */
+  const QuickActionsModule = {
+    /**
+     * Initialize quick action buttons
+     */
+    initialize(): void {
+      const helpButton = DOMUtils.getElementById('help-button');
+      const notificationsButton = DOMUtils.getElementById('notifications-button');
+
+      if (helpButton) {
+        this.attachHelpButtonListener(helpButton);
+      }
+
+      if (notificationsButton) {
+        this.attachNotificationsButtonListener(notificationsButton);
+      }
+    },
+
+    /**
+     * Attach event listener to help button
+     */
+    attachHelpButtonListener(button: HTMLElement): void {
+      button.addEventListener('click', () => {
+        DOMUtils.dispatchCustomEvent('quickAction', { action: 'help' });
+      });
+    },
+
+    /**
+     * Attach event listener to notifications button
+     */
+    attachNotificationsButtonListener(button: HTMLElement): void {
+      button.addEventListener('click', () => {
+        DOMUtils.dispatchCustomEvent('quickAction', { action: 'notifications' });
+      });
+    }
+  };
+
+  /**
+   * Header initialization and setup
+   */
+  const HeaderController = {
+    /**
+     * Initialize all header functionality
+     */
+    initialize(): void {
+      SidebarModule.initializeToggle();
+      SidebarModule.initializeStateListener();
+      UserMenuModule.initialize();
+      QuickActionsModule.initialize();
+
+      this.setupSmoothTransitions();
+      this.setupGlobalEventListeners();
+    },
+
+    /**
+     * Add smooth transitions for better UX
+     */
+    setupSmoothTransitions(): void {
+      document.addEventListener('DOMContentLoaded', () => {
+        const header = document.querySelector('header');
+        if (header) {
+          header.style.transition = 'all 0.2s ease-in-out';
+        }
+      });
+    },
+
+    /**
+     * Setup global event listeners
+     */
+    setupGlobalEventListeners(): void {
+      // Global keyboard shortcuts could be added here
+      document.addEventListener('keydown', (e) => {
+        // Example: ESC key to close all dropdowns
+        if (e.key === 'Escape') {
+          this.closeAllDropdowns();
+        }
+      });
+    },
+
+    /**
+     * Close all open dropdowns
+     */
+    closeAllDropdowns(): void {
+      const userMenu = DOMUtils.getElementById('user-dropdown-menu');
+      const userMenuButton = DOMUtils.getElementById('user-menu-button');
+
+      if (userMenu && userMenuButton && !userMenu.classList.contains('hidden')) {
+        UserMenuModule.closeMenu(userMenuButton, userMenu);
+      }
+    }
+  };
+
+  // ==========================================
+  // INITIALIZATION
+  // ==========================================
+
+  /**
+   * Initialize header when DOM is ready
+   */
+  function initializeHeader(): void {
+    HeaderController.initialize();
   }
 
-  // Handle user menu toggle
-  const userMenuButtons = document.querySelectorAll('[class*="flex items-center space-x-2 p-2 rounded-md"]');
-  const userMenus = document.querySelectorAll('[class*="absolute right-0 mt-2 w-48"]');
-
-  userMenuButtons.forEach((button, index) => {
-    button.addEventListener('click', () => {
-      const menu = userMenus[index];
-      if (menu) {
-        menu.classList.toggle('hidden');
-      }
-    });
-  });
-
-  // Close menu when clicking outside
-  document.addEventListener('click', (e) => {
-    const target = e.target as Element;
-    if (target && !target.closest('[class*="relative"]')) {
-      userMenus.forEach(menu => menu.classList.add('hidden'));
-    }
-  });
+  // Auto-initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeHeader);
+  } else {
+    initializeHeader();
+  }
 </script>

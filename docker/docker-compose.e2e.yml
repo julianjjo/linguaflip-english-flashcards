@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # MongoDB database for E2E tests
+  mongodb:
+    image: mongo:7.0
+    container_name: linguaflip-e2e-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: linguaflip_test
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - e2e-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis for caching (if needed)
+  redis:
+    image: redis:7-alpine
+    container_name: linguaflip-e2e-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - e2e-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application under test
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.e2e
+    container_name: linguaflip-e2e-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: test
+      CI: true
+      MONGODB_URL: mongodb://mongodb:27017/linguaflip_test
+      REDIS_URL: redis://redis:6379
+      BASE_URL: http://localhost:4321
+      PORT: 4321
+    ports:
+      - "4321:4321"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../test-results:/app/test-results
+      - ../playwright-report:/app/playwright-report
+    networks:
+      - e2e-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4321"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Playwright test runner
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    container_name: linguaflip-e2e-playwright
+    restart: "no"
+    environment:
+      NODE_ENV: test
+      CI: true
+      BASE_URL: http://app:4321
+      MONGODB_URL: mongodb://mongodb:27017/linguaflip_test
+    working_dir: /app
+    volumes:
+      - ..:/app
+      - /app/node_modules
+      - playwright-results:/app/test-results
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - e2e-network
+    command: ["npm", "run", "test:e2e"]
+    profiles:
+      - test-runner
+
+volumes:
+  mongodb_data:
+    driver: local
+  playwright-results:
+    driver: local
+
+networks:
+  e2e-network:
+    driver: bridge
+    name: linguaflip-e2e-network

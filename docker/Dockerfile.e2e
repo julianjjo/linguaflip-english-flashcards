@@ -1,0 +1,105 @@
+# Use Node.js LTS version
+FROM node:20-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for Playwright browsers
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    procps \
+    libxss1 \
+    libgconf-2-4 \
+    libxtst6 \
+    libxrandr2 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcairo-gobject2 \
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxfixes3 \
+    libnss3 \
+    libcups2 \
+    libxss1 \
+    libxrandr2 \
+    libgconf-2-4 \
+    libxss1 \
+    libxtst6 \
+    libxrandr2 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcairo-gobject2 \
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxfixes3 \
+    libnss3 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libatspi2.0-0 \
+    libxss1 \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Google Chrome for Playwright
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Firefox for Playwright
+RUN apt-get update && apt-get install -y \
+    firefox-esr \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install WebKit dependencies
+RUN apt-get update && apt-get install -y \
+    libwebkit2gtk-4.1-dev \
+    libwpe-1.0-dev \
+    libwpewebkit-1.0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package*.json ./
+
+# Install npm dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy application code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Create a non-root user for running tests
+RUN useradd -m -s /bin/bash playwright \
+    && chown -R playwright:playwright /app
+USER playwright
+
+# Set environment variables
+ENV NODE_ENV=test
+ENV CI=true
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/node_modules/playwright/browsers
+
+# Expose port for the application
+EXPOSE 4321
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4321 || exit 1
+
+# Default command to run tests
+CMD ["npm", "run", "test:e2e"]

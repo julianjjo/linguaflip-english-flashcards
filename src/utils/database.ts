@@ -1,3 +1,7 @@
+// Load environment variables
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+
 import { MongoClient, Db } from 'mongodb';
 import type { MongoClientOptions } from 'mongodb';
 
@@ -197,6 +201,14 @@ export class DatabaseConnection {
 
 // Export singleton instance
 export const dbConnection = DatabaseConnection.getInstance();
+
+// Initialize database connection automatically
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  // Auto-connect to database when module loads
+  dbConnection.connect().catch((error) => {
+    console.warn('Auto-connection to MongoDB failed, will run in offline mode:', error.message);
+  });
+}
 
 // Utility function to get database instance
 export const getDatabase = (): Db | null => {

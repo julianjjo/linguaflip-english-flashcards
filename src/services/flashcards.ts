@@ -212,11 +212,13 @@ export class FlashcardsService {
 
       // Prepare updates
       const updates = {
-        'sm2': newSM2Params,
-        'statistics': newStatistics,
-        'sm2.lastReviewed': new Date(),
-        'sm2.qualityResponses': [...(card.sm2.qualityResponses || []), quality],
-        'sm2.totalReviews': (card.sm2.totalReviews || 0) + 1
+        'sm2': {
+          ...newSM2Params,
+          lastReviewed: new Date(),
+          qualityResponses: [...(card.sm2.qualityResponses || []), quality],
+          totalReviews: (card.sm2.totalReviews || 0) + 1
+        },
+        'statistics': newStatistics
       };
 
       // Update flashcard
@@ -320,6 +322,36 @@ export class FlashcardsService {
 
       return result;
     }, { operation: 'get_flashcards_by_category', collection: COLLECTION_NAME, userId });
+  }
+
+  /**
+   * Get all flashcards for a user
+   */
+  async getAllFlashcards(
+    userId: string,
+    options: { limit?: number; skip?: number } = {}
+  ): Promise<DatabaseOperationResult<FlashcardDocument[]>> {
+    return safeAsync(async () => {
+      const result = await dbOps.findMany(
+        { userId },
+        {
+          limit: options.limit || 1000,
+          skip: options.skip || 0,
+          sort: { createdAt: -1 }
+        }
+      ) as DatabaseOperationResult<FlashcardDocument[]>;
+
+      if (!result.success) {
+        throw new DatabaseError(
+          result.error || 'Failed to retrieve all flashcards',
+          'GET_ALL_FLASHCARDS_FAILED',
+          'get_all_flashcards',
+          COLLECTION_NAME
+        );
+      }
+
+      return result;
+    }, { operation: 'get_all_flashcards', collection: COLLECTION_NAME, userId });
   }
 
   /**

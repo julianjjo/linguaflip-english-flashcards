@@ -321,12 +321,34 @@ export class TokenRefreshManager {
     const checkAndRefresh = async () => {
       try {
         const timeUntilExpiry = SecureTokenStorage.getTimeUntilExpiry();
+        const hasAccessToken = !!(await SecureTokenStorage.getAccessToken());
+        const hasRefreshToken = SecureTokenStorage.hasRefreshToken();
+
+        console.log('[TOKEN_DEBUG] Auto-refresh check:', {
+          timeUntilExpiry,
+          hasAccessToken,
+          hasRefreshToken,
+          refreshPromise: !!this.refreshPromise,
+          timestamp: new Date().toISOString()
+        });
 
         if (timeUntilExpiry > 0 && timeUntilExpiry <= this.REFRESH_THRESHOLD) {
+          console.log('[TOKEN_DEBUG] Token near expiry, attempting refresh:', {
+            timeUntilExpiry,
+            threshold: this.REFRESH_THRESHOLD
+          });
           await this.refreshAccessToken();
+        } else if (timeUntilExpiry <= 0) {
+          console.log('[TOKEN_DEBUG] Token expired, clearing tokens');
+          SecureTokenStorage.clearTokens();
         }
       } catch (error) {
-        console.error('Auto refresh failed:', error);
+        console.error('[TOKEN_DEBUG] Auto refresh failed:', error);
+        SecurityAuditor.logSecurityEvent(
+          'AUTO_REFRESH_ERROR',
+          { error: error instanceof Error ? error.message : 'Unknown error' },
+          'medium'
+        );
       }
 
       // Schedule next check
@@ -334,6 +356,7 @@ export class TokenRefreshManager {
     };
 
     // Start checking immediately
+    console.log('[TOKEN_DEBUG] Starting auto-refresh timer');
     checkAndRefresh();
   }
 
@@ -353,15 +376,22 @@ export class TokenRefreshManager {
   static async refreshAccessToken(): Promise<string> {
     // Prevent multiple simultaneous refresh attempts
     if (this.refreshPromise) {
+      console.log('[TOKEN_DEBUG] Refresh already in progress, returning existing promise');
       return this.refreshPromise;
     }
 
+    console.log('[TOKEN_DEBUG] Starting token refresh process');
     this.refreshPromise = this.performTokenRefresh();
 
     try {
       const newToken = await this.refreshPromise;
+      console.log('[TOKEN_DEBUG] Token refresh successful');
       return newToken;
+    } catch (error) {
+      console.error('[TOKEN_DEBUG] Token refresh failed:', error);
+      throw error;
     } finally {
+      console.log('[TOKEN_DEBUG] Clearing refresh promise');
       this.refreshPromise = null;
     }
   }
@@ -371,6 +401,8 @@ export class TokenRefreshManager {
    */
   private static async performTokenRefresh(): Promise<string> {
     try {
+      console.log('[TOKEN_DEBUG] Making refresh request to server');
+
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
@@ -379,16 +411,25 @@ export class TokenRefreshManager {
         credentials: 'include', // Include httpOnly cookies
       });
 
+      console.log('[TOKEN_DEBUG] Refresh response status:', response.status);
+
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('[TOKEN_DEBUG] Refresh token expired (401), clearing tokens');
           // Refresh token is invalid, user needs to login again
           SecureTokenStorage.clearTokens();
           throw new Error('Refresh token expired');
         }
+        console.log('[TOKEN_DEBUG] Refresh failed with status:', response.status);
         throw new Error(`Token refresh failed: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('[TOKEN_DEBUG] Refresh response data:', {
+        success: data.success,
+        hasAccessToken: !!data.data?.accessToken,
+        hasRefreshToken: !!data.data?.refreshToken
+      });
 
       if (data.success && data.data.accessToken) {
         // Store the new access token
@@ -405,10 +446,11 @@ export class TokenRefreshManager {
 
         return data.data.accessToken;
       } else {
+        console.error('[TOKEN_DEBUG] Invalid refresh response structure:', data);
         throw new Error('Invalid refresh response');
       }
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('[TOKEN_DEBUG] Token refresh failed:', error);
       SecurityAuditor.logSecurityEvent(
         'TOKEN_REFRESH_FAILED',
         { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -431,13 +473,16 @@ export class AuthStateManager {
    */
   static async checkAuthentication(): Promise<boolean> {
     try {
+      console.log('[AUTH_DEBUG] Checking authentication status');
       const token = await SecureTokenStorage.getAccessToken();
 
       if (!token) {
+        console.log('[AUTH_DEBUG] No access token found');
         this.setAuthenticated(false);
         return false;
       }
 
+      console.log('[AUTH_DEBUG] Verifying token with server');
       // Verify token with server
       const response = await fetch('/api/auth/verify', {
         headers: {
@@ -446,15 +491,22 @@ export class AuthStateManager {
       });
 
       const isAuthenticated = response.ok;
+      console.log('[AUTH_DEBUG] Server verification result:', {
+        status: response.status,
+        isAuthenticated,
+        currentAuthState: this.isAuthenticated
+      });
+
       this.setAuthenticated(isAuthenticated);
 
       if (!isAuthenticated) {
+        console.log('[AUTH_DEBUG] Token verification failed, clearing tokens');
         SecureTokenStorage.clearTokens();
       }
 
       return isAuthenticated;
     } catch (error) {
-      console.error('Authentication check failed:', error);
+      console.error('[AUTH_DEBUG] Authentication check failed:', error);
       this.setAuthenticated(false);
       SecureTokenStorage.clearTokens();
       return false;
@@ -466,8 +518,15 @@ export class AuthStateManager {
    */
   static setAuthenticated(isAuthenticated: boolean): void {
     if (this.isAuthenticated !== isAuthenticated) {
+      console.log('[AUTH_DEBUG] Authentication state changing:', {
+        from: this.isAuthenticated,
+        to: isAuthenticated,
+        timestamp: new Date().toISOString()
+      });
       this.isAuthenticated = isAuthenticated;
       this.notifyListeners(isAuthenticated);
+    } else {
+      console.log('[AUTH_DEBUG] Authentication state unchanged:', isAuthenticated);
     }
   }
 
@@ -511,6 +570,8 @@ export class AuthStateManager {
  * Initialize secure token storage
  */
 export function initializeSecureTokenStorage(): void {
+  console.log('[INIT_DEBUG] Initializing secure token storage');
+
   // Start automatic token refresh
   TokenRefreshManager.startAutoRefresh();
 
@@ -519,14 +580,29 @@ export function initializeSecureTokenStorage(): void {
 
   // Handle visibility change to refresh tokens when tab becomes active
   document.addEventListener('visibilitychange', () => {
+    console.log('[VISIBILITY_DEBUG] Tab visibility changed:', {
+      hidden: document.hidden,
+      timestamp: new Date().toISOString()
+    });
+
     if (!document.hidden) {
+      console.log('[VISIBILITY_DEBUG] Tab became active, checking authentication');
       AuthStateManager.checkAuthentication();
     }
   });
 
   // Handle storage events (for multi-tab synchronization)
   window.addEventListener('storage', (event) => {
+    console.log('[STORAGE_DEBUG] Storage event detected:', {
+      key: event.key,
+      oldValue: event.oldValue ? 'present' : 'null',
+      newValue: event.newValue ? 'present' : 'null',
+      url: event.url,
+      timestamp: new Date().toISOString()
+    });
+
     if (event.key?.startsWith('linguaflip')) {
+      console.log('[STORAGE_DEBUG] LinguaFlip storage change, checking authentication');
       AuthStateManager.checkAuthentication();
     }
   });

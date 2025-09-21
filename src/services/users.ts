@@ -31,7 +31,7 @@ export class UsersService {
   async createUser(userData: Omit<UserDocument, '_id' | 'createdAt' | 'updatedAt'>): Promise<DatabaseOperationResult<UserDocument>> {
     return safeAsync(async () => {
       // Validate required fields
-      validateRequired(userData, ['userId', 'preferences', 'statistics'], COLLECTION_NAME);
+      validateRequired(userData, ['userId', 'preferences', 'statistics', 'authentication'], COLLECTION_NAME);
 
       // Sanitize input data
       const sanitizedData = this.sanitizeUserData(userData);
@@ -133,6 +133,15 @@ export class UsersService {
           'GET_USER_FAILED',
           'get_user_by_email',
           COLLECTION_NAME
+        );
+      }
+
+      if (!result.data) {
+        throw new NotFoundError(
+          `User with email ${email} not found`,
+          'get_user_by_email',
+          COLLECTION_NAME,
+          email
         );
       }
 
