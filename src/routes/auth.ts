@@ -102,7 +102,7 @@ router.post('/login', authRateLimit, async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Email and password are required',
+        error: 'Todos los campos obligatorios deben ser completados',
         code: 'MISSING_CREDENTIALS'
       });
     }
