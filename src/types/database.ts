@@ -1,7 +1,37 @@
-// Database Types for LinguaFlip MongoDB Operations
+// Database Types for LinguaFlip Cloudflare D1 Operations
 
-import { ObjectId } from 'mongodb';
-import type { Document } from 'mongodb';
+export type ObjectId = string;
+export type Document = Record<string, unknown>;
+
+const OBJECT_ID_REGEX = /^[a-f0-9]{24}$/;
+
+export interface FlashcardSM2Data {
+  easeFactor: number;
+  interval: number;
+  repetitions: number;
+  nextReviewDate: Date;
+  lastReviewed?: Date | null;
+  qualityResponses?: number[];
+  totalReviews?: number;
+  correctStreak?: number;
+  incorrectStreak?: number;
+  isSuspended?: boolean;
+  suspensionReason?: string | null;
+}
+
+export interface FlashcardStatistics {
+  timesCorrect: number;
+  timesIncorrect: number;
+  averageResponseTime: number;
+  lastDifficulty: 'easy' | 'medium' | 'hard';
+}
+
+export interface FlashcardMetadata {
+  source?: string;
+  createdByAI?: boolean;
+  aiModel?: string;
+  confidence?: number;
+}
 
 // Base database document interface
 export interface BaseDocument extends Document {
@@ -78,18 +108,20 @@ export interface FlashcardDocument extends BaseDocument {
   userId: string;
   front: string;
   back: string;
-  audioUrl?: string;
-  imageUrl?: string;
+  exampleFront?: string;
+  exampleBack?: string;
+  audioUrl?: string | null;
+  image?: string | null;
+  imageUrl?: string | null;
   tags: string[];
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
-  metadata: {
-    source?: string;
-    createdByAI: boolean;
-    aiModel?: string;
-  };
+  metadata?: FlashcardMetadata;
+  sm2: FlashcardSM2Data;
+  statistics: FlashcardStatistics;
   createdAt: Date;
   updatedAt: Date;
+  version?: number;
 }
 
 // Study session document interface
@@ -98,8 +130,11 @@ export interface StudySessionDocument extends BaseDocument {
   userId: string;
   startTime: Date;
   endTime?: Date;
+  duration?: number;
   cardsStudied: string[]; // Array of card IDs
+  cardsReviewed?: number;
   totalCards: number;
+  totalTime?: number;
   correctAnswers: number;
   incorrectAnswers: number;
   averageResponseTime: number;
@@ -753,7 +788,7 @@ export async function safeAsync<T>(
  * Validate ObjectId format
  */
 export function validateObjectId(id: string, fieldName: string = 'id'): void {
-  if (!ObjectId.isValid(id)) {
+  if (!OBJECT_ID_REGEX.test(id)) {
     throw new ValidationError(
       `Invalid ObjectId format for field '${fieldName}': ${id}`,
       'validate_object_id',
@@ -805,11 +840,22 @@ export function validateQuality(quality: number): void {
  * Validate user ownership
  */
 export function validateOwnership(
-  documentUserId: string,
+  documentUserId: unknown,
   requestUserId: string,
   collection: string,
   documentId?: string
 ): void {
+  if (typeof documentUserId !== 'string') {
+    throw new ValidationError(
+      'Invalid document owner identifier',
+      'validate_ownership',
+      collection,
+      'userId',
+      documentUserId,
+      { documentId, requestUserId }
+    );
+  }
+
   if (documentUserId !== requestUserId) {
     throw new PermissionError(
       'Access denied: You do not own this resource',
@@ -837,10 +883,4 @@ export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type WithTimestamps<T> = T & {
   createdAt: Date;
   updatedAt: Date;
-};
-
-// Export all types
-export type {
-  ObjectId,
-  Document,
 };

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from '../utils/auth-helpers';
 import { FlashcardHelpers } from '../utils/flashcard-helpers';

@@ -1,646 +1,892 @@
-import { Collection, ObjectId } from 'mongodb';
-import { getDatabase, dbConnection } from './database.ts';
-import type { DatabaseOperationResult, BulkOperationResult } from '../types/database.ts';
+import { randomBytes } from 'node:crypto';
 
-// In-memory storage for offline mode
-const offlineStorage = new Map<string, Map<string, Record<string, unknown>>>();
+import { d1Client } from './d1Client';
+import { dbConnection } from './database';
+import type { DatabaseOperationResult, BulkOperationResult } from '../types/database';
 
-// Simplified database operations class
+type Filter = Record<string, unknown>;
+type UpdateFilter = Record<string, unknown> & { $set?: Record<string, unknown> };
+
+interface QueryOptions {
+  limit?: number;
+  skip?: number;
+  sort?: Record<string, 1 | -1>;
+}
+
+interface CollectionConfig {
+  table: string;
+  filterColumns: Record<string, string>;
+}
+
+const COLLECTION_CONFIGS: Record<string, CollectionConfig> = {
+  users: {
+    table: 'users',
+    filterColumns: {
+      _id: 'id',
+      userId: 'userId',
+      email: 'email',
+      username: 'username',
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt',
+    },
+  },
+  flashcards: {
+    table: 'flashcards',
+    filterColumns: {
+      _id: 'id',
+      userId: 'userId',
+      cardId: 'cardId',
+      category: 'category',
+      difficulty: 'difficulty',
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt',
+    },
+  },
+  study_sessions: {
+    table: 'study_sessions',
+    filterColumns: {
+      _id: 'id',
+      userId: 'userId',
+      sessionId: 'sessionId',
+      sessionType: 'sessionType',
+      startTime: 'startTime',
+      endTime: 'endTime',
+    },
+  },
+  study_statistics: {
+    table: 'study_statistics',
+    filterColumns: {
+      _id: 'id',
+      userId: 'userId',
+      statsId: 'statsId',
+      date: 'date',
+      period: 'period',
+    },
+  },
+  migrations: {
+    table: 'migrations',
+    filterColumns: {
+      _id: 'id',
+      id: 'id',
+      version: 'version',
+    },
+  },
+};
+
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
+
+const DATE_KEY_HINTS = ['createdAt', 'updatedAt', 'startTime', 'endTime', 'nextReviewDate', 'lastStudyDate', 'passwordChangedAt', 'passwordResetExpires', 'emailVerifiedAt', 'lastLogin', 'accountLockedUntil', 'timestamp', 'date', 'appliedAt'];
+
+const OBJECT_ID_REGEX = /^[a-f0-9]{24}$/;
+
 export class DatabaseOperations {
-  private collectionName: string;
-  private collection: Collection | null = null;
+  private readonly collectionName: keyof typeof COLLECTION_CONFIGS;
 
   constructor(collectionName: string) {
-    this.collectionName = collectionName;
-    // Initialize offline storage for this collection
-    if (!offlineStorage.has(collectionName)) {
-      offlineStorage.set(collectionName, new Map());
+    if (!(collectionName in COLLECTION_CONFIGS)) {
+      throw new Error(`Unsupported collection: ${collectionName}`);
     }
+    this.collectionName = collectionName as keyof typeof COLLECTION_CONFIGS;
   }
 
-  // Initialize collection
-  private async initializeCollection(): Promise<Collection | null> {
-    if (!this.collection) {
-      if (!dbConnection.isDatabaseConnected()) {
-        console.warn(`Database not connected, running ${this.collectionName} operations in offline mode`);
-        return null;
-      }
-      try {
-        const db = getDatabase();
-        if (!db) {
-          console.warn(`Database not available, running ${this.collectionName} operations in offline mode`);
-          return null;
+  private get config(): CollectionConfig {
+    return COLLECTION_CONFIGS[this.collectionName];
+  }
+
+  private async ensureReady(): Promise<void> {
+    await dbConnection.connect();
+  }
+
+  private generateId(): string {
+    return randomBytes(12).toString('hex');
+  }
+
+  private normalizeValue(value: unknown): unknown {
+    if (value === undefined) {
+      return null;
+    }
+
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+      return JSON.stringify(value, (_key, nestedValue) => {
+        if (nestedValue instanceof Date) {
+          return nestedValue.toISOString();
         }
-        this.collection = db.collection(this.collectionName);
-      } catch (error) {
-        console.warn(`Failed to initialize collection ${this.collectionName}, running in offline mode:`, error);
-        return null;
-      }
+        return nestedValue;
+      });
     }
-    return this.collection;
+
+    return value;
   }
 
-  // Create operation with timestamps
-  async create(document: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>>> {
-    const startTime = Date.now();
-
-    try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), return success with mock data
-      if (!collection) {
-        console.log(`Database offline: Simulating create operation for ${this.collectionName}`);
-        const now = new Date();
-        const mockId = `mock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-        const mockDocument = {
-          ...document,
-          _id: mockId,
-          createdAt: now,
-          updatedAt: now,
-        };
-
-        // Store in offline storage
-        const collectionStore = offlineStorage.get(this.collectionName)!;
-        collectionStore.set(mockId, mockDocument);
-
-        return {
-          success: true,
-          data: mockDocument,
-          operationTime: Date.now() - startTime,
-        };
+  private serializeDocument(document: Record<string, unknown>): string {
+    return JSON.stringify(document, (_key, value) => {
+      if (value instanceof Date) {
+        return value.toISOString();
       }
+      return value;
+    });
+  }
 
-      const now = new Date();
-      const documentWithTimestamps = {
-        ...document,
-        createdAt: now,
-        updatedAt: now,
-      };
+  private restoreDates(value: unknown, keyHint?: string): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
 
-      const result = await collection.insertOne(documentWithTimestamps);
+    if (Array.isArray(value)) {
+      return value.map(item => this.restoreDates(item));
+    }
 
-      if (!result.acknowledged) {
-        throw new Error('Insert operation was not acknowledged');
+    if (typeof value === 'object') {
+      const result: Record<string, unknown> = {};
+      for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+        result[key] = this.restoreDates(nestedValue, key);
       }
+      return result;
+    }
 
-      const insertedDocument = {
-        ...documentWithTimestamps,
-        _id: result.insertedId,
-      };
+    if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
+      if (keyHint && (DATE_KEY_HINTS.includes(keyHint) || keyHint.endsWith('At') || keyHint.endsWith('Date') || keyHint.includes('Time'))) {
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+    }
 
-      return {
-        success: true,
-        data: insertedDocument,
-        operationTime: Date.now() - startTime,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
-      };
+    return value;
+  }
+
+  private deserializeDocument(json: string): Record<string, unknown> {
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    return this.restoreDates(parsed) as Record<string, unknown>;
+  }
+
+  private setNestedValue(target: Record<string, unknown>, path: string, value: unknown): void {
+    const segments = path.split('.');
+    let current: Record<string, unknown> = target;
+
+    for (let i = 0; i < segments.length - 1; i++) {
+      const segment = segments[i];
+      const existing = current[segment];
+      if (typeof existing !== 'object' || existing === null || Array.isArray(existing)) {
+        current[segment] = {};
+      }
+      current = current[segment] as Record<string, unknown>;
+    }
+
+    current[segments[segments.length - 1]] = value;
+  }
+
+  private applyUpdates(document: Record<string, unknown>, updates: Record<string, unknown>): void {
+    for (const [key, value] of Object.entries(updates)) {
+      if (key.includes('.')) {
+        this.setNestedValue(document, key, value);
+      } else {
+        document[key] = value;
+      }
     }
   }
 
-  // Find single document
-  async findOne(filter: Record<string, unknown>, options?: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
-    const startTime = Date.now();
+  private getColumnForField(field: string): string | null {
+    const direct = this.config.filterColumns[field];
+    if (direct) {
+      return direct;
+    }
+    if (field === '_id') {
+      return 'id';
+    }
+    return null;
+  }
 
-    try {
-      const collection = await this.initializeCollection();
+  private getNestedValue(object: Record<string, unknown>, path: string): unknown {
+    const segments = path.split('.');
+    let current: unknown = object;
 
-      // If collection is null (offline mode), search in offline storage
-      if (!collection) {
-        console.log(`Database offline: Simulating findOne operation for ${this.collectionName}`);
-        const collectionStore = offlineStorage.get(this.collectionName)!;
-        
-        // Simple filter matching for offline mode
-        for (const [, doc] of collectionStore) {
-          let matches = true;
-          for (const [key, value] of Object.entries(filter)) {
-            if (doc[key] !== value) {
-              matches = false;
-              break;
+    for (const segment of segments) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      if (typeof current !== 'object') {
+        return undefined;
+      }
+      current = (current as Record<string, unknown>)[segment];
+    }
+
+    return current;
+  }
+
+  private prepareDocument(document: Record<string, unknown>): Record<string, unknown> {
+    const now = new Date();
+    const prepared: Record<string, unknown> = { ...document };
+    if (!prepared._id) {
+      prepared._id = this.generateId();
+    }
+    if (!prepared.createdAt) {
+      prepared.createdAt = now;
+    }
+    prepared.updatedAt = prepared.updatedAt ? prepared.updatedAt : now;
+    return prepared;
+  }
+
+  private prepareRow(document: Record<string, unknown>): Record<string, unknown> {
+    const row: Record<string, unknown> = {
+      id: document._id,
+      createdAt: this.normalizeValue(document.createdAt),
+      updatedAt: this.normalizeValue(document.updatedAt),
+      document: this.serializeDocument(document),
+    };
+
+    for (const [field, column] of Object.entries(this.config.filterColumns)) {
+      if (column === 'id') {
+        row[column] = document._id;
+        continue;
+      }
+      const value = this.getNestedValue(document, field);
+      row[column] = this.normalizeValue(value);
+    }
+
+    return row;
+  }
+
+  private buildInsert(row: Record<string, unknown>): { sql: string; params: unknown[] } {
+    const columns = Object.keys(row);
+    const placeholders = columns.map(() => '?').join(', ');
+    const sql = `INSERT INTO ${this.config.table} (${columns.join(', ')}) VALUES (${placeholders})`;
+    const params = columns.map(column => row[column]);
+    return { sql, params };
+  }
+
+  private buildUpdate(row: Record<string, unknown>): { sql: string; params: unknown[] } {
+    const columns = Object.keys(row).filter(column => column !== 'id');
+    const assignments = columns.map(column => `${column} = ?`).join(', ');
+    const sql = `UPDATE ${this.config.table} SET ${assignments} WHERE id = ?`;
+    const params = columns.map(column => row[column]);
+    params.push(row.id);
+    return { sql, params };
+  }
+
+  private rowToDocument(row: Record<string, unknown>): Record<string, unknown> {
+    const document = this.deserializeDocument(row.document as string);
+    document._id = (document._id as string) || (row.id as string);
+    if (row.createdAt) {
+      document.createdAt = this.restoreDates(row.createdAt, 'createdAt');
+    }
+    if (row.updatedAt) {
+      document.updatedAt = this.restoreDates(row.updatedAt, 'updatedAt');
+    }
+    return document;
+  }
+
+  private buildWhereClause(filter: Filter): { clause: string; params: unknown[]; fallback: Filter } {
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    const fallback: Filter = {};
+
+    for (const [field, value] of Object.entries(filter || {})) {
+      const column = this.getColumnForField(field);
+      if (!column) {
+        fallback[field] = value;
+        continue;
+      }
+
+      if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+        const operatorEntries = Object.entries(value as Record<string, unknown>);
+        const supported = ['$ne', '$in', '$nin', '$gte', '$lte', '$gt', '$lt'];
+        if (operatorEntries.every(([op]) => supported.includes(op))) {
+          for (const [operator, operand] of operatorEntries) {
+            switch (operator) {
+              case '$ne':
+                conditions.push(`${column} <> ?`);
+                params.push(this.normalizeValue(operand));
+                break;
+              case '$in':
+                if (Array.isArray(operand) && operand.length) {
+                  const placeholders = operand.map(() => '?').join(', ');
+                  conditions.push(`${column} IN (${placeholders})`);
+                  params.push(...operand.map(item => this.normalizeValue(item)));
+                }
+                break;
+              case '$nin':
+                if (Array.isArray(operand) && operand.length) {
+                  const placeholders = operand.map(() => '?').join(', ');
+                  conditions.push(`${column} NOT IN (${placeholders})`);
+                  params.push(...operand.map(item => this.normalizeValue(item)));
+                }
+                break;
+              case '$gte':
+                conditions.push(`${column} >= ?`);
+                params.push(this.normalizeValue(operand));
+                break;
+              case '$lte':
+                conditions.push(`${column} <= ?`);
+                params.push(this.normalizeValue(operand));
+                break;
+              case '$gt':
+                conditions.push(`${column} > ?`);
+                params.push(this.normalizeValue(operand));
+                break;
+              case '$lt':
+                conditions.push(`${column} < ?`);
+                params.push(this.normalizeValue(operand));
+                break;
             }
           }
-          if (matches) {
-            return {
-              success: true,
-              data: doc,
-              operationTime: Date.now() - startTime,
-            };
-          }
+        } else {
+          fallback[field] = value;
         }
-        
-        return {
-          success: true,
-          data: null,
-          operationTime: Date.now() - startTime,
-        };
+        continue;
       }
 
-      const document = await collection.findOne(filter, options);
+      if (value === null) {
+        conditions.push(`${column} IS NULL`);
+      } else {
+        conditions.push(`${column} = ?`);
+        params.push(this.normalizeValue(value));
+      }
+    }
+
+    const clause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
+    return { clause, params, fallback };
+  }
+
+  private applyFallbackFilter(documents: Record<string, unknown>[], filter: Filter): Record<string, unknown>[] {
+    if (!filter || Object.keys(filter).length === 0) {
+      return documents;
+    }
+
+    return documents.filter(document => this.matchesFilter(document, filter));
+  }
+
+  private matchesFilter(document: Record<string, unknown>, filter: Filter): boolean {
+    for (const [field, condition] of Object.entries(filter)) {
+      const value = this.getNestedValue(document, field);
+
+      if (condition && typeof condition === 'object' && !Array.isArray(condition) && !(condition instanceof Date)) {
+        const objectCondition = condition as Record<string, unknown>;
+        for (const [operator, operand] of Object.entries(objectCondition)) {
+          switch (operator) {
+            case '$ne':
+              if (this.areEqual(value, operand)) {
+                return false;
+              }
+              break;
+            case '$in':
+              if (Array.isArray(operand)) {
+                if (!operand.some(item => this.areEqual(value, item))) {
+                  return false;
+                }
+              }
+              break;
+            case '$nin':
+              if (Array.isArray(operand)) {
+                if (operand.some(item => this.areEqual(value, item))) {
+                  return false;
+                }
+              }
+              break;
+            case '$gte':
+              if (!this.compare(value, operand, (a, b) => a >= b)) {
+                return false;
+              }
+              break;
+            case '$lte':
+              if (!this.compare(value, operand, (a, b) => a <= b)) {
+                return false;
+              }
+              break;
+            case '$gt':
+              if (!this.compare(value, operand, (a, b) => a > b)) {
+                return false;
+              }
+              break;
+            case '$lt':
+              if (!this.compare(value, operand, (a, b) => a < b)) {
+                return false;
+              }
+              break;
+            default:
+              if (typeof operand === 'object' && operand !== null) {
+                if (!this.matchesFilter(value as Record<string, unknown>, { [operator]: operand })) {
+                  return false;
+                }
+              }
+          }
+        }
+      } else {
+        if (!this.areEqual(value, condition)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private areEqual(a: unknown, b: unknown): boolean {
+    if (a instanceof Date && b instanceof Date) {
+      return a.getTime() === b.getTime();
+    }
+    if (a instanceof Date && typeof b === 'string' && ISO_DATE_REGEX.test(b)) {
+      return a.getTime() === new Date(b).getTime();
+    }
+    if (b instanceof Date && typeof a === 'string' && ISO_DATE_REGEX.test(a)) {
+      return b.getTime() === new Date(a).getTime();
+    }
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+
+  private compare(
+    left: unknown,
+    right: unknown,
+    comparator: (a: number | string, b: number | string) => boolean
+  ): boolean {
+    if (left instanceof Date || (typeof left === 'string' && ISO_DATE_REGEX.test(left))) {
+      const leftDate = left instanceof Date ? left : new Date(left);
+      const rightDate = right instanceof Date ? right : new Date(String(right));
+      return comparator(leftDate.getTime(), rightDate.getTime());
+    }
+
+    if (typeof left === 'number' || typeof left === 'string') {
+      const rightValue = typeof right === 'number' || typeof right === 'string'
+        ? right
+        : Number(right);
+      return comparator(left as number | string, rightValue as number | string);
+    }
+
+    return false;
+  }
+
+  private async query(filter: Filter, options: QueryOptions = {}): Promise<Record<string, unknown>[]> {
+    await this.ensureReady();
+    const { clause, params, fallback } = this.buildWhereClause(filter);
+
+    let sql = `SELECT * FROM ${this.config.table}${clause}`;
+
+    if (options.sort && Object.keys(options.sort).length > 0) {
+      const sortParts: string[] = [];
+      for (const [field, direction] of Object.entries(options.sort)) {
+        const column = this.getColumnForField(field);
+        if (column) {
+          sortParts.push(`${column} ${direction === -1 ? 'DESC' : 'ASC'}`);
+        }
+      }
+      if (sortParts.length) {
+        sql += ` ORDER BY ${sortParts.join(', ')}`;
+      }
+    }
+
+    if (typeof options.limit === 'number') {
+      sql += ` LIMIT ${options.limit}`;
+    }
+
+    if (typeof options.skip === 'number') {
+      if (!sql.includes('LIMIT')) {
+        sql += ' LIMIT -1';
+      }
+      sql += ` OFFSET ${options.skip}`;
+    }
+
+    const result = await d1Client.execute(sql, params);
+    const rows = (result.results || []) as Record<string, unknown>[];
+    const documents = rows.map(row => this.rowToDocument(row));
+    return this.applyFallbackFilter(documents, fallback);
+  }
+
+  public async create(document: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>>> {
+    const start = Date.now();
+    try {
+      const prepared = this.prepareDocument(document);
+      const row = this.prepareRow(prepared);
+      const { sql, params } = this.buildInsert(row);
+      const result = await d1Client.execute(sql, params);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to insert document');
+      }
 
       return {
         success: true,
-        data: document,
-        operationTime: Date.now() - startTime,
+        data: prepared,
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 
-  // Find multiple documents
-  async findMany(filter: Record<string, unknown> = {}, options?: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
-    const startTime = Date.now();
-
+  public async findOne(filter: Filter, options?: QueryOptions): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
+    const start = Date.now();
     try {
-      const collection = await this.initializeCollection();
+      const documents = await this.query(filter, { ...options, limit: 1 });
+      return {
+        success: true,
+        data: documents.length ? documents[0] : null,
+        operationTime: Date.now() - start,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: message,
+        operationTime: Date.now() - start,
+      };
+    }
+  }
 
-      // If collection is null (offline mode), return empty array
-      if (!collection) {
-        console.log(`Database offline: Simulating findMany operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: [],
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const documents = await collection.find(filter, options).toArray();
-
+  public async findMany(filter: Filter = {}, options?: QueryOptions): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
+    const start = Date.now();
+    try {
+      const documents = await this.query(filter, options);
       return {
         success: true,
         data: documents,
-        operationTime: Date.now() - startTime,
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 
-  // Update single document
-  async updateOne(filter: Record<string, unknown>, update: Record<string, unknown>, options?: { upsert?: boolean }): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
-    const startTime = Date.now();
-
+  public async updateOne(filter: Filter, update: UpdateFilter, options: { upsert?: boolean } = {}): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
+    const start = Date.now();
     try {
-      const collection = await this.initializeCollection();
+      const existing = await this.findOne(filter);
+      if (!existing.success) {
+        return existing;
+      }
 
-      // If collection is null (offline mode), simulate update
-      if (!collection) {
-        console.log(`Database offline: Simulating updateOne operation for ${this.collectionName}`);
-        const collectionStore = offlineStorage.get(this.collectionName)!;
-        
-        // Find document to update
-        for (const [id, doc] of collectionStore) {
-          let matches = true;
+      if (!existing.data) {
+        if (options.upsert) {
+          const base: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(filter)) {
-            if (doc[key] !== value) {
-              matches = false;
-              break;
+            if (typeof value !== 'object' || value instanceof Date || Array.isArray(value)) {
+              base[key] = value;
             }
           }
-          if (matches) {
-            // Apply update - handle both direct update and $set syntax
-            const updateData = update.$set ? update.$set as Record<string, unknown> : update;
-            const updatedDoc = {
-              ...doc,
-              ...updateData,
-              updatedAt: new Date(),
-            };
-            collectionStore.set(id, updatedDoc);
-            return {
-              success: true,
-              data: updatedDoc,
-              operationTime: Date.now() - startTime,
-            };
-          }
+          const upsertDocument = {
+            ...base,
+            ...(update.$set || update),
+          } as Record<string, unknown>;
+          return this.create(upsertDocument);
         }
-        
+
         return {
           success: true,
           data: null,
-          operationTime: Date.now() - startTime,
+          operationTime: Date.now() - start,
         };
       }
 
-      // Add updatedAt timestamp
-      const updateWithTimestamp = {
-        ...update,
-        $set: {
-          ...(update.$set && typeof update.$set === 'object' ? update.$set as Record<string, unknown> : {}),
+      const updatedDocument = {
+        ...existing.data,
+        updatedAt: new Date(),
+      } as Record<string, unknown>;
+
+      this.applyUpdates(updatedDocument, update.$set || update);
+
+      const row = this.prepareRow(updatedDocument);
+      const { sql, params } = this.buildUpdate(row);
+      const result = await d1Client.execute(sql, params);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update document');
+      }
+
+      return {
+        success: true,
+        data: updatedDocument,
+        operationTime: Date.now() - start,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: message,
+        operationTime: Date.now() - start,
+      };
+    }
+  }
+
+  public async updateMany(filter: Filter, update: UpdateFilter): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
+    const start = Date.now();
+    try {
+      const documents = await this.query(filter);
+      let modified = 0;
+
+      for (const document of documents) {
+        const updatedDocument = {
+          ...document,
           updatedAt: new Date(),
-        },
-      };
-
-      const result = await collection.updateOne(filter, updateWithTimestamp, options);
-
-      if (!result.acknowledged) {
-        throw new Error('Update operation was not acknowledged');
-      }
-
-      // Return the updated document if it was found
-      if (result.matchedCount > 0) {
-        const updatedDocument = await collection.findOne(filter);
-        return {
-          success: true,
-          data: updatedDocument,
-          operationTime: Date.now() - startTime,
-        };
+        } as Record<string, unknown>;
+        this.applyUpdates(updatedDocument, update.$set || update);
+        const row = this.prepareRow(updatedDocument);
+        const { sql, params } = this.buildUpdate(row);
+        const result = await d1Client.execute(sql, params);
+        if (result.success) {
+          modified++;
+        }
       }
 
       return {
         success: true,
-        data: null,
-        operationTime: Date.now() - startTime,
+        data: { modifiedCount: modified },
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 
-  // Update multiple documents
-  async updateMany(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
-    const startTime = Date.now();
-
+  public async deleteOne(filter: Filter): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+    const start = Date.now();
     try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), simulate update
-      if (!collection) {
-        console.log(`Database offline: Simulating updateMany operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: { modifiedCount: 0 },
-          operationTime: Date.now() - startTime,
-        };
+      const existing = await this.findOne(filter);
+      if (!existing.success) {
+        return { success: false, error: existing.error, operationTime: Date.now() - start };
       }
 
-      const updateWithTimestamp = {
-        ...update,
-        $set: {
-          ...(update.$set && typeof update.$set === 'object' ? update.$set as Record<string, unknown> : {}),
-          updatedAt: new Date(),
-        },
-      };
+      if (!existing.data) {
+        return { success: true, data: { deletedCount: 0 }, operationTime: Date.now() - start };
+      }
 
-      const result = await collection.updateMany(filter, updateWithTimestamp);
+      const sql = `DELETE FROM ${this.config.table} WHERE id = ?`;
+      const result = await d1Client.execute(sql, [existing.data._id]);
 
-      if (!result.acknowledged) {
-        throw new Error('Update operation was not acknowledged');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete document');
       }
 
       return {
         success: true,
-        data: { modifiedCount: result.modifiedCount },
-        operationTime: Date.now() - startTime,
+        data: { deletedCount: 1 },
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 
-  // Delete single document
-  async deleteOne(filter: Record<string, unknown>): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
-    const startTime = Date.now();
-
+  public async deleteMany(filter: Filter): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+    const start = Date.now();
     try {
-      const collection = await this.initializeCollection();
+      const documents = await this.query(filter);
+      let deleted = 0;
 
-      // If collection is null (offline mode), simulate delete
-      if (!collection) {
-        console.log(`Database offline: Simulating deleteOne operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: { deletedCount: 0 },
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const result = await collection.deleteOne(filter);
-
-      if (!result.acknowledged) {
-        throw new Error('Delete operation was not acknowledged');
+      for (const document of documents) {
+        const sql = `DELETE FROM ${this.config.table} WHERE id = ?`;
+        const result = await d1Client.execute(sql, [document._id]);
+        if (result.success) {
+          deleted++;
+        }
       }
 
       return {
         success: true,
-        data: { deletedCount: result.deletedCount },
-        operationTime: Date.now() - startTime,
+        data: { deletedCount: deleted },
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 
-  // Delete multiple documents
-  async deleteMany(filter: Record<string, unknown>): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
-    const startTime = Date.now();
-
+  public async count(filter: Filter = {}): Promise<DatabaseOperationResult<number>> {
+    const start = Date.now();
     try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), simulate delete
-      if (!collection) {
-        console.log(`Database offline: Simulating deleteMany operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: { deletedCount: 0 },
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const result = await collection.deleteMany(filter);
-
-      if (!result.acknowledged) {
-        throw new Error('Delete operation was not acknowledged');
-      }
-
+      const { clause, params } = this.buildWhereClause(filter);
+      const sql = `SELECT COUNT(*) as count FROM ${this.config.table}${clause}`;
+      const result = await d1Client.execute(sql, params);
+      const count = (result.results && result.results[0] && (result.results[0] as Record<string, unknown>).count) || 0;
       return {
         success: true,
-        data: { deletedCount: result.deletedCount },
-        operationTime: Date.now() - startTime,
+        data: typeof count === 'number' ? count : Number(count),
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 
-  // Count documents
-  async count(filter: Record<string, unknown> = {}): Promise<DatabaseOperationResult<number>> {
-    const startTime = Date.now();
-
-    try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), return 0
-      if (!collection) {
-        console.log(`Database offline: Simulating count operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: 0,
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const count = await collection.countDocuments(filter);
-
-      return {
-        success: true,
-        data: count,
-        operationTime: Date.now() - startTime,
-      };
-    } catch (error) {
+  public async exists(filter: Filter): Promise<DatabaseOperationResult<boolean>> {
+    const countResult = await this.count(filter);
+    if (!countResult.success) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: countResult.error,
+        operationTime: countResult.operationTime,
       };
     }
+    return {
+      success: true,
+      data: (countResult.data || 0) > 0,
+      operationTime: countResult.operationTime,
+    };
   }
 
-  // Check if document exists
-  async exists(filter: Record<string, unknown>): Promise<DatabaseOperationResult<boolean>> {
-    const startTime = Date.now();
+  public async bulkWrite(operations: Record<string, unknown>[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
+    const start = Date.now();
+    const result: BulkOperationResult = {
+      success: true,
+      insertedCount: 0,
+      updatedCount: 0,
+      deletedCount: 0,
+      errors: [],
+      operationTime: 0,
+    };
 
-    try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), return false
-      if (!collection) {
-        console.log(`Database offline: Simulating exists operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: false,
-          operationTime: Date.now() - startTime,
-        };
+    for (const operation of operations) {
+      try {
+        if (operation.insertOne) {
+          const { document } = operation.insertOne as { document: Record<string, unknown> };
+          const createResult = await this.create(document);
+          if (!createResult.success) {
+            throw new Error(createResult.error || 'Insert failed');
+          }
+          result.insertedCount++;
+        } else if (operation.updateOne) {
+          const { filter, update, options } = operation.updateOne as { filter: Filter; update: UpdateFilter; options?: { upsert?: boolean } };
+          const updateResult = await this.updateOne(filter, update, options);
+          if (!updateResult.success) {
+            throw new Error(updateResult.error || 'Update failed');
+          }
+          if (updateResult.data) {
+            result.updatedCount++;
+          }
+        } else if (operation.deleteOne) {
+          const { filter } = operation.deleteOne as { filter: Filter };
+          const deleteResult = await this.deleteOne(filter);
+          if (!deleteResult.success) {
+            throw new Error(deleteResult.error || 'Delete failed');
+          }
+          result.deletedCount += deleteResult.data?.deletedCount || 0;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        result.errors.push(message);
+        result.success = false;
       }
-
-      const count = await collection.countDocuments(filter, { limit: 1 });
-
-      return {
-        success: true,
-        data: count > 0,
-        operationTime: Date.now() - startTime,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
-      };
     }
+
+    result.operationTime = Date.now() - start;
+
+    return {
+      success: result.errors.length === 0,
+      data: result,
+      error: result.errors.length ? result.errors.join('; ') : undefined,
+      operationTime: result.operationTime,
+    };
   }
 
-  // Bulk operations
-  async bulkWrite(operations: Record<string, unknown>[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
-    const startTime = Date.now();
+  public async aggregate(): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
+    return {
+      success: false,
+      error: 'Aggregation pipelines are not supported in the D1 adapter',
+      operationTime: 0,
+    };
+  }
 
+  public async createIndexes(): Promise<DatabaseOperationResult<string[]>> {
+    return {
+      success: true,
+      data: [],
+      operationTime: 0,
+    };
+  }
+
+  public async distinct(field: string, filter: Filter = {}): Promise<DatabaseOperationResult<unknown[]>> {
+    const start = Date.now();
     try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), simulate bulk write
-      if (!collection) {
-        console.log(`Database offline: Simulating bulkWrite operation for ${this.collectionName}`);
-        const bulkResult: BulkOperationResult = {
-          success: true,
-          insertedCount: 0,
-          updatedCount: 0,
-          deletedCount: 0,
-          errors: [],
-          operationTime: Date.now() - startTime,
-        };
-
-        return {
-          success: true,
-          data: bulkResult,
-          operationTime: Date.now() - startTime,
-        };
+      const documentsResult = await this.findMany(filter);
+      if (!documentsResult.success || !documentsResult.data) {
+        throw new Error(documentsResult.error || 'Failed to retrieve documents for distinct query');
       }
 
-      const result = await collection.bulkWrite(operations as any[]);
-
-      const bulkResult: BulkOperationResult = {
-        success: result.ok === 1,
-        insertedCount: result.insertedCount || 0,
-        updatedCount: result.modifiedCount || 0,
-        deletedCount: result.deletedCount || 0,
-        errors: [],
-        operationTime: Date.now() - startTime,
-      };
+      const values = new Set<unknown>();
+      for (const document of documentsResult.data) {
+        const value = this.getNestedValue(document, field);
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value)) {
+            value.forEach(item => values.add(item));
+          } else {
+            values.add(value);
+          }
+        }
+      }
 
       return {
         success: true,
-        data: bulkResult,
-        operationTime: Date.now() - startTime,
+        data: Array.from(values),
+        operationTime: Date.now() - start,
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
-      };
-    }
-  }
-
-  // Aggregation pipeline
-  async aggregate(pipeline: Record<string, unknown>[], options?: { allowDiskUse?: boolean }): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
-    const startTime = Date.now();
-
-    try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), return empty array
-      if (!collection) {
-        console.log(`Database offline: Simulating aggregate operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: [],
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const results = await collection.aggregate(pipeline, options).toArray();
-
-      return {
-        success: true,
-        data: results,
-        operationTime: Date.now() - startTime,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
-      };
-    }
-  }
-
-  // Create indexes
-  async createIndexes(indexes: Array<{ key: Record<string, 1 | -1>; options?: Record<string, unknown> }>): Promise<DatabaseOperationResult<string[]>> {
-    const startTime = Date.now();
-
-    try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), simulate index creation
-      if (!collection) {
-        console.log(`Database offline: Simulating createIndexes operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: indexes.map(() => 'simulated_index'),
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const results = await Promise.all(
-        indexes.map(index => collection.createIndex(index.key, index.options))
-      );
-
-      return {
-        success: true,
-        data: results,
-        operationTime: Date.now() - startTime,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
-      };
-    }
-  }
-
-  // Get distinct values
-  async distinct(field: string, filter: Record<string, unknown> = {}): Promise<DatabaseOperationResult<unknown[]>> {
-    const startTime = Date.now();
-
-    try {
-      const collection = await this.initializeCollection();
-
-      // If collection is null (offline mode), return empty array
-      if (!collection) {
-        console.log(`Database offline: Simulating distinct operation for ${this.collectionName}`);
-        return {
-          success: true,
-          data: [],
-          operationTime: Date.now() - startTime,
-        };
-      }
-
-      const values = await collection.distinct(field, filter);
-
-      return {
-        success: true,
-        data: values,
-        operationTime: Date.now() - startTime,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        operationTime: Date.now() - startTime,
+        error: message,
+        operationTime: Date.now() - start,
       };
     }
   }
 }
 
-// Factory function to create database operations instances
 export function createDatabaseOperations(collectionName: string): DatabaseOperations {
   return new DatabaseOperations(collectionName);
 }
 
-// Utility functions for common operations
 export const databaseUtils = {
-  // Validate ObjectId
   isValidObjectId(id: string): boolean {
-    return ObjectId.isValid(id);
+    return OBJECT_ID_REGEX.test(id);
   },
 
-  // Convert string to ObjectId
-  toObjectId(id: string): ObjectId {
+  toObjectId(id: string): string {
     if (!this.isValidObjectId(id)) {
-      throw new Error(`Invalid ObjectId: ${id}`);
+      throw new Error(`Invalid identifier: ${id}`);
     }
-    return new ObjectId(id);
+    return id;
   },
 
-  // Generate new ObjectId
-  generateId(): ObjectId {
-    return new ObjectId();
+  generateId(): string {
+    return randomBytes(12).toString('hex');
   },
 
-  // Convert ObjectId to string
-  idToString(id: ObjectId): string {
-    return id.toHexString();
+  idToString(id: string): string {
+    return id;
   },
 
-  // Validate document structure
   validateDocument(document: Record<string, unknown>, requiredFields: string[]): Error | null {
     for (const field of requiredFields) {
       if (!(field in document) || document[field] === null || document[field] === undefined) {
@@ -651,5 +897,4 @@ export const databaseUtils = {
   },
 };
 
-// Export types for use in other modules
 export type { DatabaseOperationResult, BulkOperationResult };

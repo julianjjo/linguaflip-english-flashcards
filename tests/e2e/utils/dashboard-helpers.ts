@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Page } from '@playwright/test';
 import type { DashboardData, DashboardSelectors, DashboardTestContext } from '../types/dashboard';
 

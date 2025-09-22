@@ -1,75 +1,81 @@
-// Load environment variables
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { MongoClient, Db } from 'mongodb';
-import type { MongoClientOptions } from 'mongodb';
+import { d1Client } from './d1Client';
 
-// Database configuration interface
+export type DatabaseMode = 'remote' | 'local';
+
 export interface DatabaseConfig {
-  uri: string;
-  databaseName: string;
-  options: MongoClientOptions;
+  provider: 'cloudflare-d1';
+  mode: DatabaseMode;
+  database: string;
 }
 
-// Environment-specific database configurations
-const getDatabaseConfig = (): DatabaseConfig => {
-  const nodeEnv = process.env.NODE_ENV || 'development';
+const SCHEMA_STATEMENTS: string[] = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL UNIQUE,
+    email TEXT UNIQUE,
+    username TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    document TEXT NOT NULL
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)` ,
+  `CREATE TABLE IF NOT EXISTS flashcards (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    cardId TEXT NOT NULL,
+    category TEXT,
+    difficulty TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    document TEXT NOT NULL,
+    UNIQUE(userId, cardId)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_flashcards_user ON flashcards(userId)`,
+  `CREATE INDEX IF NOT EXISTS idx_flashcards_category ON flashcards(userId, category)`,
+  `CREATE INDEX IF NOT EXISTS idx_flashcards_difficulty ON flashcards(userId, difficulty)`,
+  `CREATE TABLE IF NOT EXISTS study_sessions (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    sessionId TEXT NOT NULL,
+    sessionType TEXT,
+    startTime TEXT,
+    endTime TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    document TEXT NOT NULL,
+    UNIQUE(userId, sessionId)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_sessions_user ON study_sessions(userId)`,
+  `CREATE TABLE IF NOT EXISTS study_statistics (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    statsId TEXT NOT NULL,
+    date TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    document TEXT NOT NULL,
+    UNIQUE(userId, statsId),
+    UNIQUE(userId, date)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_statistics_user ON study_statistics(userId)`,
+  `CREATE INDEX IF NOT EXISTS idx_statistics_date ON study_statistics(date)`,
+  `CREATE TABLE IF NOT EXISTS migrations (
+    id TEXT PRIMARY KEY,
+    version TEXT NOT NULL,
+    description TEXT,
+    appliedAt TEXT NOT NULL
+  )`,
+];
 
-  // Base configuration options
-  const baseOptions: MongoClientOptions = {
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 2000, // Faster timeout for development
-    socketTimeoutMS: 45000,
-    maxIdleTimeMS: 30000,
-    retryWrites: true,
-    retryReads: true,
-    directConnection: true, // Use direct connection as specified
-  };
-
-  switch (nodeEnv) {
-    case 'production':
-      return {
-        uri: process.env.MONGODB_URI || '',
-        databaseName: process.env.MONGODB_DATABASE || 'linguaflip_prod',
-        options: {
-          ...baseOptions,
-          maxPoolSize: 20,
-          serverSelectionTimeoutMS: 10000,
-        },
-      };
-
-    case 'test':
-      return {
-        uri: process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017',
-        databaseName: process.env.MONGODB_TEST_DATABASE || 'linguaflip_test',
-        options: {
-          ...baseOptions,
-          maxPoolSize: 5,
-          serverSelectionTimeoutMS: 3000,
-        },
-      };
-
-    default: // development
-      return {
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=linguaflip-dev',
-        databaseName: process.env.MONGODB_DATABASE || 'linguaflip_dev',
-        options: baseOptions,
-      };
-  }
-};
-
-// Database connection class
 export class DatabaseConnection {
   private static instance: DatabaseConnection;
-  private client: MongoClient | null = null;
-  private db: Db | null = null;
-  private isConnected: boolean = false;
-  private config: DatabaseConfig;
+  private initialized = false;
+  private mode: DatabaseMode = 'local';
 
-  private constructor() {
-    this.config = getDatabaseConfig();
-  }
+  private constructor() {}
 
   public static getInstance(): DatabaseConnection {
     if (!DatabaseConnection.instance) {
@@ -78,162 +84,86 @@ export class DatabaseConnection {
     return DatabaseConnection.instance;
   }
 
-  // Connect to MongoDB with retry logic (graceful fallback)
-  public async connect(maxRetries: number = 3): Promise<boolean> {
-    if (this.isConnected && this.client) {
+  public async connect(): Promise<boolean> {
+    if (this.initialized) {
       return true;
     }
 
-    // If no MongoDB URI is configured, skip connection
-    if (!this.config.uri || this.config.uri.trim() === '') {
-      console.warn('MongoDB URI not configured, running in offline mode');
+    try {
+      await d1Client.initializeSchema(SCHEMA_STATEMENTS);
+      this.mode = d1Client.isRemote() ? 'remote' : 'local';
+      this.initialized = true;
+      console.log(`Cloudflare D1 ready (mode: ${this.mode})`);
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to initialize Cloudflare D1:', message);
+      this.initialized = false;
       return false;
     }
-
-    let lastError: Error | null = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`Attempting MongoDB connection (attempt ${attempt}/${maxRetries})...`);
-
-        this.client = new MongoClient(this.config.uri, this.config.options);
-
-        // Set up event listeners
-        this.client.on('connected', () => {
-          console.log('MongoDB connected successfully');
-          this.isConnected = true;
-        });
-
-        this.client.on('disconnected', () => {
-          console.log('MongoDB disconnected');
-          this.isConnected = false;
-        });
-
-        this.client.on('error', (error) => {
-          console.error('MongoDB connection error:', error);
-        });
-
-        // Connect to MongoDB
-        await this.client.connect();
-        this.db = this.client.db(this.config.databaseName);
-
-        // Test the connection
-        await this.client.db(this.config.databaseName).admin().ping();
-
-        this.isConnected = true;
-        console.log(`MongoDB connected successfully to database: ${this.config.databaseName}`);
-        return true;
-
-      } catch (error) {
-        lastError = error as Error;
-        console.error(`MongoDB connection attempt ${attempt} failed:`, error);
-
-        if (attempt < maxRetries) {
-          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-          console.log(`Retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-    }
-
-    console.warn(`Failed to connect to MongoDB after ${maxRetries} attempts. Running in offline mode. Last error: ${lastError?.message}`);
-    return false;
   }
 
-  // Get database instance
-  public getDatabase(): Db {
-    if (!this.db || !this.isConnected) {
-      throw new Error('Database not connected. Call connect() first.');
-    }
-    return this.db;
-  }
-
-  // Get client instance
-  public getClient(): MongoClient {
-    if (!this.client || !this.isConnected) {
-      throw new Error('Database not connected. Call connect() first.');
-    }
-    return this.client;
-  }
-
-  // Check connection status
   public isDatabaseConnected(): boolean {
-    return this.isConnected;
+    return this.initialized;
   }
 
-  // Close connection
+  public getMode(): DatabaseMode {
+    return this.mode;
+  }
+
   public async close(): Promise<void> {
-    if (this.client) {
-      await this.client.close();
-      this.isConnected = false;
-      this.db = null;
-      console.log('MongoDB connection closed');
-    }
+    await d1Client.close();
+    this.initialized = false;
   }
 
-  // Health check
-  public async healthCheck(): Promise<{ status: string; database: string; collections?: string[] }> {
+  public async healthCheck(): Promise<{ status: string; database: string; mode: DatabaseMode; tables?: string[]; error?: string }> {
     try {
-      if (!this.isConnected || !this.db) {
-        return { status: 'disconnected', database: this.config.databaseName };
-      }
-
-      // Ping the database
-      await this.db.admin().ping();
-
-      // Get collection names
-      const collections = await this.db.listCollections().toArray();
-      const collectionNames = collections.map(col => col.name);
+      await this.connect();
+      const tableResult = await d1Client.execute("SELECT name FROM sqlite_master WHERE type='table'");
+      const tables = (tableResult.results || [])
+        .map(row => (typeof row.name === 'string' ? row.name : undefined))
+        .filter((name): name is string => Boolean(name));
 
       return {
         status: 'connected',
-        database: this.config.databaseName,
-        collections: collectionNames,
+        database: 'cloudflare-d1',
+        mode: this.mode,
+        tables,
       };
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         status: 'error',
-        database: this.config.databaseName,
+        database: 'cloudflare-d1',
+        mode: this.mode,
+        error: message,
       };
     }
   }
 }
 
-// Export singleton instance
 export const dbConnection = DatabaseConnection.getInstance();
 
-// Initialize database connection automatically
-if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
-  // Auto-connect to database when module loads
-  dbConnection.connect().catch((error) => {
-    console.warn('Auto-connection to MongoDB failed, will run in offline mode:', error.message);
-  });
-}
-
-// Utility function to get database instance
-export const getDatabase = (): Db | null => {
-  try {
-    return dbConnection.getDatabase();
-  } catch {
-    console.warn('Database not available, using offline mode');
-    return null;
-  }
-};
-
-// Utility function to initialize database connection
 export const initializeDatabase = async (): Promise<boolean> => {
-  try {
-    return await dbConnection.connect();
-  } catch (error) {
-    console.warn('Database initialization failed, running in offline mode:', error);
-    return false;
-  }
+  return dbConnection.connect();
 };
 
-// Utility function to close database connection
 export const closeDatabase = async (): Promise<void> => {
   await dbConnection.close();
 };
 
-// Export database configuration for external use
-export const databaseConfig = getDatabaseConfig();
+export interface DatabaseInfo {
+  provider: 'cloudflare-d1';
+  mode: DatabaseMode;
+}
+
+export const getDatabase = (): DatabaseInfo => ({
+  provider: 'cloudflare-d1',
+  mode: dbConnection.getMode(),
+});
+
+export const databaseConfig: DatabaseConfig = {
+  provider: 'cloudflare-d1',
+  mode: dbConnection.getMode(),
+  database: 'cloudflare-d1',
+};
