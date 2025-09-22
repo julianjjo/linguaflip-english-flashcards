@@ -94,7 +94,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       }
     } catch (error) {
       // Silently handle invalid tokens - common during development
-      console.warn('Invalid token in middleware, continuing without auth');
+      console.warn('Invalid token in middleware, continuing without auth', error);
     }
   }
 
