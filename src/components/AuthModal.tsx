@@ -125,12 +125,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             {mode === 'register' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="auth-username"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Nombre de usuario (opcional)
                 </label>
                 <input
                   type="text"
                   name="username"
+                  id="auth-username"
                   value={formData.username}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
@@ -140,12 +144,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="auth-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Correo electrónico
               </label>
               <input
                 type="email"
                 name="email"
+                id="auth-email"
                 value={formData.email}
                 onChange={handleInputChange}
                 required
@@ -155,12 +163,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="auth-password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Contraseña
               </label>
               <input
                 type="password"
                 name="password"
+                id="auth-password"
                 value={formData.password}
                 onChange={handleInputChange}
                 required
@@ -177,12 +189,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             {mode === 'register' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="auth-confirm-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Confirmar contraseña
                 </label>
                 <input
                   type="password"
                   name="confirmPassword"
+                  id="auth-confirm-password"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   required
