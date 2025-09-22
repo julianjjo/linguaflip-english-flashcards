@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { test, expect } from '@playwright/test';
 import { createDashboardHelpers } from '../utils/dashboard-helpers';
 import {

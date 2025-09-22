@@ -40,7 +40,7 @@ export interface FlashcardData {
   spanish: string;
   exampleEnglish?: string;
   exampleSpanish?: string;
-  image?: string;
+  image?: string | null;
   category?: string;
   tags?: string[];
   reviewCount?: number;

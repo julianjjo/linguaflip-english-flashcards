@@ -588,6 +588,29 @@ export class BulkOperationsService {
       const flashcard = flashcards[i];
 
       try {
+        if (typeof flashcard.cardId !== 'string') {
+          throw new ValidationError(
+            'Flashcard cardId must be a non-empty string',
+            'bulk_import_flashcards',
+            'flashcards',
+            'cardId',
+            flashcard.cardId
+          );
+        }
+
+        const cardId = flashcard.cardId.trim();
+        if (cardId.length === 0) {
+          throw new ValidationError(
+            'Flashcard cardId must be a non-empty string',
+            'bulk_import_flashcards',
+            'flashcards',
+            'cardId',
+            flashcard.cardId
+          );
+        }
+
+        flashcard.cardId = cardId;
+
         // Validate flashcard data
         const validation = validateDocument(flashcard, FlashcardSchema);
         if (!validation.isValid) {
@@ -599,7 +622,7 @@ export class BulkOperationsService {
         }
 
         // Check if flashcard already exists
-        const existingResult = await flashcardsService.getFlashcardById(flashcard.cardId, userId);
+        const existingResult = await flashcardsService.getFlashcardById(cardId, userId);
 
         if (existingResult.success && existingResult.data) {
           if (options.skipDuplicates) {
@@ -608,7 +631,7 @@ export class BulkOperationsService {
           } else if (options.updateExisting) {
             // Update existing flashcard
             const updateResult = await flashcardsService.updateFlashcard(
-              flashcard.cardId,
+              cardId,
               flashcard,
               userId
             );

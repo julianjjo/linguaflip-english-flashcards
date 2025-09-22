@@ -285,81 +285,62 @@ export class StudySessionsService {
         };
       }
 
-      const pipeline = [
-        { $match: matchStage },
-        {
-          $group: {
-            _id: null,
-            totalSessions: { $sum: 1 },
-            completedSessions: {
-              $sum: { $cond: [{ $ne: ['$endTime', null] }, 1, 0] }
-            },
-            totalDuration: { $sum: '$duration' },
-            averageDuration: { $avg: '$duration' },
-            totalCardsStudied: { $sum: '$totalCards' },
-            averageCardsPerSession: { $avg: '$totalCards' },
-            averagePerformance: { $avg: '$performance.overallScore' },
-            sessionsByType: {
-              $push: '$sessionType'
-            }
-          }
-        },
-        {
-          $project: {
-            totalSessions: 1,
-            completedSessions: 1,
-            totalDuration: 1,
-            averageDuration: 1,
-            totalCardsStudied: 1,
-            averageCardsPerSession: 1,
-            averagePerformance: 1,
-            sessionTypeBreakdown: {
-              $arrayToObject: {
-                $map: {
-                  input: { $setUnion: ['$sessionsByType'] },
-                  as: 'type',
-                  in: {
-                    k: '$$type',
-                    v: {
-                      $size: {
-                        $filter: {
-                          input: '$sessionsByType',
-                          cond: { $eq: ['$$this', '$$type'] }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      ];
+      const sessionsResult = await dbOps.findMany(matchStage) as DatabaseOperationResult<StudySessionDocument[]>;
 
-      const result = await dbOps.aggregate(pipeline) as DatabaseOperationResult<Record<string, unknown>[]>;
-
-      if (!result.success) {
+      if (!sessionsResult.success) {
         throw new DatabaseError(
-          result.error || 'Failed to get study session statistics',
+          sessionsResult.error || 'Failed to get study session statistics',
           'GET_STUDY_SESSION_STATS_FAILED',
           'get_study_session_stats',
           COLLECTION_NAME
         );
       }
 
+      const sessions = sessionsResult.data || [];
+      const totals = sessions.reduce((acc, session) => {
+        acc.totalSessions += 1;
+        if (session.endTime) {
+          acc.completedSessions += 1;
+        }
+
+        const duration = typeof (session as any).duration === 'number'
+          ? Number((session as any).duration)
+          : session.endTime
+            ? Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 1000)
+            : 0;
+
+        acc.totalDuration += duration;
+        acc.totalCardsStudied += session.totalCards ?? session.cardsStudied?.length ?? 0;
+        acc.totalPerformance += session.performance?.overallScore ?? 0;
+        acc.sessionsByType.push(session.sessionType);
+
+        return acc;
+      }, {
+        totalSessions: 0,
+        completedSessions: 0,
+        totalDuration: 0,
+        totalCardsStudied: 0,
+        totalPerformance: 0,
+        sessionsByType: [] as string[],
+      });
+
+      const averageDuration = totals.totalSessions > 0 ? totals.totalDuration / totals.totalSessions : 0;
+      const averageCardsPerSession = totals.totalSessions > 0 ? totals.totalCardsStudied / totals.totalSessions : 0;
+      const averagePerformance = totals.totalSessions > 0 ? totals.totalPerformance / totals.totalSessions : 0;
+
       return {
         success: true,
-        data: (result.data && result.data[0]) || {
-          totalSessions: 0,
-          completedSessions: 0,
-          totalDuration: 0,
-          averageDuration: 0,
-          totalCardsStudied: 0,
-          averageCardsPerSession: 0,
-          averagePerformance: 0,
-          sessionTypeBreakdown: {}
+        data: {
+          totalSessions: totals.totalSessions,
+          completedSessions: totals.completedSessions,
+          totalDuration: totals.totalDuration,
+          averageDuration,
+          totalCardsStudied: totals.totalCardsStudied,
+          averageCardsPerSession,
+          averagePerformance,
+          sessionsByType: totals.sessionsByType,
         },
-        operationTime: result.operationTime
+        operationTime: sessionsResult.operationTime,
       } as DatabaseOperationResult<{
         totalSessions: number;
         completedSessions: number;

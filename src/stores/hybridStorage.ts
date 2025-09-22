@@ -784,7 +784,7 @@ export class HybridStorage {
       spanish: card.back,
       exampleEnglish: card.exampleFront,
       exampleSpanish: card.exampleBack,
-      image: card.image,
+      image: card.image ?? card.imageUrl ?? null,
       dueDate: card.sm2.nextReviewDate.toISOString().split('T')[0],
       interval: card.sm2.interval,
       easinessFactor: card.sm2.easeFactor,
@@ -828,10 +828,18 @@ export class HybridStorage {
   private convertMongoSessionsToLocal(mongoSessions: StudySessionDocument[]): StudySession[] {
     return mongoSessions.map(session => ({
       id: session.sessionId,
-      date: session.date,
-      cardsReviewed: session.cardsReviewed,
+      date: session.startTime instanceof Date ? session.startTime.toISOString() : new Date(session.startTime).toISOString(),
+      cardsReviewed: typeof session.cardsReviewed === 'number'
+        ? session.cardsReviewed
+        : Array.isArray(session.cardsStudied)
+          ? session.cardsStudied.length
+          : 0,
       correctAnswers: session.correctAnswers,
-      totalTime: session.totalTime,
+      totalTime: typeof session.duration === 'number'
+        ? session.duration
+        : typeof session.totalTime === 'number'
+          ? session.totalTime
+          : 0,
       averageResponseTime: session.averageResponseTime
     }));
   }

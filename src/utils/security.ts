@@ -1,4 +1,4 @@
-// Security utilities for LinguaFlip MongoDB connection
+// Security utilities for LinguaFlip Cloudflare D1 connection
 
 import crypto from 'crypto';
 
@@ -9,83 +9,27 @@ export interface EnvironmentValidationResult {
   warnings: string[];
 }
 
-// Validate MongoDB environment variables
-export function validateMongoDBEnvironment(): EnvironmentValidationResult {
+// Validate Cloudflare D1 environment variables
+export function validateD1Environment(): EnvironmentValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-  const nodeEnv = process.env.NODE_ENV || 'development';
+  const endpoint = process.env.D1_URL;
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const databaseId = process.env.D1_DATABASE_ID;
+  const apiKey = process.env.D1_API_KEY;
 
-  // Required variables based on environment
-  const requiredVars = {
-    development: ['MONGODB_URI', 'MONGODB_DATABASE'],
-    production: ['MONGODB_URI', 'MONGODB_DATABASE'],
-    test: ['MONGODB_TEST_URI', 'MONGODB_TEST_DATABASE'],
-  };
-
-  const currentRequiredVars = requiredVars[nodeEnv as keyof typeof requiredVars] || requiredVars.development;
-
-  // Check required variables
-  for (const varName of currentRequiredVars) {
-    if (!process.env[varName]) {
-      errors.push(`Missing required environment variable: ${varName}`);
-    } else if (process.env[varName]?.includes('<password>') || process.env[varName]?.includes('your_password_here')) {
-      errors.push(`Environment variable ${varName} contains placeholder password. Please set actual password.`);
-    }
+  if (!endpoint && (!accountId || !databaseId)) {
+    errors.push('D1_URL or the pair CLOUDFLARE_ACCOUNT_ID and D1_DATABASE_ID must be provided');
   }
 
-  // Validate connection string format
-  const connectionString = nodeEnv === 'test' ? process.env.MONGODB_TEST_URI : process.env.MONGODB_URI;
-  if (connectionString) {
-    // Check for basic MongoDB URI format
-    if (!connectionString.startsWith('mongodb://') && !connectionString.startsWith('mongodb+srv://')) {
-      errors.push('Invalid MongoDB connection string format. Must start with mongodb:// or mongodb+srv://');
-    }
-
-    // Check for suspicious patterns
-    if (connectionString.includes('localhost') && nodeEnv === 'production') {
-      warnings.push('Using localhost MongoDB connection in production environment');
-    }
-
-    // Check for hardcoded credentials in connection string
-    const uriParts = connectionString.split('@');
-    if (uriParts.length > 1 && uriParts[0].includes(':')) {
-      const authPart = uriParts[0].split('://')[1];
-      if (authPart && authPart.includes(':') && !authPart.includes('<password>')) {
-        warnings.push('Connection string contains credentials. Consider using environment variables for sensitive data.');
-      }
-    }
+  if (!apiKey) {
+    errors.push('D1_API_KEY environment variable is required');
+  } else if (apiKey.toLowerCase() === 'token') {
+    warnings.push('D1_API_KEY appears to be a placeholder token. Replace it with a valid API token.');
   }
 
-  // Validate database name
-  const databaseName = nodeEnv === 'test' ? process.env.MONGODB_TEST_DATABASE : process.env.MONGODB_DATABASE;
-  if (databaseName) {
-    if (databaseName.length < 1 || databaseName.length > 64) {
-      errors.push('Database name must be between 1 and 64 characters');
-    }
-
-    // Check for invalid characters in database name
-    const invalidChars = /[/\\"\s]/;
-    if (invalidChars.test(databaseName)) {
-      errors.push('Database name contains invalid characters');
-    }
-  }
-
-  // Validate connection pool settings
-  const poolSize = process.env.MONGODB_POOL_SIZE;
-  if (poolSize) {
-    const poolSizeNum = parseInt(poolSize, 10);
-    if (isNaN(poolSizeNum) || poolSizeNum < 1 || poolSizeNum > 100) {
-      warnings.push('MongoDB pool size should be between 1 and 100');
-    }
-  }
-
-  // Validate timeout settings
-  const timeout = process.env.MONGODB_CONNECTION_TIMEOUT;
-  if (timeout) {
-    const timeoutNum = parseInt(timeout, 10);
-    if (isNaN(timeoutNum) || timeoutNum < 1000 || timeoutNum > 60000) {
-      warnings.push('MongoDB connection timeout should be between 1000ms and 60000ms');
-    }
+  if (endpoint && !endpoint.startsWith('https://')) {
+    warnings.push('D1_URL should use https:// for secure communication');
   }
 
   return {
@@ -95,49 +39,25 @@ export function validateMongoDBEnvironment(): EnvironmentValidationResult {
   };
 }
 
-// Secure connection string builder
-export function buildSecureConnectionString(): string {
-  const nodeEnv = process.env.NODE_ENV || 'development';
-
-  if (nodeEnv === 'test') {
-    return process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017';
+export function buildD1Endpoint(): string {
+  const endpoint = process.env.D1_URL;
+  if (endpoint) {
+    return endpoint.replace(/\/$/, '');
   }
 
-  const baseUri = process.env.MONGODB_URI;
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const databaseId = process.env.D1_DATABASE_ID;
 
-  if (!baseUri) {
-    throw new Error('MONGODB_URI environment variable is required');
+  if (!accountId || !databaseId) {
+    throw new Error('Either D1_URL or CLOUDFLARE_ACCOUNT_ID and D1_DATABASE_ID must be set');
   }
 
-  // If URI already contains credentials, return as-is
-  if (baseUri.includes('@')) {
-    return baseUri;
-  }
-
-  // For URIs without embedded credentials, validate they don't need them
-  if (baseUri.includes('localhost') || baseUri.includes('127.0.0.1')) {
-    return baseUri; // Local connections typically don't need credentials
-  }
-
-  // For cloud services, warn about missing credentials
-  console.warn('MongoDB URI does not contain credentials. Make sure authentication is properly configured.');
-
-  return baseUri;
+  return `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}`;
 }
 
-// Sanitize connection string for logging
-export function sanitizeConnectionString(uri: string): string {
-  if (!uri) return '';
-
-  // Remove password from connection string for logging
-  const sanitized = uri.replace(/:([^:@]{4})[^:@]*@/, ':$1****@');
-
-  // For localhost connections, show as-is
-  if (uri.includes('localhost') || uri.includes('127.0.0.1')) {
-    return uri;
-  }
-
-  return sanitized;
+export function sanitizeD1Url(url: string): string {
+  if (!url) return '';
+  return url.replace(/([?&]api_key=)[^&]+/i, '$1****');
 }
 
 // Environment variable encryption/decryption utilities (for sensitive data)

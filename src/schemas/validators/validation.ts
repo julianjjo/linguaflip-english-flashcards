@@ -6,6 +6,7 @@
 
 import { emailValidator, urlValidator } from './common.ts';
 import { sm2Validator } from './sm2.ts';
+import type { FlashcardSM2Data } from '../../types/database';
 
 /**
  * MongoDB Schema Validator interface
@@ -24,7 +25,7 @@ export interface SchemaValidator {
  */
 export interface ValidationDocument {
   [key: string]: unknown;
-  sm2?: Record<string, unknown>;
+  sm2?: Record<string, unknown> | FlashcardSM2Data;
   email?: unknown;
   audioUrl?: unknown;
   imageUrl?: unknown;

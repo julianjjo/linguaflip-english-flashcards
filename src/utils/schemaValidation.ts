@@ -5,11 +5,10 @@
  * for MongoDB collections and documents in the LinguaFlip application.
  */
 
-import { Db } from 'mongodb';
-import type { Document } from 'mongodb';
-import { getDatabase } from './database';
+import { createDatabaseOperations } from './databaseOperations';
 import { Schemas, validateDocument } from '../schemas/mongodb';
 import type {
+  Document,
   UserDocument,
   FlashcardDocument,
   StudySessionDocument,
@@ -80,14 +79,31 @@ export interface PerformanceMetrics {
  * Comprehensive schema validation and testing utilities
  */
 export class SchemaValidator {
-  private db: Db;
+  private collections: Record<string, ReturnType<typeof createDatabaseOperations>>;
 
-  constructor(db?: Db) {
-    const database = db || getDatabase();
-    if (!database) {
-      throw new Error('Database connection not available');
+  constructor() {
+    this.collections = {};
+  }
+
+  private getOperations(collectionName: string) {
+    if (!this.collections[collectionName]) {
+      this.collections[collectionName] = createDatabaseOperations(collectionName);
     }
-    this.db = database;
+    return this.collections[collectionName];
+  }
+
+  private sampleDocuments(documents: Document[], sampleSize: number): Document[] {
+    const copy = [...documents];
+    const result: Document[] = [];
+    const targetSize = Math.min(sampleSize, copy.length);
+    while (result.length < targetSize) {
+      const index = Math.floor(Math.random() * copy.length);
+      const [item] = copy.splice(index, 1);
+      if (item) {
+        result.push(item);
+      }
+    }
+    return result;
   }
 
   /**
@@ -151,19 +167,20 @@ export class SchemaValidator {
     collectionName: string,
     sampleSize?: number
   ): Promise<SchemaHealthReport> {
-    const collection = this.db.collection(collectionName);
-    const totalDocuments = await collection.countDocuments();
+    const operations = this.getOperations(collectionName);
+    const countResult = await operations.count({});
+    const totalDocuments = countResult.success && typeof countResult.data === 'number'
+      ? countResult.data
+      : 0;
+
+    const documentsResult = await operations.findMany({});
+    const allDocuments = documentsResult.success && documentsResult.data ? documentsResult.data as Document[] : [];
 
     let documentsToValidate: Document[] = [];
-
-    if (sampleSize && sampleSize < totalDocuments) {
-      // Sample documents for validation
-      documentsToValidate = await collection.aggregate([
-        { $sample: { size: sampleSize } }
-      ]).toArray();
+    if (sampleSize && sampleSize > 0 && sampleSize < allDocuments.length) {
+      documentsToValidate = this.sampleDocuments(allDocuments, sampleSize);
     } else {
-      // Validate all documents
-      documentsToValidate = await collection.find({}).toArray();
+      documentsToValidate = allDocuments;
     }
 
     let validDocuments = 0;
@@ -182,7 +199,6 @@ export class SchemaValidator {
     // Get index health
     const indexHealth = await this.getIndexHealth(collectionName);
 
-    // Get performance metrics
     const performanceMetrics = await this.getPerformanceMetrics(collectionName);
 
     return {
@@ -252,13 +268,10 @@ export class SchemaValidator {
     const recommendations: string[] = [];
 
     try {
-      const flashcardsCollection = this.db.collection('flashcards');
-
-      // Get user's flashcards
-      const userFlashcards = await flashcardsCollection
-        .find({ userId })
-        .project({ cardId: 1, sm2: 1, lastReviewed: 1 })
-        .toArray();
+      const flashcardsResult = await this.getOperations('flashcards').findMany({ userId });
+      const userFlashcards = flashcardsResult.success && flashcardsResult.data
+        ? flashcardsResult.data as Array<Record<string, any>>
+        : [];
 
       // Validate SM-2 parameters
       for (const card of userFlashcards) {
@@ -367,11 +380,9 @@ export class SchemaValidator {
   ): Promise<void> {
     // Check referential integrity
     if (document.userId) {
-      const usersCollection = this.db.collection('users');
-      const userExists = await usersCollection.countDocuments(
-        { userId: document.userId },
-        { limit: 1 }
-      );
+      const usersOperations = this.getOperations('users');
+      const userExistsResult = await usersOperations.count({ userId: document.userId });
+      const userExists = userExistsResult.success ? userExistsResult.data || 0 : 0;
 
       if (userExists === 0) {
         errors.push({
@@ -385,12 +396,13 @@ export class SchemaValidator {
     // Collection-specific cross-collection validations
     if (collectionName === 'flashcards' && document.cardId) {
       // Check for duplicate card IDs within user scope
-      const flashcardsCollection = this.db.collection('flashcards');
-      const duplicateCount = await flashcardsCollection.countDocuments({
+      const flashcardsOperations = this.getOperations('flashcards');
+      const duplicateResult = await flashcardsOperations.count({
         userId: document.userId,
         cardId: document.cardId,
         _id: { $ne: document._id }
       });
+      const duplicateCount = duplicateResult.success ? duplicateResult.data || 0 : 0;
 
       if (duplicateCount > 0) {
         errors.push({
@@ -409,11 +421,12 @@ export class SchemaValidator {
   ): Promise<void> {
     // Check email uniqueness if email exists
     if (user.email) {
-      const usersCollection = this.db.collection('users');
-      const emailExists = await usersCollection.countDocuments({
+      const usersOperations = this.getOperations('users');
+      const emailExistsResult = await usersOperations.count({
         email: user.email,
         userId: { $ne: user.userId }
       });
+      const emailExists = emailExistsResult.success ? emailExistsResult.data || 0 : 0;
 
       if (emailExists > 0) {
         errors.push({
@@ -426,11 +439,12 @@ export class SchemaValidator {
 
     // Check username uniqueness if username exists
     if (user.username) {
-      const usersCollection = this.db.collection('users');
-      const usernameExists = await usersCollection.countDocuments({
+      const usersOperations = this.getOperations('users');
+      const usernameExistsResult = await usersOperations.count({
         username: user.username,
         userId: { $ne: user.userId }
       });
+      const usernameExists = usernameExistsResult.success ? usernameExistsResult.data || 0 : 0;
 
       if (usernameExists > 0) {
         errors.push({
@@ -570,54 +584,21 @@ export class SchemaValidator {
     }
   }
 
-  private async getIndexHealth(collectionName: string): Promise<IndexHealth[]> {
-    try {
-      const collection = this.db.collection(collectionName);
-      const indexStats = await collection.aggregate([
-        { $indexStats: {} }
-      ]).toArray();
-
-      return indexStats.map((stat: Record<string, unknown>): IndexHealth => ({
-        name: stat.name as string,
-        key: stat.key,
-        usageCount: (stat.accesses as { ops?: number })?.ops || 0,
-        isUsed: ((stat.accesses as { ops?: number })?.ops || 0) > 0,
-        size: (stat.size as number) || 0
-      }));
-    } catch (error) {
-      console.warn(`Could not get index health for ${collectionName}:`, error);
-      return [];
-    }
+  private async getIndexHealth(_collectionName: string): Promise<IndexHealth[]> {
+    // Cloudflare D1 does not expose index statistics via the HTTP API.
+    // Return an empty array to indicate that no index data is available.
+    return [];
   }
 
-  private async getPerformanceMetrics(collectionName: string): Promise<PerformanceMetrics> {
-    try {
-      const collection = this.db.collection(collectionName);
-      // Use aggregate to get basic stats instead of stats() method
-      await collection.aggregate([
-        {
-          $group: {
-            _id: null,
-            count: { $sum: 1 }
-          }
-        }
-      ]).toArray();
-
-      return {
-        avgQueryTime: 0, // Would need profiling data
-        slowQueries: 0,  // Would need profiling data
-        indexHitRate: 0, // Would need profiling data
-        storageSize: 0    // Would need admin command
-      };
-    } catch (error) {
-      console.warn(`Could not get performance metrics for ${collectionName}:`, error);
-      return {
-        avgQueryTime: 0,
-        slowQueries: 0,
-        indexHitRate: 0,
-        storageSize: 0
-      };
-    }
+  private async getPerformanceMetrics(_collectionName: string): Promise<PerformanceMetrics> {
+    // Cloudflare D1 does not currently provide query performance metrics.
+    // Provide neutral defaults so consumers can display consistent data.
+    return {
+      avgQueryTime: 0,
+      slowQueries: 0,
+      indexHitRate: 0,
+      storageSize: 0,
+    };
   }
 }
 

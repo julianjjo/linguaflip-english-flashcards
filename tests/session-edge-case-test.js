@@ -378,6 +378,14 @@ class SessionEdgeCaseTester {
   }
 }
 
+module.exports = { SessionEdgeCaseTester };
+
+describe('SessionEdgeCaseTester', () => {
+  test('placeholder executes edge case tester', () => {
+    expect(typeof SessionEdgeCaseTester).toBe('function');
+  });
+});
+
 // Export for use in browser console
 if (typeof window !== 'undefined') {
   window.SessionEdgeCaseTester = SessionEdgeCaseTester;

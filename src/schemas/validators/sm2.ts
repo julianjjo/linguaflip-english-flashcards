@@ -17,7 +17,9 @@ export interface SM2Params {
 /**
  * SM-2 algorithm parameters validation
  */
-export const sm2Validator = function(sm2: Record<string, unknown>): boolean {
+import type { FlashcardSM2Data } from '../../types/database';
+
+export const sm2Validator = function(sm2: Record<string, unknown> | FlashcardSM2Data): boolean {
   if (!sm2) return true;
 
   const { easeFactor, interval, repetitions } = sm2 as SM2Params;

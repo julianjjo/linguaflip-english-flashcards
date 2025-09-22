@@ -7,7 +7,12 @@
  */
 
 import { createDatabaseOperations } from '../utils/databaseOperations';
-import type { FlashcardDocument, DatabaseOperationResult } from '../types/database';
+import type {
+  FlashcardDocument,
+  FlashcardSM2Data,
+  FlashcardStatistics,
+  DatabaseOperationResult,
+} from '../types/database';
 import {
   DatabaseError,
   NotFoundError,
@@ -46,10 +51,10 @@ export class FlashcardsService {
       const sanitizedData = this.sanitizeCardData(cardData);
 
       // Initialize SM-2 parameters
-      const sm2Params = getDefaultSM2Params();
+      const sm2Params: FlashcardSM2Data = getDefaultSM2Params();
 
       // Initialize statistics
-      const statistics = {
+      const statistics: FlashcardStatistics = {
         timesCorrect: 0,
         timesIncorrect: 0,
         averageResponseTime: 0,
@@ -255,29 +260,23 @@ export class FlashcardsService {
   ): Promise<DatabaseOperationResult<FlashcardDocument[]>> {
     return safeAsync(async () => {
       const now = new Date();
-      const query: Record<string, unknown> = {
-        userId,
-        'sm2.nextReviewDate': { $lte: now }
-      };
+      const baseQuery: Record<string, unknown> = { userId };
 
-      // Exclude suspended cards unless explicitly requested
-      if (!options.includeSuspended) {
-        query['sm2.isSuspended'] = { $ne: true };
-      }
-
-      // Add category filter
       if (options.category) {
-        query.category = options.category;
+        baseQuery.category = options.category;
       }
 
-      // Add difficulty filter
       if (options.difficulty) {
-        query.difficulty = options.difficulty;
+        baseQuery.difficulty = options.difficulty;
       }
 
-      const result = await dbOps.findMany(query, {
-        limit: options.limit || 50,
-        sort: { 'sm2.nextReviewDate': 1 } // Oldest due cards first
+      const fetchLimit = options.includeSuspended
+        ? Math.max(options.limit || 50, 500)
+        : options.limit || 50;
+
+      const result = await dbOps.findMany(baseQuery, {
+        limit: fetchLimit,
+        sort: { createdAt: -1 }
       }) as DatabaseOperationResult<FlashcardDocument[]>;
 
       if (!result.success) {
@@ -289,7 +288,27 @@ export class FlashcardsService {
         );
       }
 
-      return result;
+      const cards = (result.data || []).filter((card): card is FlashcardDocument => Boolean(card));
+
+      const filteredCards = cards
+        .filter(card => {
+          const sm2 = card.sm2;
+          if (!sm2 || !(sm2.nextReviewDate instanceof Date)) {
+            return false;
+          }
+          if (sm2.isSuspended) {
+            return options.includeSuspended;
+          }
+          return sm2.nextReviewDate.getTime() <= now.getTime();
+        })
+        .sort((a, b) => a.sm2.nextReviewDate.getTime() - b.sm2.nextReviewDate.getTime())
+        .slice(0, options.limit || 50);
+
+      return {
+        success: true,
+        data: filteredCards,
+        operationTime: result.operationTime,
+      } as DatabaseOperationResult<FlashcardDocument[]>;
     }, { operation: 'get_due_flashcards', collection: COLLECTION_NAME, userId });
   }
 
@@ -492,58 +511,73 @@ export class FlashcardsService {
         matchStage.cardId = cardId;
       }
 
-      const pipeline = [
-        { $match: matchStage },
-        {
-          $group: {
-            _id: cardId ? '$cardId' : null,
-            totalCards: { $sum: 1 },
-            newCards: {
-              $sum: { $cond: [{ $eq: ['$sm2.repetitions', 0] }, 1, 0] }
-            },
-            learningCards: {
-              $sum: { $cond: [{ $and: [
-                { $gt: ['$sm2.repetitions', 0] },
-                { $lt: ['$sm2.repetitions', 5] }
-              ]}, 1, 0] }
-            },
-            matureCards: {
-              $sum: { $cond: [{ $gte: ['$sm2.repetitions', 5] }, 1, 0] }
-            },
-            suspendedCards: {
-              $sum: { $cond: [{ $eq: ['$sm2.isSuspended', true] }, 1, 0] }
-            },
-            averageEaseFactor: { $avg: '$sm2.easeFactor' },
-            averageInterval: { $avg: '$sm2.interval' },
-            totalReviews: { $sum: '$sm2.totalReviews' }
-          }
-        }
-      ];
+      const flashcardsResult = await dbOps.findMany(matchStage) as DatabaseOperationResult<FlashcardDocument[]>;
 
-      const result = await dbOps.aggregate(pipeline) as DatabaseOperationResult<Record<string, unknown>[]>;
-
-      if (!result.success) {
+      if (!flashcardsResult.success) {
         throw new DatabaseError(
-          result.error || 'Failed to get flashcard statistics',
+          flashcardsResult.error || 'Failed to get flashcard statistics',
           'GET_FLASHCARD_STATS_FAILED',
           'get_flashcard_stats',
           COLLECTION_NAME
         );
       }
 
+      const cards = flashcardsResult.data || [];
+      const totals = cards.reduce((acc, card) => {
+        acc.totalCards += 1;
+        const repetitions = card.sm2?.repetitions ?? 0;
+        if (repetitions === 0) {
+          acc.newCards += 1;
+        } else if (repetitions < 5) {
+          acc.learningCards += 1;
+        } else {
+          acc.matureCards += 1;
+        }
+
+        if (card.sm2?.isSuspended) {
+          acc.suspendedCards += 1;
+        }
+
+        if (typeof card.sm2?.easeFactor === 'number') {
+          acc.totalEaseFactor += card.sm2.easeFactor;
+        }
+
+        if (typeof card.sm2?.interval === 'number') {
+          acc.totalInterval += card.sm2.interval;
+        }
+
+        if (typeof card.sm2?.totalReviews === 'number') {
+          acc.totalReviews += card.sm2.totalReviews;
+        }
+
+        return acc;
+      }, {
+        totalCards: 0,
+        newCards: 0,
+        learningCards: 0,
+        matureCards: 0,
+        suspendedCards: 0,
+        totalEaseFactor: 0,
+        totalInterval: 0,
+        totalReviews: 0,
+      });
+
+      const averageEaseFactor = totals.totalCards > 0 ? totals.totalEaseFactor / totals.totalCards : 0;
+      const averageInterval = totals.totalCards > 0 ? totals.totalInterval / totals.totalCards : 0;
+
       return {
         success: true,
-        data: (result.data && result.data[0]) || {
-          totalCards: 0,
-          newCards: 0,
-          learningCards: 0,
-          matureCards: 0,
-          suspendedCards: 0,
-          averageEaseFactor: 0,
-          averageInterval: 0,
-          totalReviews: 0
+        data: {
+          totalCards: totals.totalCards,
+          newCards: totals.newCards,
+          learningCards: totals.learningCards,
+          matureCards: totals.matureCards,
+          suspendedCards: totals.suspendedCards,
+          averageEaseFactor,
+          averageInterval,
+          totalReviews: totals.totalReviews,
         },
-        operationTime: result.operationTime
+        operationTime: flashcardsResult.operationTime,
       } as DatabaseOperationResult<{
         totalCards: number;
         newCards: number;
@@ -599,88 +633,92 @@ export class FlashcardsService {
   /**
    * Calculate new SM-2 parameters based on quality response
    */
-  private calculateNewSM2Params(currentSM2: Record<string, unknown>, quality: number): Record<string, unknown> {
-    const newSM2 = { ...currentSM2 };
+  private calculateNewSM2Params(currentSM2: FlashcardSM2Data, quality: number): FlashcardSM2Data {
+    const easeFactor = currentSM2.easeFactor;
+    const repetitions = currentSM2.repetitions;
+    const interval = currentSM2.interval;
 
-    // Type assertions for arithmetic operations
-    const easeFactor = Number(currentSM2.easeFactor) || 2.5;
-    const repetitions = Number(currentSM2.repetitions) || 0;
-    const interval = Number(currentSM2.interval) || 1;
+    const updatedEaseFactor = Math.max(
+      1.3,
+      easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+    );
 
-    // Calculate new ease factor
-    newSM2.easeFactor = Math.max(1.3, easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+    let updatedInterval = interval;
+    let updatedRepetitions = repetitions;
 
-    // Calculate new interval
     if (quality >= 3) {
-      // Correct response
       if (repetitions === 0) {
-        newSM2.interval = 1;
+        updatedInterval = 1;
       } else if (repetitions === 1) {
-        newSM2.interval = 6;
+        updatedInterval = 6;
       } else {
-        newSM2.interval = Math.round(interval * Number(newSM2.easeFactor));
+        updatedInterval = Math.round(interval * updatedEaseFactor);
       }
-      newSM2.repetitions = repetitions + 1;
+      updatedRepetitions = repetitions + 1;
     } else {
-      // Incorrect response
-      newSM2.repetitions = 0;
-      newSM2.interval = 1;
+      updatedRepetitions = 0;
+      updatedInterval = 1;
     }
 
-    // Calculate next review date
-    newSM2.nextReviewDate = calculateNextReviewDate(Number(newSM2.interval), Number(newSM2.easeFactor), quality);
+    const nextReviewDate = calculateNextReviewDate(updatedInterval, updatedEaseFactor, quality);
 
-    // Update streaks with proper type conversion
-    const correctStreak = Number(currentSM2.correctStreak) || 0;
-    const incorrectStreak = Number(currentSM2.incorrectStreak) || 0;
-    
-    if (quality >= 3) {
-      newSM2.correctStreak = correctStreak + 1;
-      newSM2.incorrectStreak = 0;
-    } else {
-      newSM2.incorrectStreak = incorrectStreak + 1;
-      newSM2.correctStreak = 0;
-    }
+    const correctStreak = quality >= 3
+      ? (currentSM2.correctStreak ?? 0) + 1
+      : 0;
+    const incorrectStreak = quality >= 3
+      ? 0
+      : (currentSM2.incorrectStreak ?? 0) + 1;
 
-    return newSM2;
+    return {
+      ...currentSM2,
+      easeFactor: updatedEaseFactor,
+      interval: updatedInterval,
+      repetitions: updatedRepetitions,
+      nextReviewDate,
+      correctStreak,
+      incorrectStreak,
+    };
   }
 
   /**
    * Update card statistics based on review response
    */
-  private updateCardStatistics(currentStats: Record<string, unknown>, quality: number, responseTime: number): Record<string, unknown> {
-    const newStats = { ...currentStats };
+  private updateCardStatistics(
+    currentStats: FlashcardStatistics,
+    quality: number,
+    responseTime: number
+  ): FlashcardStatistics {
+    const timesCorrect = currentStats.timesCorrect;
+    const timesIncorrect = currentStats.timesIncorrect;
+    const averageResponseTime = currentStats.averageResponseTime;
 
-    // Type assertions for safe arithmetic operations
-    const timesCorrect = Number(currentStats.timesCorrect) || 0;
-    const timesIncorrect = Number(currentStats.timesIncorrect) || 0;
-    const averageResponseTime = Number(currentStats.averageResponseTime) || 0;
+    const updatedTimesCorrect = quality >= 3 ? timesCorrect + 1 : timesCorrect;
+    const updatedTimesIncorrect = quality >= 3 ? timesIncorrect : timesIncorrect + 1;
+    const totalResponses = updatedTimesCorrect + updatedTimesIncorrect;
 
-    // Update correct/incorrect counts
-    if (quality >= 3) {
-      newStats.timesCorrect = timesCorrect + 1;
-    } else {
-      newStats.timesIncorrect = timesIncorrect + 1;
-    }
-
-    // Update average response time
-    const totalResponses = Number(newStats.timesCorrect) + Number(newStats.timesIncorrect);
+    let updatedAverageResponseTime = averageResponseTime;
     if (totalResponses > 0) {
-      const currentTotalTime = averageResponseTime * (totalResponses - 1);
-      newStats.averageResponseTime = (currentTotalTime + responseTime) / totalResponses;
+      const previousResponses = timesCorrect + timesIncorrect;
+      const previousTotalTime = averageResponseTime * previousResponses;
+      updatedAverageResponseTime = (previousTotalTime + responseTime) / totalResponses;
     }
 
-    // Update difficulty based on performance
-    const correctRate = Number(newStats.timesCorrect) / totalResponses;
+    const correctRate = totalResponses > 0 ? updatedTimesCorrect / totalResponses : 0;
+    let lastDifficulty: FlashcardStatistics['lastDifficulty'] = currentStats.lastDifficulty;
     if (correctRate >= 0.8) {
-      newStats.lastDifficulty = 'easy';
+      lastDifficulty = 'easy';
     } else if (correctRate >= 0.6) {
-      newStats.lastDifficulty = 'medium';
+      lastDifficulty = 'medium';
     } else {
-      newStats.lastDifficulty = 'hard';
+      lastDifficulty = 'hard';
     }
 
-    return newStats;
+    return {
+      timesCorrect: updatedTimesCorrect,
+      timesIncorrect: updatedTimesIncorrect,
+      averageResponseTime: updatedAverageResponseTime,
+      lastDifficulty,
+    };
   }
 }
 

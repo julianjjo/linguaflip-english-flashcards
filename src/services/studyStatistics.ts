@@ -74,8 +74,14 @@ export class StudyStatisticsService {
         );
       }
 
+      const statsUserId = this.ensureString(sanitizedData.userId, 'userId', 'create_study_statistics');
+      const statsId = this.ensureString(sanitizedData.statsId, 'statsId', 'create_study_statistics');
+
+      sanitizedData.userId = statsUserId;
+      sanitizedData.statsId = statsId;
+
       // Check for duplicate statsId for this user and date
-      await this.checkForDuplicateStats(sanitizedData.userId, sanitizedData.statsId);
+      await this.checkForDuplicateStats(statsUserId, statsId);
 
       // Create study statistics
       const result = await dbOps.create(sanitizedData) as DatabaseOperationResult<StudyStatisticsDocument>;
@@ -474,6 +480,19 @@ export class StudyStatisticsService {
     }
   }
 
+  private ensureString(value: unknown, field: string, operation: string): string {
+    if (typeof value !== 'string') {
+      throw new ValidationError(
+        `${field} must be a string`,
+        operation,
+        COLLECTION_NAME,
+        field,
+        value
+      );
+    }
+    return value;
+  }
+
   /**
    * Normalize date based on period
    */
@@ -597,16 +616,20 @@ export class StudyStatisticsService {
     statsData: Omit<StudyStatisticsDocument, '_id' | 'createdAt' | 'updatedAt'>,
     userId: string
   ): Promise<DatabaseOperationResult<StudyStatisticsDocument>> {
+    const statsUserId = this.ensureString(statsData.userId, 'userId', 'upsert_weekly_statistics');
+    const statsId = this.ensureString(statsData.statsId, 'statsId', 'upsert_weekly_statistics');
+    const normalizedStats = { ...statsData, userId: statsUserId, statsId };
+
     const existingStats = await dbOps.findOne({
-      userId: statsData.userId,
+      userId: statsUserId,
       date: statsData.date,
       period: 'weekly'
     });
 
     if (existingStats.success && existingStats.data) {
-      return this.updateStudyStatistics(statsData.statsId, statsData, userId);
+      return this.updateStudyStatistics(statsId, normalizedStats, userId);
     } else {
-      return this.createStudyStatistics(statsData, userId);
+      return this.createStudyStatistics(normalizedStats, userId);
     }
   }
 
@@ -617,16 +640,20 @@ export class StudyStatisticsService {
     statsData: Omit<StudyStatisticsDocument, '_id' | 'createdAt' | 'updatedAt'>,
     userId: string
   ): Promise<DatabaseOperationResult<StudyStatisticsDocument>> {
+    const statsUserId = this.ensureString(statsData.userId, 'userId', 'upsert_monthly_statistics');
+    const statsId = this.ensureString(statsData.statsId, 'statsId', 'upsert_monthly_statistics');
+    const normalizedStats = { ...statsData, userId: statsUserId, statsId };
+
     const existingStats = await dbOps.findOne({
-      userId: statsData.userId,
+      userId: statsUserId,
       date: statsData.date,
       period: 'monthly'
     });
 
     if (existingStats.success && existingStats.data) {
-      return this.updateStudyStatistics(statsData.statsId, statsData, userId);
+      return this.updateStudyStatistics(statsId, normalizedStats, userId);
     } else {
-      return this.createStudyStatistics(statsData, userId);
+      return this.createStudyStatistics(normalizedStats, userId);
     }
   }
 }
