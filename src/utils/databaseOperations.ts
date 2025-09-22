@@ -115,7 +115,7 @@ export class DatabaseOperations {
         const collectionStore = offlineStorage.get(this.collectionName)!;
         
         // Simple filter matching for offline mode
-        for (const [_id, doc] of collectionStore) {
+        for (const [, doc] of collectionStore) {
           let matches = true;
           for (const [key, value] of Object.entries(filter)) {
             if (doc[key] !== value) {

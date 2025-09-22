@@ -209,10 +209,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* English */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="flashcard-english"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Palabra en Inglés *
               </label>
               <input
+                id="flashcard-english"
                 type="text"
                 name="english"
                 value={formData.english}
@@ -225,10 +229,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
 
             {/* Spanish */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="flashcard-spanish"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Traducción en Español *
               </label>
               <input
+                id="flashcard-spanish"
                 type="text"
                 name="spanish"
                 value={formData.spanish}
@@ -262,10 +270,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
             <div className="space-y-4">
               {/* Example English */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="flashcard-example-english"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Ejemplo en Inglés
                 </label>
                 <textarea
+                  id="flashcard-example-english"
                   name="exampleEnglish"
                   value={formData.exampleEnglish}
                   onChange={handleInputChange}
@@ -277,10 +289,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
 
               {/* Example Spanish */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="flashcard-example-spanish"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Ejemplo en Español
                 </label>
                 <textarea
+                  id="flashcard-example-spanish"
                   name="exampleSpanish"
                   value={formData.exampleSpanish}
                   onChange={handleInputChange}
@@ -296,10 +312,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="flashcard-category"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Categoría
               </label>
               <select
+                id="flashcard-category"
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
@@ -318,10 +338,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="flashcard-tags"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Etiquetas (separadas por comas)
               </label>
               <input
+                id="flashcard-tags"
                 type="text"
                 name="tags"
                 value={formData.tags}
@@ -334,10 +358,14 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
 
           {/* Image URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="flashcard-image"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               URL de Imagen (opcional)
             </label>
             <input
+              id="flashcard-image"
               type="url"
               name="image"
               value={formData.image}

@@ -125,10 +125,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             {mode === 'register' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="auth-username"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Nombre de usuario (opcional)
                 </label>
                 <input
+                  id="auth-username"
                   type="text"
                   name="username"
                   value={formData.username}
@@ -140,10 +144,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="auth-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Correo electrónico
               </label>
               <input
+                id="auth-email"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -155,10 +163,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="auth-password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Contraseña
               </label>
               <input
+                id="auth-password"
                 type="password"
                 name="password"
                 value={formData.password}
@@ -177,10 +189,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             {mode === 'register' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="auth-confirm-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Confirmar contraseña
                 </label>
                 <input
+                  id="auth-confirm-password"
                   type="password"
                   name="confirmPassword"
                   value={formData.confirmPassword}
