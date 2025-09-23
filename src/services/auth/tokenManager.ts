@@ -12,7 +12,7 @@ import type {
   AccessTokenPayload,
   AuthTokens,
   RefreshTokenPayload,
-  SessionInfo
+  SessionInfo,
 } from './types.ts';
 
 export class TokenManager {
@@ -31,7 +31,11 @@ export class TokenManager {
       return verify(token, AUTH_CONFIG.jwtSecret) as AccessTokenPayload;
     } catch (error) {
       if (error instanceof JsonWebTokenError) {
-        throw new ValidationError('Invalid access token', 'verify_token', 'users');
+        throw new ValidationError(
+          'Invalid access token',
+          'verify_token',
+          'users'
+        );
       }
       throw error;
     }
@@ -42,7 +46,11 @@ export class TokenManager {
       return verify(token, AUTH_CONFIG.jwtRefreshSecret) as RefreshTokenPayload;
     } catch (error) {
       if (error instanceof JsonWebTokenError) {
-        throw new ValidationError('Invalid refresh token', 'refresh_token', 'users');
+        throw new ValidationError(
+          'Invalid refresh token',
+          'refresh_token',
+          'users'
+        );
       }
       throw error;
     }
@@ -53,7 +61,10 @@ export class TokenManager {
     return { userId: 'mock_user_id' };
   }
 
-  async generateTokens(user: UserDocument, sessionInfo: SessionInfo): Promise<AuthTokens> {
+  async generateTokens(
+    user: UserDocument,
+    sessionInfo: SessionInfo
+  ): Promise<AuthTokens> {
     if (!user.email) {
       throw new DatabaseError(
         'User email is required for token generation',
@@ -67,37 +78,50 @@ export class TokenManager {
     const accessPayload: AccessTokenPayload = {
       userId: user.userId,
       email: user.email,
-      type: 'access'
+      type: 'access',
     };
 
     const refreshPayload: RefreshTokenPayload = {
       userId: user.userId,
-      type: 'refresh'
+      type: 'refresh',
     };
 
     const accessOptions: SignOptions = {
-      expiresIn: AUTH_CONFIG.jwtExpiresIn as SignOptions['expiresIn']
+      expiresIn: AUTH_CONFIG.jwtExpiresIn as SignOptions['expiresIn'],
     };
     const refreshOptions: SignOptions = {
-      expiresIn: AUTH_CONFIG.jwtRefreshExpiresIn as SignOptions['expiresIn']
+      expiresIn: AUTH_CONFIG.jwtRefreshExpiresIn as SignOptions['expiresIn'],
     };
 
-    const accessToken = sign(accessPayload, AUTH_CONFIG.jwtSecret, accessOptions);
+    const accessToken = sign(
+      accessPayload,
+      AUTH_CONFIG.jwtSecret,
+      accessOptions
+    );
 
-    const refreshToken = sign(refreshPayload, AUTH_CONFIG.jwtRefreshSecret, refreshOptions);
+    const refreshToken = sign(
+      refreshPayload,
+      AUTH_CONFIG.jwtRefreshSecret,
+      refreshOptions
+    );
 
     const expiresIn = this.parseExpiresIn(AUTH_CONFIG.jwtExpiresIn);
-    const refreshExpiresIn = this.parseExpiresIn(AUTH_CONFIG.jwtRefreshExpiresIn);
+    const refreshExpiresIn = this.parseExpiresIn(
+      AUTH_CONFIG.jwtRefreshExpiresIn
+    );
 
     const tokenRecord = {
       token: refreshToken,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + refreshExpiresIn),
       deviceInfo: sessionInfo.deviceInfo,
-      ipAddress: sessionInfo.ipAddress
+      ipAddress: sessionInfo.ipAddress,
     };
 
-    const updatedTokens = [tokenRecord, ...user.authentication.refreshTokens].slice(0, AUTH_CONFIG.maxActiveSessions);
+    const updatedTokens = [
+      tokenRecord,
+      ...user.authentication.refreshTokens,
+    ].slice(0, AUTH_CONFIG.maxActiveSessions);
 
     const updateResult = await this.usersService.updateUser(
       user.userId,
@@ -105,8 +129,8 @@ export class TokenManager {
         ...user,
         authentication: {
           ...user.authentication,
-          refreshTokens: updatedTokens
-        }
+          refreshTokens: updatedTokens,
+        },
       },
       user.userId
     );
@@ -124,7 +148,7 @@ export class TokenManager {
       accessToken,
       refreshToken,
       expiresIn,
-      tokenType: 'Bearer'
+      tokenType: 'Bearer',
     };
   }
 

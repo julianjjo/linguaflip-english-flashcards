@@ -12,7 +12,7 @@ import type {
   UserDocument,
   FlashcardDocument,
   StudySessionDocument,
-  StudyStatisticsDocument
+  StudyStatisticsDocument,
 } from '../types/database';
 
 // ============================================================================
@@ -79,7 +79,10 @@ export interface PerformanceMetrics {
  * Comprehensive schema validation and testing utilities
  */
 export class SchemaValidator {
-  private collections: Record<string, ReturnType<typeof createDatabaseOperations>>;
+  private collections: Record<
+    string,
+    ReturnType<typeof createDatabaseOperations>
+  >;
 
   constructor() {
     this.collections = {};
@@ -87,12 +90,16 @@ export class SchemaValidator {
 
   private getOperations(collectionName: string) {
     if (!this.collections[collectionName]) {
-      this.collections[collectionName] = createDatabaseOperations(collectionName);
+      this.collections[collectionName] =
+        createDatabaseOperations(collectionName);
     }
     return this.collections[collectionName];
   }
 
-  private sampleDocuments(documents: Document[], sampleSize: number): Document[] {
+  private sampleDocuments(
+    documents: Document[],
+    sampleSize: number
+  ): Document[] {
     const copy = [...documents];
     const result: Document[] = [];
     const targetSize = Math.min(sampleSize, copy.length);
@@ -122,7 +129,7 @@ export class SchemaValidator {
       if (!schema) {
         errors.push({
           field: 'collection',
-          message: `No schema found for collection: ${collectionName}`
+          message: `No schema found for collection: ${collectionName}`,
         });
         return { isValid: false, errors, warnings };
       }
@@ -130,30 +137,41 @@ export class SchemaValidator {
       // Basic validation using our custom validator
       const basicValidation = validateDocument(document, schema);
       if (!basicValidation.isValid) {
-        errors.push(...basicValidation.errors.map(err => ({
-          field: 'document',
-          message: err,
-          value: document
-        })));
+        errors.push(
+          ...basicValidation.errors.map((err) => ({
+            field: 'document',
+            message: err,
+            value: document,
+          }))
+        );
       }
 
       // Collection-specific validations
-      await this.validateCollectionSpecificRules(collectionName, document, errors, warnings);
+      await this.validateCollectionSpecificRules(
+        collectionName,
+        document,
+        errors,
+        warnings
+      );
 
       // Cross-collection validations
-      await this.validateCrossCollectionRules(collectionName, document, errors, warnings);
+      await this.validateCrossCollectionRules(
+        collectionName,
+        document,
+        errors,
+        warnings
+      );
 
       return {
         isValid: errors.length === 0,
         errors,
-        warnings
+        warnings,
       };
-
     } catch (error) {
       errors.push({
         field: 'validation',
         message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        value: document
+        value: document,
       });
 
       return { isValid: false, errors, warnings };
@@ -169,12 +187,16 @@ export class SchemaValidator {
   ): Promise<SchemaHealthReport> {
     const operations = this.getOperations(collectionName);
     const countResult = await operations.count({});
-    const totalDocuments = countResult.success && typeof countResult.data === 'number'
-      ? countResult.data
-      : 0;
+    const totalDocuments =
+      countResult.success && typeof countResult.data === 'number'
+        ? countResult.data
+        : 0;
 
     const documentsResult = await operations.findMany({});
-    const allDocuments = documentsResult.success && documentsResult.data ? documentsResult.data as Document[] : [];
+    const allDocuments =
+      documentsResult.success && documentsResult.data
+        ? (documentsResult.data as Document[])
+        : [];
 
     let documentsToValidate: Document[] = [];
     if (sampleSize && sampleSize > 0 && sampleSize < allDocuments.length) {
@@ -208,7 +230,7 @@ export class SchemaValidator {
       invalidDocuments: documentsToValidate.length - validDocuments,
       validationErrors,
       indexHealth,
-      performanceMetrics
+      performanceMetrics,
     };
   }
 
@@ -220,7 +242,12 @@ export class SchemaValidator {
     collections: SchemaHealthReport[];
     recommendations: string[];
   }> {
-    const collections = ['users', 'flashcards', 'study_sessions', 'study_statistics'];
+    const collections = [
+      'users',
+      'flashcards',
+      'study_sessions',
+      'study_statistics',
+    ];
     const reports: SchemaHealthReport[] = [];
     const recommendations: string[] = [];
 
@@ -236,7 +263,7 @@ export class SchemaValidator {
       }
 
       // Check index usage
-      const unusedIndexes = report.indexHealth.filter(idx => !idx.isUsed);
+      const unusedIndexes = report.indexHealth.filter((idx) => !idx.isUsed);
       if (unusedIndexes.length > 0) {
         recommendations.push(
           `Consider removing ${unusedIndexes.length} unused indexes in ${collectionName}`
@@ -245,14 +272,21 @@ export class SchemaValidator {
     }
 
     // Determine overall health
-    const totalInvalid = reports.reduce((sum, report) => sum + report.invalidDocuments, 0);
-    const overallHealth = totalInvalid === 0 ? 'healthy' :
-                         totalInvalid < 10 ? 'warning' : 'critical';
+    const totalInvalid = reports.reduce(
+      (sum, report) => sum + report.invalidDocuments,
+      0
+    );
+    const overallHealth =
+      totalInvalid === 0
+        ? 'healthy'
+        : totalInvalid < 10
+          ? 'warning'
+          : 'critical';
 
     return {
       overallHealth,
       collections: reports,
-      recommendations
+      recommendations,
     };
   }
 
@@ -268,10 +302,13 @@ export class SchemaValidator {
     const recommendations: string[] = [];
 
     try {
-      const flashcardsResult = await this.getOperations('flashcards').findMany({ userId });
-      const userFlashcards = flashcardsResult.success && flashcardsResult.data
-        ? flashcardsResult.data as Array<Record<string, any>>
-        : [];
+      const flashcardsResult = await this.getOperations('flashcards').findMany({
+        userId,
+      });
+      const userFlashcards =
+        flashcardsResult.success && flashcardsResult.data
+          ? (flashcardsResult.data as Array<Record<string, any>>)
+          : [];
 
       // Validate SM-2 parameters
       for (const card of userFlashcards) {
@@ -284,17 +321,23 @@ export class SchemaValidator {
 
         // Check ease factor range
         if (sm2.easeFactor < 1.3 || sm2.easeFactor > 2.5) {
-          issues.push(`Card ${card.cardId} has invalid ease factor: ${sm2.easeFactor}`);
+          issues.push(
+            `Card ${card.cardId} has invalid ease factor: ${sm2.easeFactor}`
+          );
         }
 
         // Check interval
         if (sm2.interval < 1) {
-          issues.push(`Card ${card.cardId} has invalid interval: ${sm2.interval}`);
+          issues.push(
+            `Card ${card.cardId} has invalid interval: ${sm2.interval}`
+          );
         }
 
         // Check repetitions
         if (sm2.repetitions < 0) {
-          issues.push(`Card ${card.cardId} has negative repetitions: ${sm2.repetitions}`);
+          issues.push(
+            `Card ${card.cardId} has negative repetitions: ${sm2.repetitions}`
+          );
         }
 
         // Check next review date
@@ -306,27 +349,31 @@ export class SchemaValidator {
       }
 
       // Check for cards that haven't been reviewed recently
-      const oldCards = userFlashcards.filter(card => {
+      const oldCards = userFlashcards.filter((card) => {
         if (!card.lastReviewed) return true;
-        const daysSinceReview = (Date.now() - card.lastReviewed.getTime()) / (1000 * 60 * 60 * 24);
+        const daysSinceReview =
+          (Date.now() - card.lastReviewed.getTime()) / (1000 * 60 * 60 * 24);
         return daysSinceReview > 30; // 30 days
       });
 
       if (oldCards.length > 0) {
-        recommendations.push(`${oldCards.length} cards haven't been reviewed in 30+ days`);
+        recommendations.push(
+          `${oldCards.length} cards haven't been reviewed in 30+ days`
+        );
       }
 
       return {
         isValid: issues.length === 0,
         issues,
-        recommendations
+        recommendations,
       };
-
     } catch (error) {
       return {
         isValid: false,
-        issues: [`SM-2 validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
-        recommendations: []
+        issues: [
+          `SM-2 validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ],
+        recommendations: [],
       };
     }
   }
@@ -335,7 +382,9 @@ export class SchemaValidator {
   // PRIVATE METHODS
   // ============================================================================
 
-  private getSchemaForCollection(collectionName: string): Record<string, unknown> {
+  private getSchemaForCollection(
+    collectionName: string
+  ): Record<string, unknown> {
     switch (collectionName) {
       case 'users':
         return Schemas.UserSchema;
@@ -358,16 +407,32 @@ export class SchemaValidator {
   ): Promise<void> {
     switch (collectionName) {
       case 'users':
-        await this.validateUserRules(document as UserDocument, errors, warnings);
+        await this.validateUserRules(
+          document as UserDocument,
+          errors,
+          warnings
+        );
         break;
       case 'flashcards':
-        await this.validateFlashcardRules(document as FlashcardDocument, errors, warnings);
+        await this.validateFlashcardRules(
+          document as FlashcardDocument,
+          errors,
+          warnings
+        );
         break;
       case 'study_sessions':
-        await this.validateStudySessionRules(document as StudySessionDocument, errors, warnings);
+        await this.validateStudySessionRules(
+          document as StudySessionDocument,
+          errors,
+          warnings
+        );
         break;
       case 'study_statistics':
-        await this.validateStudyStatisticsRules(document as StudyStatisticsDocument, errors, warnings);
+        await this.validateStudyStatisticsRules(
+          document as StudyStatisticsDocument,
+          errors,
+          warnings
+        );
         break;
     }
   }
@@ -381,14 +446,18 @@ export class SchemaValidator {
     // Check referential integrity
     if (document.userId) {
       const usersOperations = this.getOperations('users');
-      const userExistsResult = await usersOperations.count({ userId: document.userId });
-      const userExists = userExistsResult.success ? userExistsResult.data || 0 : 0;
+      const userExistsResult = await usersOperations.count({
+        userId: document.userId,
+      });
+      const userExists = userExistsResult.success
+        ? userExistsResult.data || 0
+        : 0;
 
       if (userExists === 0) {
         errors.push({
           field: 'userId',
           message: `Referenced user ${document.userId} does not exist`,
-          value: document.userId
+          value: document.userId,
         });
       }
     }
@@ -400,15 +469,17 @@ export class SchemaValidator {
       const duplicateResult = await flashcardsOperations.count({
         userId: document.userId,
         cardId: document.cardId,
-        _id: { $ne: document._id }
+        _id: { $ne: document._id },
       });
-      const duplicateCount = duplicateResult.success ? duplicateResult.data || 0 : 0;
+      const duplicateCount = duplicateResult.success
+        ? duplicateResult.data || 0
+        : 0;
 
       if (duplicateCount > 0) {
         errors.push({
           field: 'cardId',
           message: `Duplicate card ID ${document.cardId} for user ${document.userId}`,
-          value: document.cardId
+          value: document.cardId,
         });
       }
     }
@@ -424,15 +495,17 @@ export class SchemaValidator {
       const usersOperations = this.getOperations('users');
       const emailExistsResult = await usersOperations.count({
         email: user.email,
-        userId: { $ne: user.userId }
+        userId: { $ne: user.userId },
       });
-      const emailExists = emailExistsResult.success ? emailExistsResult.data || 0 : 0;
+      const emailExists = emailExistsResult.success
+        ? emailExistsResult.data || 0
+        : 0;
 
       if (emailExists > 0) {
         errors.push({
           field: 'email',
           message: 'Email address already exists',
-          value: user.email
+          value: user.email,
         });
       }
     }
@@ -442,15 +515,17 @@ export class SchemaValidator {
       const usersOperations = this.getOperations('users');
       const usernameExistsResult = await usersOperations.count({
         username: user.username,
-        userId: { $ne: user.userId }
+        userId: { $ne: user.userId },
       });
-      const usernameExists = usernameExistsResult.success ? usernameExistsResult.data || 0 : 0;
+      const usernameExists = usernameExistsResult.success
+        ? usernameExistsResult.data || 0
+        : 0;
 
       if (usernameExists > 0) {
         errors.push({
           field: 'username',
           message: 'Username already exists',
-          value: user.username
+          value: user.username,
         });
       }
     }
@@ -460,7 +535,7 @@ export class SchemaValidator {
       errors.push({
         field: 'statistics.totalCardsStudied',
         message: 'Total cards studied cannot be negative',
-        value: user.statistics.totalCardsStudied
+        value: user.statistics.totalCardsStudied,
       });
     }
   }
@@ -481,7 +556,7 @@ export class SchemaValidator {
             errors.push({
               field: 'sm2.qualityResponses',
               message: 'Quality response must be between 0 and 5',
-              value: quality
+              value: quality,
             });
           }
         }
@@ -492,7 +567,7 @@ export class SchemaValidator {
         warnings.push({
           field: 'sm2.interval',
           message: 'New card should have interval of 1',
-          suggestion: 'Reset interval to 1 for new cards'
+          suggestion: 'Reset interval to 1 for new cards',
         });
       }
     }
@@ -504,7 +579,7 @@ export class SchemaValidator {
           errors.push({
             field: 'tags',
             message: 'Tag length cannot exceed 50 characters',
-            value: tag
+            value: tag,
           });
         }
       }
@@ -523,7 +598,7 @@ export class SchemaValidator {
         errors.push({
           field: 'endTime',
           message: 'End time cannot be before start time',
-          value: { startTime: session.startTime, endTime: session.endTime }
+          value: { startTime: session.startTime, endTime: session.endTime },
         });
       }
     }
@@ -537,7 +612,7 @@ export class SchemaValidator {
             errors.push({
               field: 'cardsStudied.quality',
               message: 'Card quality must be between 0 and 5',
-              value: quality
+              value: quality,
             });
           }
         }
@@ -545,11 +620,14 @@ export class SchemaValidator {
     }
 
     // Check consistency between totalCards and cardsStudied array
-    if (session.cardsStudied && session.totalCards !== session.cardsStudied.length) {
+    if (
+      session.cardsStudied &&
+      session.totalCards !== session.cardsStudied.length
+    ) {
       warnings.push({
         field: 'totalCards',
         message: 'totalCards does not match cardsStudied array length',
-        suggestion: 'Update totalCards to match actual count'
+        suggestion: 'Update totalCards to match actual count',
       });
     }
   }
@@ -569,28 +647,35 @@ export class SchemaValidator {
         warnings.push({
           field: 'date',
           message: 'Statistics date is more than a year old',
-          suggestion: 'Consider archiving old statistics'
+          suggestion: 'Consider archiving old statistics',
         });
       }
     }
 
     // Validate percentage fields
-    if (stats.dailyStats.averageRecallRate < 0 || stats.dailyStats.averageRecallRate > 100) {
+    if (
+      stats.dailyStats.averageRecallRate < 0 ||
+      stats.dailyStats.averageRecallRate > 100
+    ) {
       errors.push({
         field: 'dailyStats.averageRecallRate',
         message: 'Average recall rate must be between 0 and 100',
-        value: stats.dailyStats.averageRecallRate
+        value: stats.dailyStats.averageRecallRate,
       });
     }
   }
 
-  private async getIndexHealth(_collectionName: string): Promise<IndexHealth[]> {
+  private async getIndexHealth(
+    _collectionName: string
+  ): Promise<IndexHealth[]> {
     // Cloudflare D1 does not expose index statistics via the HTTP API.
     // Return an empty array to indicate that no index data is available.
     return [];
   }
 
-  private async getPerformanceMetrics(_collectionName: string): Promise<PerformanceMetrics> {
+  private async getPerformanceMetrics(
+    _collectionName: string
+  ): Promise<PerformanceMetrics> {
     // Cloudflare D1 does not currently provide query performance metrics.
     // Provide neutral defaults so consumers can display consistent data.
     return {
@@ -653,18 +738,18 @@ export function generateSampleData(): {
         theme: 'light' as const,
         language: 'en',
         audioEnabled: true,
-        studyReminders: true
+        studyReminders: true,
       },
       statistics: {
         totalCardsStudied: 150,
         totalStudyTime: 2400, // 40 hours in minutes
         averageRecallRate: 85,
         streakDays: 7,
-        lastStudyDate: new Date()
+        lastStudyDate: new Date(),
       },
       createdAt: new Date(),
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   ];
 
   const sampleFlashcards: Partial<FlashcardDocument>[] = [
@@ -687,11 +772,11 @@ export function generateSampleData(): {
         totalReviews: 0,
         correctStreak: 0,
         incorrectStreak: 0,
-        isSuspended: false
+        isSuspended: false,
       },
       createdAt: new Date(),
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   ];
 
   const sampleStudySessions: Partial<StudySessionDocument>[] = [
@@ -707,14 +792,14 @@ export function generateSampleData(): {
       averageResponseTime: 2500,
       sessionType: 'practice',
       createdAt: new Date(),
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   ];
 
   return {
     users: sampleUsers,
     flashcards: sampleFlashcards,
-    studySessions: sampleStudySessions
+    studySessions: sampleStudySessions,
   };
 }
 

@@ -384,13 +384,17 @@ export class DatabaseError extends Error {
       collection: this.collection,
       timestamp: this.timestamp.toISOString(),
       details: this.details,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 }
 
 export class ConnectionError extends DatabaseError {
-  constructor(message: string, operation: string = 'connect', details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    operation: string = 'connect',
+    details?: Record<string, unknown>
+  ) {
     super(message, 'CONNECTION_ERROR', operation, undefined, details);
     this.name = 'ConnectionError';
   }
@@ -584,7 +588,7 @@ export interface ErrorHandlerConfig {
 const defaultErrorHandlerConfig: ErrorHandlerConfig = {
   logErrors: true,
   throwOnError: true,
-  includeStackTrace: process.env.NODE_ENV === 'development'
+  includeStackTrace: process.env.NODE_ENV === 'development',
 };
 
 /**
@@ -600,12 +604,15 @@ export class ErrorHandler {
   /**
    * Handle database errors with consistent logging and formatting
    */
-  handle(error: Error | DatabaseError, context?: {
-    operation?: string;
-    collection?: string;
-    userId?: string;
-    documentId?: string;
-  }): DatabaseError {
+  handle(
+    error: Error | DatabaseError,
+    context?: {
+      operation?: string;
+      collection?: string;
+      userId?: string;
+      documentId?: string;
+    }
+  ): DatabaseError {
     // Convert generic errors to DatabaseError
     let dbError: DatabaseError;
 
@@ -628,15 +635,17 @@ export class ErrorHandler {
 
     // Add context information
     if (context) {
-      const dbErrorWithDetails = dbError as DatabaseError & { details: Record<string, unknown> };
+      const dbErrorWithDetails = dbError as DatabaseError & {
+        details: Record<string, unknown>;
+      };
       dbErrorWithDetails.details = {
         ...dbError.details,
         context: {
           operation: context.operation,
           collection: context.collection,
           userId: context.userId,
-          documentId: context.documentId
-        }
+          documentId: context.documentId,
+        },
       };
     }
 
@@ -656,16 +665,19 @@ export class ErrorHandler {
   /**
    * Handle MongoDB-specific errors
    */
-  private handleMongoError(error: Error & { 
-    code?: number; 
-    keyPattern?: Record<string, unknown>; 
-    keyValue?: Record<string, unknown>; 
-    name: string;
-    message: string;
-  }, context?: {
-    operation?: string;
-    collection?: string;
-  }): DatabaseError {
+  private handleMongoError(
+    error: Error & {
+      code?: number;
+      keyPattern?: Record<string, unknown>;
+      keyValue?: Record<string, unknown>;
+      name: string;
+      message: string;
+    },
+    context?: {
+      operation?: string;
+      collection?: string;
+    }
+  ): DatabaseError {
     const { operation, collection } = context || {};
 
     // Handle duplicate key errors
@@ -683,7 +695,10 @@ export class ErrorHandler {
     }
 
     // Handle connection errors
-    if (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError') {
+    if (
+      error.name === 'MongoNetworkError' ||
+      error.name === 'MongoTimeoutError'
+    ) {
       return new ConnectionError(
         `Database connection error: ${error.message}`,
         operation,
@@ -720,15 +735,17 @@ export class ErrorHandler {
     if (this.config.customLogger) {
       this.config.customLogger(error);
     } else {
-      const logData = this.config.includeStackTrace ? error.toJSON() : {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        operation: error.operation,
-        collection: error.collection,
-        timestamp: error.timestamp.toISOString(),
-        details: error.details
-      };
+      const logData = this.config.includeStackTrace
+        ? error.toJSON()
+        : {
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            operation: error.operation,
+            collection: error.collection,
+            timestamp: error.timestamp.toISOString(),
+            details: error.details,
+          };
 
       console.error('[Database Error]', JSON.stringify(logData, null, 2));
     }
@@ -807,7 +824,7 @@ export function validateRequired<T>(
   requiredFields: (keyof T)[],
   collection?: string
 ): void {
-  const missingFields = requiredFields.filter(field => {
+  const missingFields = requiredFields.filter((field) => {
     const value = data[field];
     return value === null || value === undefined || value === '';
   });

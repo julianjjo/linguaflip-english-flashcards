@@ -20,7 +20,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
   userId,
   compact = false,
   showControls = true,
-  className = ''
+  className = '',
 }) => {
   const syncStatus = useSyncStatus();
   const [isManualSync, setIsManualSync] = useState(false);
@@ -64,7 +64,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
         color: 'text-blue-600',
         bgColor: 'bg-blue-100',
         icon: '🔄',
-        text: 'Syncing...'
+        text: 'Syncing...',
       };
     }
 
@@ -73,7 +73,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
         color: 'text-orange-600',
         bgColor: 'bg-orange-100',
         icon: '📶',
-        text: 'Offline'
+        text: 'Offline',
       };
     }
 
@@ -82,7 +82,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
         color: 'text-red-600',
         bgColor: 'bg-red-100',
         icon: '❌',
-        text: 'Sync Error'
+        text: 'Sync Error',
       };
     }
 
@@ -91,7 +91,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
         color: 'text-yellow-600',
         bgColor: 'bg-yellow-100',
         icon: '⏳',
-        text: `${syncStatus.pendingChanges} pending`
+        text: `${syncStatus.pendingChanges} pending`,
       };
     }
 
@@ -99,7 +99,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
       color: 'text-green-600',
       bgColor: 'bg-green-100',
       icon: '✅',
-      text: 'Synced'
+      text: 'Synced',
     };
   };
 
@@ -108,7 +108,9 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
   if (compact) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
-        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${statusInfo.bgColor} ${statusInfo.color}`}>
+        <div
+          className={`flex items-center space-x-1 rounded-full px-2 py-1 text-xs ${statusInfo.bgColor} ${statusInfo.color}`}
+        >
           <span className="text-sm">{statusInfo.icon}</span>
           <span>{statusInfo.text}</span>
         </div>
@@ -127,10 +129,14 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
   }
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm ${className}`}>
-      <div className="flex items-center justify-between mb-3">
+    <div
+      className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm ${className}`}
+    >
+      <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-medium text-gray-900">Sync Status</h3>
-        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${statusInfo.bgColor} ${statusInfo.color}`}>
+        <div
+          className={`flex items-center space-x-1 rounded-full px-2 py-1 text-xs ${statusInfo.bgColor} ${statusInfo.color}`}
+        >
           <span>{statusInfo.icon}</span>
           <span>{statusInfo.text}</span>
         </div>
@@ -139,7 +145,11 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
       <div className="space-y-2 text-sm text-gray-600">
         <div className="flex justify-between">
           <span>Connection:</span>
-          <span className={syncStatus.isOnline ? 'text-green-600' : 'text-orange-600'}>
+          <span
+            className={
+              syncStatus.isOnline ? 'text-green-600' : 'text-orange-600'
+            }
+          >
             {syncStatus.isOnline ? 'Online' : 'Offline'}
           </span>
         </div>
@@ -152,12 +162,14 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
         {syncStatus.pendingChanges > 0 && (
           <div className="flex justify-between">
             <span>Pending Changes:</span>
-            <span className="text-yellow-600 font-medium">{syncStatus.pendingChanges}</span>
+            <span className="font-medium text-yellow-600">
+              {syncStatus.pendingChanges}
+            </span>
           </div>
         )}
 
         {syncStatus.lastSyncError && (
-          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+          <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
             <div className="font-medium">Last Error:</div>
             <div className="mt-1">{syncStatus.lastSyncError}</div>
           </div>
@@ -168,14 +180,16 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
         <div className="mt-4 flex space-x-2">
           <button
             onClick={handleManualSync}
-            disabled={!syncStatus.isOnline || syncStatus.syncInProgress || isManualSync}
-            className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            disabled={
+              !syncStatus.isOnline || syncStatus.syncInProgress || isManualSync
+            }
+            className="flex-1 rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             {isManualSync ? 'Syncing...' : 'Sync Now'}
           </button>
 
           {syncStatus.pendingChanges > 0 && (
-            <div className="text-xs text-gray-500 self-center">
+            <div className="self-center text-xs text-gray-500">
               {syncStatus.pendingChanges} items to sync
             </div>
           )}
@@ -185,10 +199,13 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
       {/* Progress indicator for sync operations */}
       {(syncStatus.syncInProgress || isManualSync) && (
         <div className="mt-3">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+          <div className="h-2 w-full rounded-full bg-gray-200">
+            <div
+              className="h-2 animate-pulse rounded-full bg-blue-600"
+              style={{ width: '100%' }}
+            ></div>
           </div>
-          <div className="text-xs text-gray-500 mt-1 text-center">
+          <div className="mt-1 text-center text-xs text-gray-500">
             Synchronizing with server...
           </div>
         </div>
@@ -208,18 +225,20 @@ interface MiniSyncIndicatorProps {
 
 export const MiniSyncIndicator: React.FC<MiniSyncIndicatorProps> = ({
   userId,
-  className = ''
+  className = '',
 }) => {
   const syncStatus = useSyncStatus();
 
   const getMiniStatus = () => {
     // If no userId, show offline/local-only status
     if (!userId) return { icon: '💾', color: 'text-gray-500' };
-    
-    if (syncStatus.syncInProgress) return { icon: '🔄', color: 'text-blue-500' };
+
+    if (syncStatus.syncInProgress)
+      return { icon: '🔄', color: 'text-blue-500' };
     if (!syncStatus.isOnline) return { icon: '📶', color: 'text-orange-500' };
     if (syncStatus.lastSyncError) return { icon: '⚠️', color: 'text-red-500' };
-    if (syncStatus.pendingChanges > 0) return { icon: '⏳', color: 'text-yellow-500' };
+    if (syncStatus.pendingChanges > 0)
+      return { icon: '⏳', color: 'text-yellow-500' };
     return { icon: '✅', color: 'text-green-500' };
   };
 
@@ -227,18 +246,26 @@ export const MiniSyncIndicator: React.FC<MiniSyncIndicatorProps> = ({
 
   return (
     <div className={`flex items-center space-x-1 ${className}`}>
-      <span className={`${color} text-sm`} title={
-        !userId ? 'Local storage only' :
-        syncStatus.syncInProgress ? 'Syncing...' :
-        !syncStatus.isOnline ? 'Offline' :
-        syncStatus.lastSyncError ? 'Sync error' :
-        syncStatus.pendingChanges > 0 ? `${syncStatus.pendingChanges} pending changes` :
-        'Synced'
-      }>
+      <span
+        className={`${color} text-sm`}
+        title={
+          !userId
+            ? 'Local storage only'
+            : syncStatus.syncInProgress
+              ? 'Syncing...'
+              : !syncStatus.isOnline
+                ? 'Offline'
+                : syncStatus.lastSyncError
+                  ? 'Sync error'
+                  : syncStatus.pendingChanges > 0
+                    ? `${syncStatus.pendingChanges} pending changes`
+                    : 'Synced'
+        }
+      >
         {icon}
       </span>
       {syncStatus.pendingChanges > 0 && (
-        <span className="text-xs text-yellow-600 bg-yellow-100 px-1 rounded">
+        <span className="rounded bg-yellow-100 px-1 text-xs text-yellow-600">
           {syncStatus.pendingChanges}
         </span>
       )}
@@ -250,7 +277,10 @@ export const MiniSyncIndicator: React.FC<MiniSyncIndicatorProps> = ({
 // SYNC STATUS HOOK WITH AUTO-REFRESH
 // ============================================================================
 
-export const useSyncStatusWithAutoRefresh = (userId?: string, refreshInterval = 30000) => {
+export const useSyncStatusWithAutoRefresh = (
+  userId?: string,
+  refreshInterval = 30000
+) => {
   const syncStatus = useSyncStatus();
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
@@ -267,7 +297,7 @@ export const useSyncStatusWithAutoRefresh = (userId?: string, refreshInterval = 
 
   return {
     ...syncStatus,
-    lastRefresh
+    lastRefresh,
   };
 };
 
@@ -275,7 +305,9 @@ export const useSyncStatusWithAutoRefresh = (userId?: string, refreshInterval = 
 // OFFLINE INDICATOR COMPONENT
 // ============================================================================
 
-export const OfflineIndicator: React.FC<{ className?: string }> = ({ className = '' }) => {
+export const OfflineIndicator: React.FC<{ className?: string }> = ({
+  className = '',
+}) => {
   const syncStatus = useSyncStatus();
   const [showMessage, setShowMessage] = useState(false);
 
@@ -290,7 +322,9 @@ export const OfflineIndicator: React.FC<{ className?: string }> = ({ className =
   if (syncStatus.isOnline || !showMessage) return null;
 
   return (
-    <div className={`fixed top-4 right-4 bg-orange-100 border border-orange-300 text-orange-800 px-4 py-2 rounded-lg shadow-lg z-50 ${className}`}>
+    <div
+      className={`fixed right-4 top-4 z-50 rounded-lg border border-orange-300 bg-orange-100 px-4 py-2 text-orange-800 shadow-lg ${className}`}
+    >
       <div className="flex items-center space-x-2">
         <span>📶</span>
         <span className="text-sm font-medium">You&apos;re offline</span>
@@ -301,7 +335,7 @@ export const OfflineIndicator: React.FC<{ className?: string }> = ({ className =
           ✕
         </button>
       </div>
-      <div className="text-xs mt-1">
+      <div className="mt-1 text-xs">
         Changes will be synced when you&apos;re back online
       </div>
     </div>
@@ -321,10 +355,14 @@ interface SyncProgressModalProps {
 export const SyncProgressModal: React.FC<SyncProgressModalProps> = ({
   isOpen,
   onClose,
-  userId
+  userId,
 }) => {
   const syncStatus = useSyncStatus();
-  const [syncResult, setSyncResult] = useState<{ success: boolean; error?: string; data?: unknown } | null>(null);
+  const [syncResult, setSyncResult] = useState<{
+    success: boolean;
+    error?: string;
+    data?: unknown;
+  } | null>(null);
 
   const handleSync = async () => {
     if (!userId) return;
@@ -333,16 +371,19 @@ export const SyncProgressModal: React.FC<SyncProgressModalProps> = ({
       const result = await hybridStorage.forceSync(userId);
       setSyncResult({ success: true, data: result });
     } catch (error) {
-      setSyncResult({ success: false, error: error instanceof Error ? error.message : 'Sync failed' });
+      setSyncResult({
+        success: false,
+        error: error instanceof Error ? error.message : 'Sync failed',
+      });
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <div className="flex items-center justify-between mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">Sync Progress</h3>
           <button
             onClick={onClose}
@@ -355,14 +396,22 @@ export const SyncProgressModal: React.FC<SyncProgressModalProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span>Status:</span>
-            <span className={syncStatus.syncInProgress ? 'text-blue-600' : 'text-green-600'}>
+            <span
+              className={
+                syncStatus.syncInProgress ? 'text-blue-600' : 'text-green-600'
+              }
+            >
               {syncStatus.syncInProgress ? 'Syncing...' : 'Ready'}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span>Connection:</span>
-            <span className={syncStatus.isOnline ? 'text-green-600' : 'text-orange-600'}>
+            <span
+              className={
+                syncStatus.isOnline ? 'text-green-600' : 'text-orange-600'
+              }
+            >
               {syncStatus.isOnline ? 'Online' : 'Offline'}
             </span>
           </div>
@@ -370,14 +419,16 @@ export const SyncProgressModal: React.FC<SyncProgressModalProps> = ({
           {syncStatus.pendingChanges > 0 && (
             <div className="flex items-center justify-between">
               <span>Pending Changes:</span>
-              <span className="text-yellow-600">{syncStatus.pendingChanges}</span>
+              <span className="text-yellow-600">
+                {syncStatus.pendingChanges}
+              </span>
             </div>
           )}
 
           {syncResult && (
-            <div className="mt-4 p-3 bg-gray-50 rounded">
-              <div className="text-sm font-medium mb-2">Last Sync Result:</div>
-              <pre className="text-xs text-gray-600 whitespace-pre-wrap">
+            <div className="mt-4 rounded bg-gray-50 p-3">
+              <div className="mb-2 text-sm font-medium">Last Sync Result:</div>
+              <pre className="whitespace-pre-wrap text-xs text-gray-600">
                 {JSON.stringify(syncResult, null, 2)}
               </pre>
             </div>
@@ -387,13 +438,13 @@ export const SyncProgressModal: React.FC<SyncProgressModalProps> = ({
             <button
               onClick={handleSync}
               disabled={!syncStatus.isOnline || syncStatus.syncInProgress}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-300"
+              className="flex-1 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-300"
             >
               {syncStatus.syncInProgress ? 'Syncing...' : 'Sync Now'}
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+              className="rounded border border-gray-300 px-4 py-2 text-gray-600 hover:bg-gray-50"
             >
               Close
             </button>

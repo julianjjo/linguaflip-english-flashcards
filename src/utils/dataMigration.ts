@@ -5,11 +5,22 @@
  * to MongoDB while maintaining data integrity and providing progress feedback.
  */
 
-import type { FlashcardData, StudySession, ProgressStats, StudyProfile } from '../types';
+import type {
+  FlashcardData,
+  StudySession,
+  ProgressStats,
+  StudyProfile,
+} from '../types';
 import { hybridStorage } from '../stores/hybridStorage';
 
 export interface MigrationProgress {
-  stage: 'analyzing' | 'migrating_flashcards' | 'migrating_sessions' | 'migrating_stats' | 'completed' | 'error';
+  stage:
+    | 'analyzing'
+    | 'migrating_flashcards'
+    | 'migrating_sessions'
+    | 'migrating_stats'
+    | 'completed'
+    | 'error';
   totalItems: number;
   processedItems: number;
   currentItem: string;
@@ -67,7 +78,7 @@ export class DataMigrationManager {
       flashcards: [] as FlashcardData[],
       studySessions: [] as StudySession[],
       progressStats: null as ProgressStats | null,
-      studyProfiles: [] as StudyProfile[]
+      studyProfiles: [] as StudyProfile[],
     };
 
     try {
@@ -76,8 +87,13 @@ export class DataMigrationManager {
       if (flashcardsData) {
         const parsed = JSON.parse(flashcardsData);
         if (Array.isArray(parsed)) {
-          result.flashcards = parsed.filter(item =>
-            item && typeof item === 'object' && item.id && item.english && item.spanish
+          result.flashcards = parsed.filter(
+            (item) =>
+              item &&
+              typeof item === 'object' &&
+              item.id &&
+              item.english &&
+              item.spanish
           );
         }
       }
@@ -87,8 +103,8 @@ export class DataMigrationManager {
       if (sessionsData) {
         const parsed = JSON.parse(sessionsData);
         if (Array.isArray(parsed)) {
-          result.studySessions = parsed.filter(item =>
-            item && typeof item === 'object' && item.id && item.date
+          result.studySessions = parsed.filter(
+            (item) => item && typeof item === 'object' && item.id && item.date
           );
         }
       }
@@ -107,12 +123,11 @@ export class DataMigrationManager {
       if (profilesData) {
         const parsed = JSON.parse(profilesData);
         if (Array.isArray(parsed)) {
-          result.studyProfiles = parsed.filter(item =>
-            item && typeof item === 'object' && item.id && item.name
+          result.studyProfiles = parsed.filter(
+            (item) => item && typeof item === 'object' && item.id && item.name
           );
         }
       }
-
     } catch (error) {
       console.error('Error analyzing local data:', error);
     }
@@ -132,11 +147,11 @@ export class DataMigrationManager {
       migratedItems: {
         flashcards: 0,
         studySessions: 0,
-        progressStats: 0
+        progressStats: 0,
       },
       skippedItems: 0,
       errors: [],
-      duration: 0
+      duration: 0,
     };
 
     try {
@@ -146,7 +161,7 @@ export class DataMigrationManager {
         totalItems: 0,
         processedItems: 0,
         currentItem: 'Analyzing local data...',
-        errors: []
+        errors: [],
       });
 
       // Analyze existing data
@@ -162,7 +177,7 @@ export class DataMigrationManager {
         totalItems,
         processedItems: 0,
         currentItem: 'Starting migration...',
-        errors: []
+        errors: [],
       });
 
       // Check if migration was aborted
@@ -177,7 +192,7 @@ export class DataMigrationManager {
           totalItems,
           processedItems: 0,
           currentItem: `Migrating ${localData.flashcards.length} flashcards...`,
-          errors: []
+          errors: [],
         });
 
         for (let i = 0; i < localData.flashcards.length; i++) {
@@ -193,9 +208,11 @@ export class DataMigrationManager {
             this.updateProgress({
               stage: 'migrating_flashcards',
               totalItems,
-              processedItems: result.migratedItems.flashcards + result.migratedItems.studySessions,
+              processedItems:
+                result.migratedItems.flashcards +
+                result.migratedItems.studySessions,
               currentItem: `Migrating flashcard: ${flashcard.english}`,
-              errors: result.errors
+              errors: result.errors,
             });
           } catch (error) {
             const errorMsg = `Failed to migrate flashcard ${flashcard.id}: ${error}`;
@@ -213,7 +230,7 @@ export class DataMigrationManager {
           totalItems,
           processedItems: result.migratedItems.flashcards,
           currentItem: `Migrating ${localData.studySessions.length} study sessions...`,
-          errors: result.errors
+          errors: result.errors,
         });
 
         for (let i = 0; i < localData.studySessions.length; i++) {
@@ -229,9 +246,11 @@ export class DataMigrationManager {
             this.updateProgress({
               stage: 'migrating_sessions',
               totalItems,
-              processedItems: result.migratedItems.flashcards + result.migratedItems.studySessions,
+              processedItems:
+                result.migratedItems.flashcards +
+                result.migratedItems.studySessions,
               currentItem: `Migrating session: ${session.id}`,
-              errors: result.errors
+              errors: result.errors,
             });
           } catch (error) {
             const errorMsg = `Failed to migrate study session ${session.id}: ${error}`;
@@ -247,9 +266,11 @@ export class DataMigrationManager {
         this.updateProgress({
           stage: 'migrating_stats',
           totalItems,
-          processedItems: result.migratedItems.flashcards + result.migratedItems.studySessions,
+          processedItems:
+            result.migratedItems.flashcards +
+            result.migratedItems.studySessions,
           currentItem: 'Migrating progress statistics...',
-          errors: result.errors
+          errors: result.errors,
         });
 
         try {
@@ -261,7 +282,7 @@ export class DataMigrationManager {
             totalItems,
             processedItems: totalItems,
             currentItem: 'Progress statistics migrated',
-            errors: result.errors
+            errors: result.errors,
           });
         } catch (error) {
           const errorMsg = `Failed to migrate progress stats: ${error}`;
@@ -277,15 +298,15 @@ export class DataMigrationManager {
         totalItems,
         processedItems: totalItems,
         currentItem: 'Migration completed successfully!',
-        errors: result.errors
+        errors: result.errors,
       });
 
       // Force a final sync to ensure all data is saved
       await hybridStorage.forceSync(userId);
-
     } catch (error) {
       result.success = false;
-      const errorMsg = error instanceof Error ? error.message : 'Migration failed';
+      const errorMsg =
+        error instanceof Error ? error.message : 'Migration failed';
       result.errors.push(errorMsg);
 
       this.updateProgress({
@@ -293,7 +314,7 @@ export class DataMigrationManager {
         totalItems: 0,
         processedItems: 0,
         currentItem: `Migration failed: ${errorMsg}`,
-        errors: result.errors
+        errors: result.errors,
       });
 
       console.error('Migration failed:', error);
@@ -317,7 +338,7 @@ export class DataMigrationManager {
       'progressStats',
       'studyProfiles',
       'userPreferences',
-      'studySettings'
+      'studySettings',
     ];
 
     for (const key of keysToBackup) {
@@ -331,7 +352,7 @@ export class DataMigrationManager {
     backup._metadata = {
       createdAt: new Date().toISOString(),
       version: '1.0',
-      type: 'linguaflip_backup'
+      type: 'linguaflip_backup',
     };
 
     return JSON.stringify(backup, null, 2);
@@ -371,7 +392,7 @@ export class DataMigrationManager {
       'flashcards',
       'studySessions',
       'progressStats',
-      'studyProfiles'
+      'studyProfiles',
     ];
 
     for (const key of keysToClear) {
@@ -415,7 +436,9 @@ export class DataMigrationManager {
 /**
  * Quick migration function for simple use cases
  */
-export async function migrateUserData(userId: string): Promise<MigrationResult> {
+export async function migrateUserData(
+  userId: string
+): Promise<MigrationResult> {
   const migrator = new DataMigrationManager();
   return await migrator.migrateToMongoDB(userId);
 }
@@ -446,9 +469,11 @@ export function downloadBackup(): void {
 export function validateBackup(backupData: string): boolean {
   try {
     const backup = JSON.parse(backupData);
-    return backup._metadata &&
-           backup._metadata.type === 'linguaflip_backup' &&
-           backup._metadata.version;
+    return (
+      backup._metadata &&
+      backup._metadata.type === 'linguaflip_backup' &&
+      backup._metadata.version
+    );
   } catch {
     return false;
   }
@@ -503,6 +528,6 @@ export function useDataMigration() {
     abortMigration,
     isMigrating,
     progress,
-    result
+    result,
   };
 }

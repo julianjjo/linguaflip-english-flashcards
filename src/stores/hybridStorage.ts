@@ -6,10 +6,15 @@
  */
 
 import { map } from 'nanostores';
-import type { FlashcardData, StudySession, ProgressStats, StudyProfile } from '../types';
+import type {
+  FlashcardData,
+  StudySession,
+  ProgressStats,
+  StudyProfile,
+} from '../types';
 import type {
   FlashcardDocument,
-  StudySessionDocument
+  StudySessionDocument,
 } from '../types/database';
 
 // Import MongoDB services conditionally (server-side only)
@@ -77,7 +82,7 @@ const DEFAULT_CONFIG: HybridStorageConfig = {
   maxRetryAttempts: 3,
   syncIntervalMs: 5 * 60 * 1000, // 5 minutes
   enableBackgroundSync: true,
-  conflictResolutionStrategy: 'merge'
+  conflictResolutionStrategy: 'merge',
 };
 
 const STORAGE_KEYS = {
@@ -86,9 +91,8 @@ const STORAGE_KEYS = {
   progressStats: 'linguaflip_progress_cache',
   studyProfiles: 'linguaflip_profiles_cache',
   syncStatus: 'linguaflip_sync_status',
-  lastSync: 'linguaflip_last_sync'
+  lastSync: 'linguaflip_last_sync',
 } as const;
-
 
 // ============================================================================
 // HYBRID STORAGE CLASS
@@ -102,14 +106,14 @@ export class HybridStorage {
     pendingChanges: 0,
     syncInProgress: false,
     lastSyncError: null,
-    retryCount: 0
+    retryCount: 0,
   });
 
   private cacheStores = {
     flashcards: new Map<string, CacheEntry<FlashcardData[]>>(),
     studySessions: new Map<string, CacheEntry<StudySession[]>>(),
     progressStats: new Map<string, CacheEntry<ProgressStats>>(),
-    studyProfiles: new Map<string, CacheEntry<StudyProfile[]>>()
+    studyProfiles: new Map<string, CacheEntry<StudyProfile[]>>(),
   };
 
   private syncIntervalId: number | null = null;
@@ -146,7 +150,7 @@ export class HybridStorage {
           data: parsed.data,
           timestamp: new Date(parsed.timestamp),
           version: parsed.version || 1,
-          isDirty: parsed.isDirty || false
+          isDirty: parsed.isDirty || false,
         });
       }
 
@@ -158,7 +162,7 @@ export class HybridStorage {
           data: parsed.data,
           timestamp: new Date(parsed.timestamp),
           version: parsed.version || 1,
-          isDirty: parsed.isDirty || false
+          isDirty: parsed.isDirty || false,
         });
       }
 
@@ -170,7 +174,7 @@ export class HybridStorage {
           data: parsed.data,
           timestamp: new Date(parsed.timestamp),
           version: parsed.version || 1,
-          isDirty: parsed.isDirty || false
+          isDirty: parsed.isDirty || false,
         });
       }
 
@@ -182,7 +186,7 @@ export class HybridStorage {
           data: parsed.data,
           timestamp: new Date(parsed.timestamp),
           version: parsed.version || 1,
-          isDirty: parsed.isDirty || false
+          isDirty: parsed.isDirty || false,
         });
       }
     } catch (error) {
@@ -202,10 +206,12 @@ export class HybridStorage {
         const parsed = JSON.parse(syncStatus);
         this.syncStatusStore.set({
           ...this.syncStatusStore.get(),
-          lastSyncTimestamp: parsed.lastSyncTimestamp ? new Date(parsed.lastSyncTimestamp) : null,
+          lastSyncTimestamp: parsed.lastSyncTimestamp
+            ? new Date(parsed.lastSyncTimestamp)
+            : null,
           pendingChanges: parsed.pendingChanges || 0,
           lastSyncError: parsed.lastSyncError || null,
-          retryCount: parsed.retryCount || 0
+          retryCount: parsed.retryCount || 0,
         });
       }
     } catch (error) {
@@ -248,7 +254,10 @@ export class HybridStorage {
   // FLASHCARDS OPERATIONS
   // ============================================================================
 
-  async getFlashcards(userId: string, forceRefresh = false): Promise<FlashcardData[]> {
+  async getFlashcards(
+    userId: string,
+    forceRefresh = false
+  ): Promise<FlashcardData[]> {
     const cacheKey = userId;
 
     // Check cache first (unless force refresh)
@@ -262,10 +271,13 @@ export class HybridStorage {
     // Try to fetch from MongoDB (only if services are available)
     if (flashcardsService) {
       try {
-        const result = await (flashcardsService as any).getDueFlashcards(userId, {
-          limit: 1000,
-          includeSuspended: true
-        });
+        const result = await (flashcardsService as any).getDueFlashcards(
+          userId,
+          {
+            limit: 1000,
+            includeSuspended: true,
+          }
+        );
 
         if (result.success && result.data) {
           const flashcards = this.convertMongoFlashcardsToLocal(result.data);
@@ -280,10 +292,13 @@ export class HybridStorage {
       await loadServices();
       if (flashcardsService) {
         try {
-          const result = await (flashcardsService as any).getDueFlashcards(userId, {
-            limit: 1000,
-            includeSuspended: true
-          });
+          const result = await (flashcardsService as any).getDueFlashcards(
+            userId,
+            {
+              limit: 1000,
+              includeSuspended: true,
+            }
+          );
 
           if (result.success && result.data) {
             const flashcards = this.convertMongoFlashcardsToLocal(result.data);
@@ -291,7 +306,10 @@ export class HybridStorage {
             return flashcards;
           }
         } catch (error) {
-          console.error('Failed to fetch flashcards from MongoDB after loading services:', error);
+          console.error(
+            'Failed to fetch flashcards from MongoDB after loading services:',
+            error
+          );
         }
       }
     }
@@ -308,7 +326,7 @@ export class HybridStorage {
     const currentData = currentCache?.data || [];
 
     const updatedData = flashcard.id
-      ? currentData.map(card => card.id === flashcard.id ? flashcard : card)
+      ? currentData.map((card) => (card.id === flashcard.id ? flashcard : card))
       : [...currentData, flashcard];
 
     this.updateCache('flashcards', cacheKey, updatedData, true);
@@ -322,18 +340,31 @@ export class HybridStorage {
 
       if (flashcardsService) {
         try {
-          const mongoCard = this.convertLocalFlashcardToMongo(flashcard, userId);
+          const mongoCard = this.convertLocalFlashcardToMongo(
+            flashcard,
+            userId
+          );
 
           if (flashcard.id) {
             // Update existing
-            await (flashcardsService as any).updateFlashcard(flashcard.id.toString(), mongoCard, userId);
+            await (flashcardsService as any).updateFlashcard(
+              flashcard.id.toString(),
+              mongoCard,
+              userId
+            );
           } else {
             // Create new
-            const result = await (flashcardsService as any).createFlashcard(mongoCard, userId);
+            const result = await (flashcardsService as any).createFlashcard(
+              mongoCard,
+              userId
+            );
             if (result.success && result.data) {
               // Update local cache with MongoDB ID
-              const updatedCard = { ...flashcard, id: parseInt(result.data.cardId) };
-              const finalData = updatedData.map(card =>
+              const updatedCard = {
+                ...flashcard,
+                id: parseInt(result.data.cardId),
+              };
+              const finalData = updatedData.map((card) =>
                 card === flashcard ? updatedCard : card
               );
               this.updateCache('flashcards', cacheKey, finalData, false);
@@ -353,13 +384,16 @@ export class HybridStorage {
     const currentCache = this.cacheStores.flashcards.get(cacheKey);
     const currentData = currentCache?.data || [];
 
-    const updatedData = currentData.filter(card => card.id !== flashcardId);
+    const updatedData = currentData.filter((card) => card.id !== flashcardId);
     this.updateCache('flashcards', cacheKey, updatedData, true);
 
     // Try to sync with MongoDB
     if (this.syncStatusStore.get().isOnline) {
       try {
-        await (flashcardsService as any).deleteFlashcard(flashcardId.toString(), userId);
+        await (flashcardsService as any).deleteFlashcard(
+          flashcardId.toString(),
+          userId
+        );
       } catch (error) {
         console.error('Failed to delete flashcard from MongoDB:', error);
         this.scheduleRetry('delete_flashcard', userId, { flashcardId });
@@ -371,7 +405,10 @@ export class HybridStorage {
   // STUDY SESSIONS OPERATIONS
   // ============================================================================
 
-  async getStudySessions(userId: string, forceRefresh = false): Promise<StudySession[]> {
+  async getStudySessions(
+    userId: string,
+    forceRefresh = false
+  ): Promise<StudySession[]> {
     const cacheKey = userId;
 
     if (!forceRefresh) {
@@ -382,11 +419,14 @@ export class HybridStorage {
     }
 
     try {
-      const result = await (studySessionsService as any).getUserStudySessions(userId, {
-        limit: 100,
-        sortBy: 'startTime',
-        sortOrder: -1
-      });
+      const result = await (studySessionsService as any).getUserStudySessions(
+        userId,
+        {
+          limit: 100,
+          sortBy: 'startTime',
+          sortOrder: -1,
+        }
+      );
 
       if (result.success && result.data) {
         const sessions = this.convertMongoSessionsToLocal(result.data);
@@ -412,7 +452,10 @@ export class HybridStorage {
     if (this.syncStatusStore.get().isOnline) {
       try {
         const mongoSession = this.convertLocalSessionToMongo(session, userId);
-        await (studySessionsService as any).createStudySession(mongoSession, userId);
+        await (studySessionsService as any).createStudySession(
+          mongoSession,
+          userId
+        );
       } catch (error) {
         console.error('Failed to sync study session to MongoDB:', error);
         this.scheduleRetry('study_session', userId, session);
@@ -424,7 +467,10 @@ export class HybridStorage {
   // PROGRESS STATS OPERATIONS
   // ============================================================================
 
-  async getProgressStats(userId: string, forceRefresh = false): Promise<ProgressStats> {
+  async getProgressStats(
+    userId: string,
+    forceRefresh = false
+  ): Promise<ProgressStats> {
     const cacheKey = userId;
 
     if (!forceRefresh) {
@@ -435,7 +481,9 @@ export class HybridStorage {
     }
 
     try {
-      const result = await (studyStatisticsService as any).getStudyStatisticsByDate(userId, new Date(), 'daily');
+      const result = await (
+        studyStatisticsService as any
+      ).getStudyStatisticsByDate(userId, new Date(), 'daily');
 
       if (result.success && result.data) {
         const stats = this.convertMongoStatsToLocal(result.data);
@@ -473,9 +521,9 @@ export class HybridStorage {
 
       // Save sync status to localStorage
       this.saveSyncStatus();
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown sync error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown sync error';
       this.syncStatusStore.setKey('lastSyncError', errorMessage);
       console.error('Sync failed:', error);
     } finally {
@@ -505,17 +553,29 @@ export class HybridStorage {
     }
   }
 
-  private async syncFlashcards(userId: string, flashcards: FlashcardData[]): Promise<void> {
+  private async syncFlashcards(
+    userId: string,
+    flashcards: FlashcardData[]
+  ): Promise<void> {
     try {
-      const mongoCards = flashcards.map(card => this.convertLocalFlashcardToMongo(card, userId));
+      const mongoCards = flashcards.map((card) =>
+        this.convertLocalFlashcardToMongo(card, userId)
+      );
 
-      const result = await (syncService as any).syncFromLocal(userId, {
-        flashcards: mongoCards
-      }, {
-        resolveConflicts: this.config.conflictResolutionStrategy === 'manual' ? 'merge' : this.config.conflictResolutionStrategy,
-        skipExisting: false,
-        batchSize: 50
-      });
+      const result = await (syncService as any).syncFromLocal(
+        userId,
+        {
+          flashcards: mongoCards,
+        },
+        {
+          resolveConflicts:
+            this.config.conflictResolutionStrategy === 'manual'
+              ? 'merge'
+              : this.config.conflictResolutionStrategy,
+          skipExisting: false,
+          batchSize: 50,
+        }
+      );
 
       if (result.success) {
         // Mark cache as clean
@@ -531,17 +591,29 @@ export class HybridStorage {
     }
   }
 
-  private async syncStudySessions(userId: string, sessions: StudySession[]): Promise<void> {
+  private async syncStudySessions(
+    userId: string,
+    sessions: StudySession[]
+  ): Promise<void> {
     try {
-      const mongoSessions = sessions.map(session => this.convertLocalSessionToMongo(session, userId));
+      const mongoSessions = sessions.map((session) =>
+        this.convertLocalSessionToMongo(session, userId)
+      );
 
-      const result = await (syncService as any).syncFromLocal(userId, {
-        studySessions: mongoSessions
-      }, {
-        resolveConflicts: this.config.conflictResolutionStrategy === 'manual' ? 'merge' : this.config.conflictResolutionStrategy,
-        skipExisting: false,
-        batchSize: 50
-      });
+      const result = await (syncService as any).syncFromLocal(
+        userId,
+        {
+          studySessions: mongoSessions,
+        },
+        {
+          resolveConflicts:
+            this.config.conflictResolutionStrategy === 'manual'
+              ? 'merge'
+              : this.config.conflictResolutionStrategy,
+          skipExisting: false,
+          batchSize: 50,
+        }
+      );
 
       if (result.success) {
         const cache = this.cacheStores.studySessions.get(userId);
@@ -560,28 +632,34 @@ export class HybridStorage {
   // DATA MIGRATION
   // ============================================================================
 
-  async migrateLocalStorageToMongoDB(userId: string): Promise<DataMigrationResult> {
+  async migrateLocalStorageToMongoDB(
+    userId: string
+  ): Promise<DataMigrationResult> {
     const result: DataMigrationResult = {
       success: true,
       migratedItems: 0,
       skippedItems: 0,
-      errors: []
+      errors: [],
     };
 
     try {
       // Migrate flashcards
       const flashcardsCache = this.cacheStores.flashcards.get(userId);
       if (flashcardsCache?.data.length) {
-        const mongoCards = flashcardsCache.data.map(card =>
+        const mongoCards = flashcardsCache.data.map((card) =>
           this.convertLocalFlashcardToMongo(card, userId)
         );
 
-        const flashcardsResult = await (syncService as any).migrateUserData(userId, {
-          flashcards: mongoCards
-        });
+        const flashcardsResult = await (syncService as any).migrateUserData(
+          userId,
+          {
+            flashcards: mongoCards,
+          }
+        );
 
         if (flashcardsResult.success && flashcardsResult.data) {
-          result.migratedItems += flashcardsResult.data.migratedItems.flashcards;
+          result.migratedItems +=
+            flashcardsResult.data.migratedItems.flashcards;
           result.errors.push(...flashcardsResult.data.errors);
         }
       }
@@ -589,16 +667,20 @@ export class HybridStorage {
       // Migrate study sessions
       const sessionsCache = this.cacheStores.studySessions.get(userId);
       if (sessionsCache?.data.length) {
-        const mongoSessions = sessionsCache.data.map(session =>
+        const mongoSessions = sessionsCache.data.map((session) =>
           this.convertLocalSessionToMongo(session, userId)
         );
 
-        const sessionsResult = await (syncService as any).migrateUserData(userId, {
-          studySessions: mongoSessions
-        });
+        const sessionsResult = await (syncService as any).migrateUserData(
+          userId,
+          {
+            studySessions: mongoSessions,
+          }
+        );
 
         if (sessionsResult.success && sessionsResult.data) {
-          result.migratedItems += sessionsResult.data.migratedItems.studySessions;
+          result.migratedItems +=
+            sessionsResult.data.migratedItems.studySessions;
           result.errors.push(...sessionsResult.data.errors);
         }
       }
@@ -606,10 +688,11 @@ export class HybridStorage {
       if (result.errors.length > 0) {
         result.success = false;
       }
-
     } catch (error) {
       result.success = false;
-      result.errors.push(error instanceof Error ? error.message : 'Migration failed');
+      result.errors.push(
+        error instanceof Error ? error.message : 'Migration failed'
+      );
     }
 
     return result;
@@ -629,21 +712,33 @@ export class HybridStorage {
       data,
       timestamp: new Date(),
       version: 1,
-      isDirty
+      isDirty,
     };
 
     switch (storeType) {
       case 'flashcards':
-        this.cacheStores.flashcards.set(key, cacheEntry as CacheEntry<FlashcardData[]>);
+        this.cacheStores.flashcards.set(
+          key,
+          cacheEntry as CacheEntry<FlashcardData[]>
+        );
         break;
       case 'studySessions':
-        this.cacheStores.studySessions.set(key, cacheEntry as CacheEntry<StudySession[]>);
+        this.cacheStores.studySessions.set(
+          key,
+          cacheEntry as CacheEntry<StudySession[]>
+        );
         break;
       case 'progressStats':
-        this.cacheStores.progressStats.set(key, cacheEntry as CacheEntry<ProgressStats>);
+        this.cacheStores.progressStats.set(
+          key,
+          cacheEntry as CacheEntry<ProgressStats>
+        );
         break;
       case 'studyProfiles':
-        this.cacheStores.studyProfiles.set(key, cacheEntry as CacheEntry<StudyProfile[]>);
+        this.cacheStores.studyProfiles.set(
+          key,
+          cacheEntry as CacheEntry<StudyProfile[]>
+        );
         break;
     }
 
@@ -651,7 +746,10 @@ export class HybridStorage {
 
     if (isDirty) {
       const currentStatus = this.syncStatusStore.get();
-      this.syncStatusStore.setKey('pendingChanges', currentStatus.pendingChanges + 1);
+      this.syncStatusStore.setKey(
+        'pendingChanges',
+        currentStatus.pendingChanges + 1
+      );
     }
   }
 
@@ -671,7 +769,7 @@ export class HybridStorage {
         data: cacheEntry.data,
         timestamp: cacheEntry.timestamp.toISOString(),
         version: cacheEntry.version,
-        isDirty: cacheEntry.isDirty
+        isDirty: cacheEntry.isDirty,
       };
       localStorage.setItem(storageKey, JSON.stringify(dataToStore));
     } catch (error) {
@@ -691,9 +789,12 @@ export class HybridStorage {
         lastSyncTimestamp: status.lastSyncTimestamp?.toISOString(),
         pendingChanges: status.pendingChanges,
         lastSyncError: status.lastSyncError,
-        retryCount: status.retryCount
+        retryCount: status.retryCount,
       };
-      localStorage.setItem(STORAGE_KEYS.syncStatus, JSON.stringify(dataToStore));
+      localStorage.setItem(
+        STORAGE_KEYS.syncStatus,
+        JSON.stringify(dataToStore)
+      );
     } catch (error) {
       console.error('Failed to save sync status:', error);
     }
@@ -705,7 +806,11 @@ export class HybridStorage {
     return age > this.config.cacheExpiryMs;
   }
 
-  private scheduleRetry(operation: string, userId: string, data: unknown): void {
+  private scheduleRetry(
+    operation: string,
+    userId: string,
+    data: unknown
+  ): void {
     // Only run on client side
     if (typeof window === 'undefined') {
       return;
@@ -713,13 +818,16 @@ export class HybridStorage {
 
     const retryKey = `${operation}_${userId}_${Date.now()}`;
 
-    const timeoutId = window.setTimeout(async () => {
-      try {
-        await this.performRetry(operation, userId, data);
-      } finally {
-        this.retryTimeouts.delete(retryKey);
-      }
-    }, Math.pow(2, this.syncStatusStore.get().retryCount) * 1000); // Exponential backoff
+    const timeoutId = window.setTimeout(
+      async () => {
+        try {
+          await this.performRetry(operation, userId, data);
+        } finally {
+          this.retryTimeouts.delete(retryKey);
+        }
+      },
+      Math.pow(2, this.syncStatusStore.get().retryCount) * 1000
+    ); // Exponential backoff
 
     this.retryTimeouts.set(retryKey, timeoutId);
 
@@ -727,7 +835,11 @@ export class HybridStorage {
     this.syncStatusStore.setKey('retryCount', currentStatus.retryCount + 1);
   }
 
-  private async performRetry(operation: string, userId: string, data: unknown): Promise<void> {
+  private async performRetry(
+    operation: string,
+    userId: string,
+    data: unknown
+  ): Promise<void> {
     const currentStatus = this.syncStatusStore.get();
 
     if (currentStatus.retryCount >= this.config.maxRetryAttempts) {
@@ -777,8 +889,10 @@ export class HybridStorage {
   // DATA CONVERSION METHODS
   // ============================================================================
 
-  private convertMongoFlashcardsToLocal(mongoCards: FlashcardDocument[]): FlashcardData[] {
-    return mongoCards.map(card => ({
+  private convertMongoFlashcardsToLocal(
+    mongoCards: FlashcardDocument[]
+  ): FlashcardData[] {
+    return mongoCards.map((card) => ({
       id: parseInt(card.cardId),
       english: card.front,
       spanish: card.back,
@@ -789,11 +903,14 @@ export class HybridStorage {
       interval: card.sm2.interval,
       easinessFactor: card.sm2.easeFactor,
       repetitions: card.sm2.repetitions,
-      lastReviewed: card.sm2.lastReviewed?.toISOString() || null
+      lastReviewed: card.sm2.lastReviewed?.toISOString() || null,
     }));
   }
 
-  private convertLocalFlashcardToMongo(card: FlashcardData, userId: string): Omit<FlashcardDocument, '_id' | 'createdAt' | 'updatedAt'> {
+  private convertLocalFlashcardToMongo(
+    card: FlashcardData,
+    userId: string
+  ): Omit<FlashcardDocument, '_id' | 'createdAt' | 'updatedAt'> {
     return {
       cardId: card.id.toString(),
       userId,
@@ -814,37 +931,47 @@ export class HybridStorage {
         qualityResponses: [],
         totalReviews: 0,
         isSuspended: false,
-        suspensionReason: null
+        suspensionReason: null,
       },
       statistics: {
         timesCorrect: 0,
         timesIncorrect: 0,
         averageResponseTime: 0,
-        lastDifficulty: 'medium'
-      }
+        lastDifficulty: 'medium',
+      },
     };
   }
 
-  private convertMongoSessionsToLocal(mongoSessions: StudySessionDocument[]): StudySession[] {
-    return mongoSessions.map(session => ({
+  private convertMongoSessionsToLocal(
+    mongoSessions: StudySessionDocument[]
+  ): StudySession[] {
+    return mongoSessions.map((session) => ({
       id: session.sessionId,
-      date: session.startTime instanceof Date ? session.startTime.toISOString() : new Date(session.startTime).toISOString(),
-      cardsReviewed: typeof session.cardsReviewed === 'number'
-        ? session.cardsReviewed
-        : Array.isArray(session.cardsStudied)
-          ? session.cardsStudied.length
-          : 0,
+      date:
+        session.startTime instanceof Date
+          ? session.startTime.toISOString()
+          : new Date(session.startTime).toISOString(),
+      cardsReviewed:
+        typeof session.cardsReviewed === 'number'
+          ? session.cardsReviewed
+          : Array.isArray(session.cardsStudied)
+            ? session.cardsStudied.length
+            : 0,
       correctAnswers: session.correctAnswers,
-      totalTime: typeof session.duration === 'number'
-        ? session.duration
-        : typeof session.totalTime === 'number'
-          ? session.totalTime
-          : 0,
-      averageResponseTime: session.averageResponseTime
+      totalTime:
+        typeof session.duration === 'number'
+          ? session.duration
+          : typeof session.totalTime === 'number'
+            ? session.totalTime
+            : 0,
+      averageResponseTime: session.averageResponseTime,
     }));
   }
 
-  private convertLocalSessionToMongo(session: StudySession, userId: string): Omit<StudySessionDocument, '_id' | 'createdAt' | 'updatedAt'> {
+  private convertLocalSessionToMongo(
+    session: StudySession,
+    userId: string
+  ): Omit<StudySessionDocument, '_id' | 'createdAt' | 'updatedAt'> {
     return {
       sessionId: session.id,
       userId,
@@ -855,11 +982,13 @@ export class HybridStorage {
       averageResponseTime: session.averageResponseTime,
       mode: 'mixed',
       difficulty: 'medium',
-      profileId: 'default'
+      profileId: 'default',
     };
   }
 
-  private convertMongoStatsToLocal(stats: Record<string, unknown>): ProgressStats {
+  private convertMongoStatsToLocal(
+    stats: Record<string, unknown>
+  ): ProgressStats {
     // Convert MongoDB stats to local ProgressStats format with proper type conversion
     return {
       totalCards: Number(stats.totalCards) || 0,
@@ -872,7 +1001,7 @@ export class HybridStorage {
       averageAccuracy: Number(stats.averageAccuracy) || 0,
       studySessionsToday: 0,
       studySessionsThisWeek: 0,
-      studySessionsThisMonth: 0
+      studySessionsThisMonth: 0,
     };
   }
 
@@ -888,7 +1017,7 @@ export class HybridStorage {
       averageAccuracy: 0,
       studySessionsToday: 0,
       studySessionsThisWeek: 0,
-      studySessionsThisMonth: 0
+      studySessionsThisMonth: 0,
     };
   }
 
@@ -916,7 +1045,7 @@ export class HybridStorage {
 
     // Clear localStorage (client-side only)
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-      Object.values(STORAGE_KEYS).forEach(key => {
+      Object.values(STORAGE_KEYS).forEach((key) => {
         localStorage.removeItem(key);
       });
     }
@@ -927,7 +1056,7 @@ export class HybridStorage {
       clearInterval(this.syncIntervalId);
     }
 
-    this.retryTimeouts.forEach(timeoutId => {
+    this.retryTimeouts.forEach((timeoutId) => {
       clearTimeout(timeoutId);
     });
     this.retryTimeouts.clear();

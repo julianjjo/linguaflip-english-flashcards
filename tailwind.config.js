@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}",
-    "./*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"
+    './src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
+    './*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
   ],
   darkMode: 'class',
   theme: {
@@ -120,8 +120,8 @@ export default {
         '6xl': 'var(--font-size-6xl)',
       },
       spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
+        18: '4.5rem',
+        88: '22rem',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -145,4 +145,4 @@ export default {
     },
   },
   plugins: [],
-}
+};

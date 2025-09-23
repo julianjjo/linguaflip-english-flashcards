@@ -10,11 +10,11 @@ export const GET: APIRoute = async ({ request, url }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authentication required'
+          error: 'Authentication required',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -30,60 +30,65 @@ export const GET: APIRoute = async ({ request, url }) => {
 
     // Get flashcards based on filters
     let result;
-    
+
     if (dueOnly) {
       // Get due flashcards for study
       result = await flashcardsService.getDueFlashcards(userId, {
         limit,
         category: category || undefined,
-        includeSuspended
+        includeSuspended,
       });
     } else if (category) {
       // Get flashcards by category
-      result = await flashcardsService.getFlashcardsByCategory(userId, category, {
-        limit
-      });
+      result = await flashcardsService.getFlashcardsByCategory(
+        userId,
+        category,
+        {
+          limit,
+        }
+      );
     } else {
-       // Get all user flashcards
-       result = await flashcardsService.getAllFlashcards(userId, {
-         limit: 1000 // Large limit to get all cards
-       });
-     }
+      // Get all user flashcards
+      result = await flashcardsService.getAllFlashcards(userId, {
+        limit: 1000, // Large limit to get all cards
+      });
+    }
 
     if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Failed to retrieve flashcards'
+          error: result.error || 'Failed to retrieve flashcards',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Convert MongoDB format to frontend format
-    const flashcards = result.data?.map(card => ({
-      id: parseInt(card.cardId),
-      english: card.front,
-      spanish: card.back,
-      exampleEnglish: card.exampleFront,
-      exampleSpanish: card.exampleBack,
-      image: card.image,
-      category: card.category,
-      difficulty: card.difficulty,
-      tags: card.tags,
-      dueDate: card.sm2.nextReviewDate.toISOString(),
-      interval: card.sm2.interval,
-      easinessFactor: card.sm2.easeFactor,
-      repetitions: card.sm2.repetitions,
-      lastReviewed: card.sm2.lastReviewed?.toISOString() || null,
-      reviewCount: card.sm2.totalReviews || 0,
-      isSuspended: card.sm2.isSuspended || false,
-      createdAt: card.createdAt?.toISOString(),
-      updatedAt: card.updatedAt?.toISOString()
-    })) || [];
+    const flashcards =
+      result.data?.map((card) => ({
+        id: parseInt(card.cardId),
+        english: card.front,
+        spanish: card.back,
+        exampleEnglish: card.exampleFront,
+        exampleSpanish: card.exampleBack,
+        image: card.image,
+        category: card.category,
+        difficulty: card.difficulty,
+        tags: card.tags,
+        dueDate: card.sm2.nextReviewDate.toISOString(),
+        interval: card.sm2.interval,
+        easinessFactor: card.sm2.easeFactor,
+        repetitions: card.sm2.repetitions,
+        lastReviewed: card.sm2.lastReviewed?.toISOString() || null,
+        reviewCount: card.sm2.totalReviews || 0,
+        isSuspended: card.sm2.isSuspended || false,
+        createdAt: card.createdAt?.toISOString(),
+        updatedAt: card.updatedAt?.toISOString(),
+      })) || [];
 
     return new Response(
       JSON.stringify({
@@ -95,28 +100,27 @@ export const GET: APIRoute = async ({ request, url }) => {
             category,
             dueOnly,
             includeSuspended,
-            limit
-          }
+            limit,
+          },
         },
-        message: 'Flashcards retrieved successfully'
+        message: 'Flashcards retrieved successfully',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('List flashcards API error:', error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

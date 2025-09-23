@@ -15,8 +15,12 @@ interface TouchGestureHandler {
   onTouchEnd: (e: React.TouchEvent) => void;
 }
 
-export const useTouchGestures = (options: TouchGestureOptions): TouchGestureHandler => {
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+export const useTouchGestures = (
+  options: TouchGestureOptions
+): TouchGestureHandler => {
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(
+    null
+  );
 
   const {
     onSwipeLeft,
@@ -24,7 +28,7 @@ export const useTouchGestures = (options: TouchGestureOptions): TouchGestureHand
     onTap,
     minSwipeDistance = 50,
     maxTapDuration = 300,
-    enableHapticFeedback = true
+    enableHapticFeedback = true,
   } = options;
 
   const triggerHapticFeedback = useCallback(() => {
@@ -38,7 +42,7 @@ export const useTouchGestures = (options: TouchGestureOptions): TouchGestureHand
     touchStartRef.current = {
       x: touch.clientX,
       y: touch.clientY,
-      time: Date.now()
+      time: Date.now(),
     };
   }, []);
 
@@ -56,47 +60,65 @@ export const useTouchGestures = (options: TouchGestureOptions): TouchGestureHand
     }
   }, []);
 
-  const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current) return;
 
-    const touch = e.changedTouches[0];
-    const touchEnd = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now()
-    };
+      const touch = e.changedTouches[0];
+      const touchEnd = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now(),
+      };
 
-    const deltaX = touchEnd.x - touchStartRef.current.x;
-    const deltaY = touchEnd.y - touchStartRef.current.y;
-    const deltaTime = touchEnd.time - touchStartRef.current.time;
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(deltaY);
+      const deltaX = touchEnd.x - touchStartRef.current.x;
+      const deltaY = touchEnd.y - touchStartRef.current.y;
+      const deltaTime = touchEnd.time - touchStartRef.current.time;
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
 
-    // Determine if it's a swipe or tap
-    if (absDeltaX > minSwipeDistance && absDeltaX > absDeltaY && deltaTime < 500) {
-      // Horizontal swipe
-      if (deltaX > 0) {
-        // Swipe right
-        onSwipeRight?.();
-        triggerHapticFeedback();
-      } else {
-        // Swipe left
-        onSwipeLeft?.();
+      // Determine if it's a swipe or tap
+      if (
+        absDeltaX > minSwipeDistance &&
+        absDeltaX > absDeltaY &&
+        deltaTime < 500
+      ) {
+        // Horizontal swipe
+        if (deltaX > 0) {
+          // Swipe right
+          onSwipeRight?.();
+          triggerHapticFeedback();
+        } else {
+          // Swipe left
+          onSwipeLeft?.();
+          triggerHapticFeedback();
+        }
+      } else if (
+        absDeltaX < 10 &&
+        absDeltaY < 10 &&
+        deltaTime < maxTapDuration
+      ) {
+        // Tap (minimal movement and quick touch)
+        onTap?.();
         triggerHapticFeedback();
       }
-    } else if (absDeltaX < 10 && absDeltaY < 10 && deltaTime < maxTapDuration) {
-      // Tap (minimal movement and quick touch)
-      onTap?.();
-      triggerHapticFeedback();
-    }
 
-    touchStartRef.current = null;
-  }, [onSwipeLeft, onSwipeRight, onTap, minSwipeDistance, maxTapDuration, triggerHapticFeedback]);
+      touchStartRef.current = null;
+    },
+    [
+      onSwipeLeft,
+      onSwipeRight,
+      onTap,
+      minSwipeDistance,
+      maxTapDuration,
+      triggerHapticFeedback,
+    ]
+  );
 
   return {
     onTouchStart,
     onTouchMove,
-    onTouchEnd
+    onTouchEnd,
   };
 };
 

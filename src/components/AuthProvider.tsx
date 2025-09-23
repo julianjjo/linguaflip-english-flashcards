@@ -3,7 +3,7 @@ import { useStore } from '@nanostores/react';
 import {
   authStateAtom,
   initializeAuthStore,
-  type AuthState
+  type AuthState,
 } from '../stores/auth';
 import { flashcardsActions, setCurrentUser } from '../stores/flashcards';
 
@@ -53,19 +53,17 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const contextValue: AuthContextType = {
     ...authState,
     initializeAuth,
-    loadUserFlashcards
+    loadUserFlashcards,
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   // During SSR, return a default state to prevent errors
   if (!context) {
     // Check if we're in a browser environment
@@ -79,14 +77,14 @@ export const useAuth = (): AuthContextType => {
         error: null,
         lastActivity: null,
         initializeAuth: async () => {},
-        loadUserFlashcards: async () => {}
+        loadUserFlashcards: async () => {},
       };
     }
-    
+
     // In browser, throw error as before
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 };
 

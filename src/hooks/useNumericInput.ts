@@ -36,39 +36,38 @@ export const useNumericInput = <T extends Record<string, number | string>>(
   const { min, max, step = 1, allowEmpty = false } = options;
 
   const handleNumericChange = useCallback(
-    (field: keyof T) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
+    (field: keyof T) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
 
-        if (allowEmpty && value === '') {
-          updateFunction({ [field]: '' } as Partial<T>);
-          return;
-        }
+      if (allowEmpty && value === '') {
+        updateFunction({ [field]: '' } as Partial<T>);
+        return;
+      }
 
-        const numericValue = parseFloat(value);
+      const numericValue = parseFloat(value);
 
-        if (isNaN(numericValue)) {
-          return; // Don't update if not a valid number
-        }
+      if (isNaN(numericValue)) {
+        return; // Don't update if not a valid number
+      }
 
-        // Apply constraints
-        let constrainedValue = numericValue;
+      // Apply constraints
+      let constrainedValue = numericValue;
 
-        if (min !== undefined) {
-          constrainedValue = Math.max(constrainedValue, min);
-        }
+      if (min !== undefined) {
+        constrainedValue = Math.max(constrainedValue, min);
+      }
 
-        if (max !== undefined) {
-          constrainedValue = Math.min(constrainedValue, max);
-        }
+      if (max !== undefined) {
+        constrainedValue = Math.min(constrainedValue, max);
+      }
 
-        // Round to step precision
-        if (step !== 1) {
-          constrainedValue = Math.round(constrainedValue / step) * step;
-        }
+      // Round to step precision
+      if (step !== 1) {
+        constrainedValue = Math.round(constrainedValue / step) * step;
+      }
 
-        updateFunction({ [field]: constrainedValue } as Partial<T>);
-      },
+      updateFunction({ [field]: constrainedValue } as Partial<T>);
+    },
     [updateFunction, min, max, step, allowEmpty]
   );
 

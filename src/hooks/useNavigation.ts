@@ -19,7 +19,7 @@ export const useNavigation = () => {
     const current = uiStateStore.get();
     uiStateStore.set({
       ...current,
-      isSidebarOpen: !current.isSidebarOpen
+      isSidebarOpen: !current.isSidebarOpen,
     });
   };
 
@@ -41,7 +41,12 @@ export const useNavigation = () => {
   const getBreadcrumbItems = () => {
     return [
       { label: 'Home', href: '#' },
-      { label: navigation.currentView.charAt(0).toUpperCase() + navigation.currentView.slice(1), current: true }
+      {
+        label:
+          navigation.currentView.charAt(0).toUpperCase() +
+          navigation.currentView.slice(1),
+        current: true,
+      },
     ];
   };
 

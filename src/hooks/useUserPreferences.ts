@@ -76,7 +76,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 export const useUserPreferences = (): UseUserPreferencesReturn => {
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [preferences, setPreferences] =
+    useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isLoading, setIsLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -115,15 +116,15 @@ export const useUserPreferences = (): UseUserPreferencesReturn => {
     }
   }, [preferences, isLoading, isHydrated]);
 
-  const updatePreference = useCallback(<K extends keyof UserPreferences>(
-    key: K,
-    value: UserPreferences[K]
-  ) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
-  }, []);
+  const updatePreference = useCallback(
+    <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => {
+      setPreferences((prev) => ({ ...prev, [key]: value }));
+    },
+    []
+  );
 
   const updatePreferences = useCallback((updates: Partial<UserPreferences>) => {
-    setPreferences(prev => ({ ...prev, ...updates }));
+    setPreferences((prev) => ({ ...prev, ...updates }));
   }, []);
 
   const resetToDefaults = useCallback(() => {

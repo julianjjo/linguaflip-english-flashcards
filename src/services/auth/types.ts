@@ -1,4 +1,7 @@
-import type { DatabaseOperationResult, UserDocument } from '../../types/database.ts';
+import type {
+  DatabaseOperationResult,
+  UserDocument,
+} from '../../types/database.ts';
 
 export interface AccessTokenPayload {
   userId: string;

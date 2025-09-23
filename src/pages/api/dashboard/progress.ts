@@ -9,7 +9,7 @@ export const GET: APIRoute = async ({ url }) => {
     if (!authState.isAuthenticated || !authState.user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -24,8 +24,8 @@ export const GET: APIRoute = async ({ url }) => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    const filteredSessions = studyHistory.filter(session => 
-      new Date(session.date) >= cutoffDate
+    const filteredSessions = studyHistory.filter(
+      (session) => new Date(session.date) >= cutoffDate
     );
 
     let progressData = [];
@@ -33,7 +33,7 @@ export const GET: APIRoute = async ({ url }) => {
     if (type === 'daily') {
       // Group by day
       const dailyData = new Map();
-      
+
       for (let i = 0; i < days; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -44,11 +44,11 @@ export const GET: APIRoute = async ({ url }) => {
           correctAnswers: 0,
           totalTime: 0,
           sessions: 0,
-          accuracy: 0
+          accuracy: 0,
         });
       }
 
-      filteredSessions.forEach(session => {
+      filteredSessions.forEach((session) => {
         const date = session.date.split('T')[0]; // Get date part only
         if (dailyData.has(date)) {
           const existing = dailyData.get(date);
@@ -56,24 +56,26 @@ export const GET: APIRoute = async ({ url }) => {
           existing.correctAnswers += session.correctAnswers;
           existing.totalTime += session.totalTime;
           existing.sessions += 1;
-          existing.accuracy = existing.cardsReviewed > 0 
-            ? Math.round((existing.correctAnswers / existing.cardsReviewed) * 100)
-            : 0;
+          existing.accuracy =
+            existing.cardsReviewed > 0
+              ? Math.round(
+                  (existing.correctAnswers / existing.cardsReviewed) * 100
+                )
+              : 0;
         }
       });
 
       progressData = Array.from(dailyData.values()).reverse();
-
     } else if (type === 'weekly') {
       // Group by week
       const weeklyData = new Map();
-      
-      filteredSessions.forEach(session => {
+
+      filteredSessions.forEach((session) => {
         const date = new Date(session.date);
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
         const weekKey = weekStart.toISOString().split('T')[0];
-        
+
         if (!weeklyData.has(weekKey)) {
           weeklyData.set(weekKey, {
             weekStart: weekKey,
@@ -81,32 +83,35 @@ export const GET: APIRoute = async ({ url }) => {
             correctAnswers: 0,
             totalTime: 0,
             sessions: 0,
-            accuracy: 0
+            accuracy: 0,
           });
         }
-        
+
         const existing = weeklyData.get(weekKey);
         existing.cardsReviewed += session.cardsReviewed;
         existing.correctAnswers += session.correctAnswers;
         existing.totalTime += session.totalTime;
         existing.sessions += 1;
-        existing.accuracy = existing.cardsReviewed > 0 
-          ? Math.round((existing.correctAnswers / existing.cardsReviewed) * 100)
-          : 0;
+        existing.accuracy =
+          existing.cardsReviewed > 0
+            ? Math.round(
+                (existing.correctAnswers / existing.cardsReviewed) * 100
+              )
+            : 0;
       });
 
-      progressData = Array.from(weeklyData.values()).sort((a, b) => 
-        new Date(a.weekStart).getTime() - new Date(b.weekStart).getTime()
+      progressData = Array.from(weeklyData.values()).sort(
+        (a, b) =>
+          new Date(a.weekStart).getTime() - new Date(b.weekStart).getTime()
       );
-
     } else if (type === 'monthly') {
       // Group by month
       const monthlyData = new Map();
-      
-      filteredSessions.forEach(session => {
+
+      filteredSessions.forEach((session) => {
         const date = new Date(session.date);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
+
         if (!monthlyData.has(monthKey)) {
           monthlyData.set(monthKey, {
             month: monthKey,
@@ -114,63 +119,102 @@ export const GET: APIRoute = async ({ url }) => {
             correctAnswers: 0,
             totalTime: 0,
             sessions: 0,
-            accuracy: 0
+            accuracy: 0,
           });
         }
-        
+
         const existing = monthlyData.get(monthKey);
         existing.cardsReviewed += session.cardsReviewed;
         existing.correctAnswers += session.correctAnswers;
         existing.totalTime += session.totalTime;
         existing.sessions += 1;
-        existing.accuracy = existing.cardsReviewed > 0 
-          ? Math.round((existing.correctAnswers / existing.cardsReviewed) * 100)
-          : 0;
+        existing.accuracy =
+          existing.cardsReviewed > 0
+            ? Math.round(
+                (existing.correctAnswers / existing.cardsReviewed) * 100
+              )
+            : 0;
       });
 
-      progressData = Array.from(monthlyData.values()).sort((a, b) => 
+      progressData = Array.from(monthlyData.values()).sort((a, b) =>
         a.month.localeCompare(b.month)
       );
     }
 
     // Calculate summary statistics
     const summary = {
-      totalCardsReviewed: filteredSessions.reduce((sum, session) => sum + session.cardsReviewed, 0),
-      totalCorrectAnswers: filteredSessions.reduce((sum, session) => sum + session.correctAnswers, 0),
-      totalStudyTime: filteredSessions.reduce((sum, session) => sum + session.totalTime, 0),
+      totalCardsReviewed: filteredSessions.reduce(
+        (sum, session) => sum + session.cardsReviewed,
+        0
+      ),
+      totalCorrectAnswers: filteredSessions.reduce(
+        (sum, session) => sum + session.correctAnswers,
+        0
+      ),
+      totalStudyTime: filteredSessions.reduce(
+        (sum, session) => sum + session.totalTime,
+        0
+      ),
       totalSessions: filteredSessions.length,
-      averageAccuracy: filteredSessions.length > 0 
-        ? Math.round((filteredSessions.reduce((sum, session) => sum + session.correctAnswers, 0) / 
-           filteredSessions.reduce((sum, session) => sum + session.cardsReviewed, 0)) * 100)
-        : 0,
-      averageCardsPerSession: filteredSessions.length > 0 
-        ? Math.round(filteredSessions.reduce((sum, session) => sum + session.cardsReviewed, 0) / filteredSessions.length)
-        : 0,
-      averageTimePerSession: filteredSessions.length > 0 
-        ? Math.round(filteredSessions.reduce((sum, session) => sum + session.totalTime, 0) / filteredSessions.length)
-        : 0
+      averageAccuracy:
+        filteredSessions.length > 0
+          ? Math.round(
+              (filteredSessions.reduce(
+                (sum, session) => sum + session.correctAnswers,
+                0
+              ) /
+                filteredSessions.reduce(
+                  (sum, session) => sum + session.cardsReviewed,
+                  0
+                )) *
+                100
+            )
+          : 0,
+      averageCardsPerSession:
+        filteredSessions.length > 0
+          ? Math.round(
+              filteredSessions.reduce(
+                (sum, session) => sum + session.cardsReviewed,
+                0
+              ) / filteredSessions.length
+            )
+          : 0,
+      averageTimePerSession:
+        filteredSessions.length > 0
+          ? Math.round(
+              filteredSessions.reduce(
+                (sum, session) => sum + session.totalTime,
+                0
+              ) / filteredSessions.length
+            )
+          : 0,
     };
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      data: {
-        progressData,
-        summary,
-        period: { days, type }
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: {
+          progressData,
+          summary,
+          period: { days, type },
+        },
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
       }
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-
+    );
   } catch (error) {
     console.error('Dashboard progress API error:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: 'Failed to fetch progress data' 
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Failed to fetch progress data',
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 };

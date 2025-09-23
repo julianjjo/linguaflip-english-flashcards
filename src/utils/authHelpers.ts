@@ -18,7 +18,8 @@ interface AuthResult {
 }
 
 const AUTH_CONFIG = {
-  jwtSecret: process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
+  jwtSecret:
+    process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
 };
 
 /**
@@ -34,11 +35,14 @@ function extractToken(request: Request): string | null {
   // Try cookies as fallback
   const cookieHeader = request.headers.get('cookie');
   if (cookieHeader) {
-    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=');
-      acc[key] = value;
-      return acc;
-    }, {} as Record<string, string>);
+    const cookies = cookieHeader.split(';').reduce(
+      (acc, cookie) => {
+        const [key, value] = cookie.trim().split('=');
+        acc[key] = value;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     return cookies.accessToken || null;
   }
@@ -56,7 +60,7 @@ export async function verifyToken(request: Request): Promise<AuthResult> {
     if (!token) {
       return {
         success: false,
-        error: 'No authentication token provided'
+        error: 'No authentication token provided',
       };
     }
 
@@ -66,7 +70,7 @@ export async function verifyToken(request: Request): Promise<AuthResult> {
     if (!decoded || !decoded.userId) {
       return {
         success: false,
-        error: 'Invalid token payload'
+        error: 'Invalid token payload',
       };
     }
 
@@ -74,28 +78,27 @@ export async function verifyToken(request: Request): Promise<AuthResult> {
       success: true,
       data: {
         userId: decoded.userId,
-        email: decoded.email
-      }
+        email: decoded.email,
+      },
     };
-
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
       return {
         success: false,
-        error: 'Invalid token'
+        error: 'Invalid token',
       };
     }
 
     if (error instanceof jwt.TokenExpiredError) {
       return {
         success: false,
-        error: 'Token expired'
+        error: 'Token expired',
       };
     }
 
     return {
       success: false,
-      error: 'Authentication error'
+      error: 'Authentication error',
     };
   }
 }

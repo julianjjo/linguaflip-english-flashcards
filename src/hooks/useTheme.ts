@@ -19,7 +19,6 @@ export const useTheme = (): UseThemeReturn => {
   const [mounted, setMounted] = useState(false);
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
-
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -38,12 +37,19 @@ export const useTheme = (): UseThemeReturn => {
 
     // Read theme from localStorage
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored && (stored === 'light' || stored === 'dark' || stored === 'auto')) {
+    if (
+      stored &&
+      (stored === 'light' || stored === 'dark' || stored === 'auto')
+    ) {
       setThemeState(stored as Theme);
     }
 
     // Read system theme
-    setSystemTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setSystemTheme(
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+    );
   }, []);
 
   // Resolve actual theme

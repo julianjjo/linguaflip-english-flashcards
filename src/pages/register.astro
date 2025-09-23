@@ -10,201 +10,320 @@ import AppProvider from '../components/AppProvider.tsx';
 >
   <!-- SEO Meta Tags -->
   <meta property="og:title" content="Registro - LinguaFlip" />
-  <meta property="og:description" content="Únete a LinguaFlip para aprender inglés con flashcards inteligentes" />
+  <meta
+    property="og:description"
+    content="Únete a LinguaFlip para aprender inglés con flashcards inteligentes"
+  />
   <meta property="og:type" content="website" />
 
-  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-    <div class="max-w-md w-full">
+  <div
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4"
+  >
+    <div class="w-full max-w-md">
       <!-- Theme Toggle -->
       <AppProvider client:only="react">
-        <div class="absolute top-4 right-4">
+        <div class="absolute right-4 top-4">
           <ThemeToggle variant="icon" size="md" client:load />
         </div>
       </AppProvider>
 
-        <!-- Registration Card -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-          <!-- Header -->
-          <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h1 class="text-2xl font-bold text-neutral-900 mb-2">Únete a LinguaFlip</h1>
-            <p class="text-neutral-600">Crea tu cuenta para comenzar a aprender</p>
-          </div>
-
-          <!-- Registration Form -->
-          <form id="registerForm" class="space-y-6">
-            <!-- Email Field -->
-            <div>
-              <label for="email" class="block text-sm font-medium text-neutral-700 mb-2">
-                Correo electrónico *
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                placeholder="tu@email.com"
-              />
-            </div>
-
-            <!-- Username Field (Optional) -->
-            <div>
-              <label for="username" class="block text-sm font-medium text-neutral-700 mb-2">
-                Nombre de usuario (opcional)
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                placeholder="Ej: juan_123"
-                maxlength="50"
-              />
-              <p class="text-xs text-neutral-500 mt-1">Solo letras, números, guiones y guiones bajos</p>
-            </div>
-
-            <!-- Password Field -->
-            <div>
-              <label for="password" class="block text-sm font-medium text-neutral-700 mb-2">
-                Contraseña *
-              </label>
-              <div class="relative">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  required
-                  class="w-full px-4 py-3 pr-12 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  placeholder="Tu contraseña"
-                  minlength="8"
-                />
-                <button
-                  type="button"
-                  onclick="togglePasswordVisibility('password')"
-                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="mt-2 space-y-1">
-                <p class="text-xs text-neutral-500">La contraseña debe contener:</p>
-                <ul class="text-xs text-neutral-500 ml-4">
-                  <li>• Al menos 8 caracteres</li>
-                  <li>• Una letra minúscula</li>
-                  <li>• Una letra mayúscula</li>
-                  <li>• Un número</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Confirm Password Field -->
-            <div>
-              <label for="confirmPassword" class="block text-sm font-medium text-neutral-700 mb-2">
-                Confirmar contraseña *
-              </label>
-              <div class="relative">
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  required
-                  class="w-full px-4 py-3 pr-12 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  placeholder="Confirma tu contraseña"
-                />
-                <button
-                  type="button"
-                  onclick="togglePasswordVisibility('confirmPassword')"
-                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Terms Agreement -->
-            <div class="flex items-start space-x-2">
-              <input 
-                type="checkbox" 
-                id="terms" 
-                name="terms" 
-                required
-                class="mt-1 rounded border-neutral-300 text-primary-600 focus:ring-primary-500" 
-              />
-              <label for="terms" class="text-sm text-neutral-600">
-                Acepto los 
-                <a href="/terms" class="text-primary-600 hover:text-primary-700 font-medium">Términos de servicio</a>
-                y la
-                <a href="/privacy" class="text-primary-600 hover:text-primary-700 font-medium">Política de privacidad</a>
-              </label>
-            </div>
-
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div class="flex items-center">
-                <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span id="errorText" class="text-sm text-red-800"></span>
-              </div>
-            </div>
-
-            <!-- Success Message -->
-            <div id="successMessage" class="hidden p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div class="flex items-center">
-                <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span id="successText" class="text-sm text-green-800"></span>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button
-              type="submit"
-              id="registerButton"
-              class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+      <!-- Registration Card -->
+      <div class="rounded-2xl bg-white p-8 shadow-xl">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+          <div
+            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100"
+          >
+            <svg
+              class="h-8 w-8 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <span id="buttonText">Crear cuenta</span>
-              <svg id="loadingSpinner" class="hidden animate-spin ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </button>
-          </form>
-
-          <!-- Login Link -->
-          <div class="mt-8 text-center">
-            <p class="text-neutral-600">
-              ¿Ya tienes cuenta?
-              <a href="/login" class="text-primary-600 hover:text-primary-700 font-medium">
-                Inicia sesión
-              </a>
-            </p>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
           </div>
+          <h1 class="mb-2 text-2xl font-bold text-neutral-900">
+            Únete a LinguaFlip
+          </h1>
+          <p class="text-neutral-600">
+            Crea tu cuenta para comenzar a aprender
+          </p>
         </div>
 
-        <!-- Footer -->
+        <!-- Registration Form -->
+        <form id="registerForm" class="space-y-6">
+          <!-- Email Field -->
+          <div>
+            <label
+              for="email"
+              class="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Correo electrónico *
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500"
+              placeholder="tu@email.com"
+            />
+          </div>
+
+          <!-- Username Field (Optional) -->
+          <div>
+            <label
+              for="username"
+              class="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Nombre de usuario (opcional)
+            </label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500"
+              placeholder="Ej: juan_123"
+              maxlength="50"
+            />
+            <p class="mt-1 text-xs text-neutral-500">
+              Solo letras, números, guiones y guiones bajos
+            </p>
+          </div>
+
+          <!-- Password Field -->
+          <div>
+            <label
+              for="password"
+              class="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Contraseña *
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                placeholder="Tu contraseña"
+                minlength="8"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('password')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"
+              >
+                <svg
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <div class="mt-2 space-y-1">
+              <p class="text-xs text-neutral-500">
+                La contraseña debe contener:
+              </p>
+              <ul class="ml-4 text-xs text-neutral-500">
+                <li>• Al menos 8 caracteres</li>
+                <li>• Una letra minúscula</li>
+                <li>• Una letra mayúscula</li>
+                <li>• Un número</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div>
+            <label
+              for="confirmPassword"
+              class="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Confirmar contraseña *
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                required
+                class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                placeholder="Confirma tu contraseña"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('confirmPassword')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"
+              >
+                <svg
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Terms Agreement -->
+          <div class="flex items-start space-x-2">
+            <input
+              type="checkbox"
+              id="terms"
+              name="terms"
+              required
+              class="mt-1 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label for="terms" class="text-sm text-neutral-600">
+              Acepto los
+              <a
+                href="/terms"
+                class="font-medium text-primary-600 hover:text-primary-700"
+                >Términos de servicio</a
+              >
+              y la
+              <a
+                href="/privacy"
+                class="font-medium text-primary-600 hover:text-primary-700"
+                >Política de privacidad</a
+              >
+            </label>
+          </div>
+
+          <!-- Error Message -->
+          <div
+            id="errorMessage"
+            class="hidden rounded-lg border border-red-200 bg-red-50 p-4"
+          >
+            <div class="flex items-center">
+              <svg
+                class="mr-2 h-5 w-5 text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span id="errorText" class="text-sm text-red-800"></span>
+            </div>
+          </div>
+
+          <!-- Success Message -->
+          <div
+            id="successMessage"
+            class="hidden rounded-lg border border-green-200 bg-green-50 p-4"
+          >
+            <div class="flex items-center">
+              <svg
+                class="mr-2 h-5 w-5 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span id="successText" class="text-sm text-green-800"></span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="registerButton"
+            class="flex w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-primary-700"
+          >
+            <span id="buttonText">Crear cuenta</span>
+            <svg
+              id="loadingSpinner"
+              class="ml-2 hidden h-4 w-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Login Link -->
         <div class="mt-8 text-center">
-          <p class="text-sm text-neutral-500">
-            Al registrarte, aceptas nuestros
-            <a href="/terms" class="text-primary-600 hover:text-primary-700">Términos de servicio</a>
-            y
-            <a href="/privacy" class="text-primary-600 hover:text-primary-700">Política de privacidad</a>
+          <p class="text-neutral-600">
+            ¿Ya tienes cuenta?
+            <a
+              href="/login"
+              class="font-medium text-primary-600 hover:text-primary-700"
+            >
+              Inicia sesión
+            </a>
           </p>
         </div>
       </div>
+
+      <!-- Footer -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-neutral-500">
+          Al registrarte, aceptas nuestros
+          <a href="/terms" class="text-primary-600 hover:text-primary-700"
+            >Términos de servicio</a
+          >
+          y
+          <a href="/privacy" class="text-primary-600 hover:text-primary-700"
+            >Política de privacidad</a
+          >
+        </p>
+      </div>
     </div>
+  </div>
 
   <script is:inline>
     // Password visibility toggle
@@ -216,10 +335,12 @@ import AppProvider from '../components/AppProvider.tsx';
       if (input && icon) {
         if (input.type === 'password') {
           input.type = 'text';
-          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
         } else {
           input.type = 'password';
-          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
         }
       }
     }
@@ -227,30 +348,30 @@ import AppProvider from '../components/AppProvider.tsx';
     // Client-side password validation
     function validatePassword(password) {
       const errors = [];
-      
+
       if (password.length < 8) {
         errors.push('La contraseña debe tener al menos 8 caracteres');
       }
-      
+
       if (!/[a-z]/.test(password)) {
         errors.push('Debe contener al menos una letra minúscula');
       }
-      
+
       if (!/[A-Z]/.test(password)) {
         errors.push('Debe contener al menos una letra mayúscula');
       }
-      
+
       if (!/\d/.test(password)) {
         errors.push('Debe contener al menos un número');
       }
-      
+
       return { valid: errors.length === 0, errors };
     }
 
     // Registration form submission
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
-      registerForm.addEventListener('submit', async function(e) {
+      registerForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const emailInput = document.getElementById('email');
@@ -266,9 +387,19 @@ import AppProvider from '../components/AppProvider.tsx';
         const successMessage = document.getElementById('successMessage');
         const successText = document.getElementById('successText');
 
-        if (!emailInput || !passwordInput || !confirmPasswordInput || !termsInput || 
-            !registerButton || !buttonText || !loadingSpinner || !errorMessage || 
-            !errorText || !successMessage || !successText) {
+        if (
+          !emailInput ||
+          !passwordInput ||
+          !confirmPasswordInput ||
+          !termsInput ||
+          !registerButton ||
+          !buttonText ||
+          !loadingSpinner ||
+          !errorMessage ||
+          !errorText ||
+          !successMessage ||
+          !successText
+        ) {
           return;
         }
 
@@ -284,13 +415,15 @@ import AppProvider from '../components/AppProvider.tsx';
 
         // Client-side validation
         if (!email || !password || !confirmPassword) {
-          errorText.textContent = 'Todos los campos obligatorios deben ser completados';
+          errorText.textContent =
+            'Todos los campos obligatorios deben ser completados';
           errorMessage.classList.remove('hidden');
           return;
         }
 
         if (!termsAccepted) {
-          errorText.textContent = 'Debes aceptar los términos de servicio y la política de privacidad';
+          errorText.textContent =
+            'Debes aceptar los términos de servicio y la política de privacidad';
           errorMessage.classList.remove('hidden');
           return;
         }
@@ -298,7 +431,8 @@ import AppProvider from '../components/AppProvider.tsx';
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-          errorText.textContent = 'El formato del correo electrónico no es válido';
+          errorText.textContent =
+            'El formato del correo electrónico no es válido';
           errorMessage.classList.remove('hidden');
           return;
         }
@@ -321,14 +455,16 @@ import AppProvider from '../components/AppProvider.tsx';
         // Validate username if provided
         if (username && username.length > 0) {
           if (username.length < 3 || username.length > 50) {
-            errorText.textContent = 'El nombre de usuario debe tener entre 3 y 50 caracteres';
+            errorText.textContent =
+              'El nombre de usuario debe tener entre 3 y 50 caracteres';
             errorMessage.classList.remove('hidden');
             return;
           }
 
           const usernameRegex = /^[a-zA-Z0-9_-]+$/;
           if (!usernameRegex.test(username)) {
-            errorText.textContent = 'El nombre de usuario solo puede contener letras, números, guiones y guiones bajos';
+            errorText.textContent =
+              'El nombre de usuario solo puede contener letras, números, guiones y guiones bajos';
             errorMessage.classList.remove('hidden');
             return;
           }
@@ -345,11 +481,11 @@ import AppProvider from '../components/AppProvider.tsx';
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
-              email, 
-              username: username || undefined, 
-              password, 
-              confirmPassword 
+            body: JSON.stringify({
+              email,
+              username: username || undefined,
+              password,
+              confirmPassword,
             }),
           });
 
@@ -357,12 +493,22 @@ import AppProvider from '../components/AppProvider.tsx';
 
           if (response.ok && data.success) {
             // Store tokens
-            localStorage.setItem('linguaflip_auth_token', data.data.tokens.accessToken);
-            localStorage.setItem('linguaflip_refresh_token', data.data.tokens.refreshToken);
-            localStorage.setItem('linguaflip_user', JSON.stringify(data.data.user));
+            localStorage.setItem(
+              'linguaflip_auth_token',
+              data.data.tokens.accessToken
+            );
+            localStorage.setItem(
+              'linguaflip_refresh_token',
+              data.data.tokens.refreshToken
+            );
+            localStorage.setItem(
+              'linguaflip_user',
+              JSON.stringify(data.data.user)
+            );
 
             // Show success message
-            successText.textContent = 'Cuenta creada exitosamente. Redirigiendo...';
+            successText.textContent =
+              'Cuenta creada exitosamente. Redirigiendo...';
             successMessage.classList.remove('hidden');
 
             // Redirect to dashboard after a short delay
@@ -389,8 +535,10 @@ import AppProvider from '../components/AppProvider.tsx';
 
     // Setup password toggle buttons
     document.addEventListener('DOMContentLoaded', () => {
-      const toggleButtons = document.querySelectorAll('[onclick*="togglePasswordVisibility"]');
-      toggleButtons.forEach(button => {
+      const toggleButtons = document.querySelectorAll(
+        '[onclick*="togglePasswordVisibility"]'
+      );
+      toggleButtons.forEach((button) => {
         const onclick = button.getAttribute('onclick');
         if (!onclick) {
           return;
@@ -402,7 +550,9 @@ import AppProvider from '../components/AppProvider.tsx';
         }
 
         button.dataset.passwordToggleBound = 'true';
-        button.addEventListener('click', () => togglePasswordVisibility(inputId));
+        button.addEventListener('click', () =>
+          togglePasswordVisibility(inputId)
+        );
       });
     });
   </script>

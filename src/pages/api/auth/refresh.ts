@@ -9,12 +9,15 @@ export const POST: APIRoute = async ({ request }) => {
     let refreshToken: string | null = null;
 
     if (cookieHeader) {
-      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-      
+      const cookies = cookieHeader.split(';').reduce(
+        (acc, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          acc[key] = value;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
       refreshToken = cookies.refreshToken || null;
     }
 
@@ -22,19 +25,20 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Refresh token not found'
+          error: 'Refresh token not found',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Get client IP for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIP =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     // Attempt token refresh
     const result = await refreshAccessToken(refreshToken, clientIP);
@@ -44,11 +48,11 @@ export const POST: APIRoute = async ({ request }) => {
       const response = new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Token refresh failed'
+          error: result.error || 'Token refresh failed',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
 
@@ -66,18 +70,18 @@ export const POST: APIRoute = async ({ request }) => {
         success: true,
         data: {
           accessToken: result.data?.accessToken,
-          expiresIn: result.data?.expiresIn
-        }
+          expiresIn: result.data?.expiresIn,
+        },
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 
     // Set multiple cookies
     const cookies = [];
-    
+
     // Set new access token cookie
     if (result.data?.accessToken) {
       const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
@@ -85,17 +89,17 @@ export const POST: APIRoute = async ({ request }) => {
         `accessToken=${result.data.accessToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${2 * 60 * 60}; Path=/`
       );
     }
-    
+
     // Update refresh token cookie if a new one was provided
     if (result.data?.refreshToken) {
       cookies.push(
         `refreshToken=${result.data.refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/`
       );
     }
-    
+
     // Set multiple cookies
     if (cookies.length > 0) {
-      cookies.forEach(cookie => {
+      cookies.forEach((cookie) => {
         response.headers.append('Set-Cookie', cookie);
       });
     }
@@ -108,7 +112,6 @@ export const POST: APIRoute = async ({ request }) => {
     );
 
     return response;
-
   } catch (error) {
     console.error('Token refresh API error:', error);
 
@@ -123,11 +126,11 @@ export const POST: APIRoute = async ({ request }) => {
     const response = new Response(
       JSON.stringify({
         success: false,
-        error: 'Token refresh failed'
+        error: 'Token refresh failed',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 

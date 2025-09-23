@@ -28,7 +28,9 @@ class TestServer {
       // Check if port is already in use
       const isPortInUse = await this.checkPortInUse(this.config.port);
       if (isPortInUse) {
-        console.log(`⚠️ Port ${this.config.port} is already in use. Attempting to use it...`);
+        console.log(
+          `⚠️ Port ${this.config.port} is already in use. Attempting to use it...`
+        );
         return this.config.port;
       }
 
@@ -38,7 +40,9 @@ class TestServer {
       // Wait for server to be ready
       await this.waitForServerReady();
 
-      console.log(`✅ Test server started on http://${this.config.host}:${this.config.port}`);
+      console.log(
+        `✅ Test server started on http://${this.config.host}:${this.config.port}`
+      );
       return this.config.port;
     } catch (error) {
       console.error('❌ Failed to start test server:', error.message);
@@ -93,13 +97,13 @@ class TestServer {
         ...process.env,
         NODE_ENV: 'test',
         PORT: this.config.port.toString(),
-        HOST: this.config.host
+        HOST: this.config.host,
       };
 
       // Start the dev server
       this.serverProcess = exec('npm run dev', {
         env,
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
 
       this.serverProcess.stdout.on('data', (data) => {
@@ -124,7 +128,9 @@ class TestServer {
    */
   async checkPortInUse(port) {
     try {
-      const { stdout } = await execAsync(`lsof -i :${port} || netstat -an | grep :${port}`);
+      const { stdout } = await execAsync(
+        `lsof -i :${port} || netstat -an | grep :${port}`
+      );
       return stdout.trim().length > 0;
     } catch (error) {
       return false;
@@ -153,14 +159,18 @@ class TestServer {
           console.log('✅ Server is ready!');
           return;
         } else {
-          console.log(`⚠️ Server responded with status ${response}, retrying...`);
+          console.log(
+            `⚠️ Server responded with status ${response}, retrying...`
+          );
         }
       } catch (error) {
-        console.log(`⚠️ Health check failed (attempt ${attempt}/${maxRetries}): ${error.message}`);
+        console.log(
+          `⚠️ Health check failed (attempt ${attempt}/${maxRetries}): ${error.message}`
+        );
       }
 
       if (attempt < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
       }
     }
 
@@ -177,7 +187,7 @@ class TestServer {
         port: this.config.port,
         path: '/',
         method: 'GET',
-        timeout: this.healthCheck.timeout
+        timeout: this.healthCheck.timeout,
       };
 
       const req = request(options, (res) => {

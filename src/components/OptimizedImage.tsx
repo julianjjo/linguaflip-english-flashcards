@@ -32,7 +32,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   onError,
   priority = false,
   sizes = '320px',
-  quality = 80
+  quality = 80,
 }) => {
   const [imageSrc, setImageSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -50,8 +50,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
     if (entries.length > MAX_CACHE_SIZE) {
       // Remove oldest entries
-      const sortedEntries = entries.sort(([, a], [, b]) => a.timestamp - b.timestamp);
-      const entriesToRemove = sortedEntries.slice(0, entries.length - MAX_CACHE_SIZE);
+      const sortedEntries = entries.sort(
+        ([, a], [, b]) => a.timestamp - b.timestamp
+      );
+      const entriesToRemove = sortedEntries.slice(
+        0,
+        entries.length - MAX_CACHE_SIZE
+      );
 
       entriesToRemove.forEach(([key, value]) => {
         URL.revokeObjectURL(value.url);
@@ -85,45 +90,50 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     return url;
   };
 
-  const loadImage = useCallback(async (imageUrl: string): Promise<string> => {
-    const cacheKey = getCacheKey(imageUrl, quality);
+  const loadImage = useCallback(
+    async (imageUrl: string): Promise<string> => {
+      const cacheKey = getCacheKey(imageUrl, quality);
 
-    // Check cache first
-    if (imageCache.current[cacheKey]) {
-      return imageCache.current[cacheKey].url;
-    }
-
-    try {
-      const optimizedUrl = optimizeImageUrl(imageUrl, quality);
-      const response = await fetch(optimizedUrl);
-
-      if (!response.ok) {
-        throw new Error(`Failed to load image: ${response.status}`);
+      // Check cache first
+      if (imageCache.current[cacheKey]) {
+        return imageCache.current[cacheKey].url;
       }
 
-      const blob = await response.blob();
+      try {
+        const optimizedUrl = optimizeImageUrl(imageUrl, quality);
+        const response = await fetch(optimizedUrl);
 
-      // Cache the blob
-      const objectUrl = URL.createObjectURL(blob);
-      imageCache.current[cacheKey] = {
-        blob,
-        timestamp: Date.now(),
-        url: objectUrl,
-      };
+        if (!response.ok) {
+          throw new Error(`Failed to load image: ${response.status}`);
+        }
 
-      cleanCache();
-      return objectUrl;
-    } catch (error) {
-      console.warn('Failed to load/optimize image:', error);
-      throw error;
-    }
-  }, [quality, cleanCache]);
+        const blob = await response.blob();
+
+        // Cache the blob
+        const objectUrl = URL.createObjectURL(blob);
+        imageCache.current[cacheKey] = {
+          blob,
+          timestamp: Date.now(),
+          url: objectUrl,
+        };
+
+        cleanCache();
+        return objectUrl;
+      } catch (error) {
+        console.warn('Failed to load/optimize image:', error);
+        throw error;
+      }
+    },
+    [quality, cleanCache]
+  );
 
   const getFallbackImage = useCallback((): string => {
     if (fallbackSrc) return fallbackSrc;
 
     // Generate a Picsum fallback based on alt text hash
-    const hash = alt.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hash = alt
+      .split('')
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return `https://picsum.photos/320/180?random=${hash}`;
   }, [fallbackSrc, alt]);
 
@@ -212,17 +222,27 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     <div className={`relative ${className}`}>
       {/* Loading placeholder */}
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
-          <div className="text-gray-400 text-sm">Loading...</div>
+        <div className="absolute inset-0 flex animate-pulse items-center justify-center rounded-lg bg-gray-200">
+          <div className="text-sm text-gray-400">Loading...</div>
         </div>
       )}
 
       {/* Error placeholder */}
       {hasError && !isLoading && (
-        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
-          <div className="text-gray-400 text-sm text-center">
-            <svg className="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-100">
+          <div className="text-center text-sm text-gray-400">
+            <svg
+              className="mx-auto mb-2 h-8 w-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
             Image unavailable
           </div>

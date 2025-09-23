@@ -6,13 +6,11 @@ const PROTECTED_ROUTES = [
   '/study',
   '/settings',
   '/data',
-  '/profile'
+  '/profile',
 ];
 
 // Define admin routes that require admin privileges
-const ADMIN_ROUTES = [
-  '/admin'
-];
+const ADMIN_ROUTES = ['/admin'];
 
 // Public routes that should redirect authenticated users (currently unused)
 
@@ -26,9 +24,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Skip middleware for static assets
-  if (pathname.startsWith('/_astro/') || 
-      pathname.startsWith('/favicon') || 
-      pathname.includes('.')) {
+  if (
+    pathname.startsWith('/_astro/') ||
+    pathname.startsWith('/favicon') ||
+    pathname.includes('.')
+  ) {
     return next();
   }
 
@@ -45,18 +45,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!accessToken) {
     const cookieHeader = request.headers.get('Cookie');
     if (cookieHeader) {
-      const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        if (key && value) {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
-      
+      const cookies = cookieHeader
+        .split(';')
+        .reduce((acc: Record<string, string>, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          if (key && value) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+
       accessToken = cookies.accessToken || null;
     }
   }
-  
+
   // Try to verify the token if it exists
   let isAuthenticated = false;
   let user: {
@@ -71,8 +73,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     try {
       // Only verify JWT signature without database lookup
       const jwt = await import('jsonwebtoken');
-      const jwtSecret = process.env.JWT_SECRET || 'linguaflip-jwt-secret-dev-2024';
-      
+      const jwtSecret =
+        process.env.JWT_SECRET || 'linguaflip-jwt-secret-dev-2024';
+
       const decoded = jwt.default.verify(accessToken, jwtSecret) as {
         userId: string;
         email?: string;
@@ -82,19 +85,22 @@ export const onRequest = defineMiddleware(async (context, next) => {
         iat?: number;
         exp?: number;
       };
-      
+
       if (decoded.type === 'access' && decoded.userId) {
         isAuthenticated = true;
         user = {
           userId: decoded.userId,
           email: decoded.email,
           username: decoded.username,
-          role: decoded.role
+          role: decoded.role,
         };
       }
     } catch (error) {
       // Silently handle invalid tokens - common during development
-      console.warn('Invalid token in middleware, continuing without auth', error);
+      console.warn(
+        'Invalid token in middleware, continuing without auth',
+        error
+      );
     }
   }
 
@@ -103,19 +109,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
   locals.user = user;
 
   // Check if route requires authentication
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => 
-    pathname === route || pathname.startsWith(route + '/')
-  );
-  
-  const isAdminRoute = ADMIN_ROUTES.some(route => 
-    pathname === route || pathname.startsWith(route + '/')
+  const isProtectedRoute = PROTECTED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + '/')
   );
 
+  const isAdminRoute = ADMIN_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + '/')
+  );
 
   // Handle protected routes - for now just log, don't redirect
   if (isProtectedRoute || isAdminRoute) {
     if (!isAuthenticated) {
-      console.log(`Access to protected route ${pathname} without auth - allowing for development`);
+      console.log(
+        `Access to protected route ${pathname} without auth - allowing for development`
+      );
     }
   }
 

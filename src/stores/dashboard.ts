@@ -88,7 +88,7 @@ export const dashboardLoadingStore = map<{
 }>({
   stats: false,
   activity: false,
-  progress: false
+  progress: false,
 });
 
 // Error states
@@ -99,7 +99,7 @@ export const dashboardErrorStore = map<{
 }>({
   stats: null,
   activity: null,
-  progress: null
+  progress: null,
 });
 
 // Computed values
@@ -108,9 +108,8 @@ export const isDashboardLoadingStore = computed(
   (loading) => loading.stats || loading.activity || loading.progress
 );
 
-export const dashboardErrorsStore = computed(
-  dashboardErrorStore,
-  (errors) => Object.values(errors).filter(Boolean)
+export const dashboardErrorsStore = computed(dashboardErrorStore, (errors) =>
+  Object.values(errors).filter(Boolean)
 );
 
 // API functions
@@ -129,7 +128,10 @@ export const fetchDashboardStats = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
-    dashboardErrorStore.setKey('stats', error instanceof Error ? error.message : 'Unknown error');
+    dashboardErrorStore.setKey(
+      'stats',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     dashboardLoadingStore.setKey('stats', false);
   }
@@ -143,7 +145,9 @@ export const fetchDashboardActivity = async (
   dashboardErrorStore.setKey('activity', null);
 
   try {
-    const response = await fetch(`/api/dashboard/activity?limit=${limit}&offset=${offset}`);
+    const response = await fetch(
+      `/api/dashboard/activity?limit=${limit}&offset=${offset}`
+    );
     const result = await response.json();
 
     if (result.success) {
@@ -153,7 +157,10 @@ export const fetchDashboardActivity = async (
     }
   } catch (error) {
     console.error('Error fetching dashboard activity:', error);
-    dashboardErrorStore.setKey('activity', error instanceof Error ? error.message : 'Unknown error');
+    dashboardErrorStore.setKey(
+      'activity',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     dashboardLoadingStore.setKey('activity', false);
   }
@@ -167,7 +174,9 @@ export const fetchDashboardProgress = async (
   dashboardErrorStore.setKey('progress', null);
 
   try {
-    const response = await fetch(`/api/dashboard/progress?days=${days}&type=${type}`);
+    const response = await fetch(
+      `/api/dashboard/progress?days=${days}&type=${type}`
+    );
     const result = await response.json();
 
     if (result.success) {
@@ -177,7 +186,10 @@ export const fetchDashboardProgress = async (
     }
   } catch (error) {
     console.error('Error fetching dashboard progress:', error);
-    dashboardErrorStore.setKey('progress', error instanceof Error ? error.message : 'Unknown error');
+    dashboardErrorStore.setKey(
+      'progress',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     dashboardLoadingStore.setKey('progress', false);
   }
@@ -188,7 +200,7 @@ export const fetchAllDashboardData = async (): Promise<void> => {
   await Promise.all([
     fetchDashboardStats(),
     fetchDashboardActivity(5), // Fetch recent 5 activities
-    fetchDashboardProgress(30, 'daily') // Fetch last 30 days
+    fetchDashboardProgress(30, 'daily'), // Fetch last 30 days
   ]);
 };
 
@@ -196,7 +208,7 @@ export const fetchAllDashboardData = async (): Promise<void> => {
 export const refreshDashboardData = async (): Promise<void> => {
   const currentActivity = dashboardActivityStore.get();
   const currentProgress = dashboardProgressStore.get();
-  
+
   await Promise.all([
     fetchDashboardStats(),
     fetchDashboardActivity(
@@ -206,6 +218,6 @@ export const refreshDashboardData = async (): Promise<void> => {
     fetchDashboardProgress(
       currentProgress?.period.days || 30,
       currentProgress?.period.type || 'daily'
-    )
+    ),
   ]);
 };

@@ -67,7 +67,7 @@ export const flashcardsActions = {
       // Try to load from API first (if authenticated)
       try {
         const response = await fetch('/api/flashcards/list', {
-          credentials: 'include'
+          credentials: 'include',
         });
 
         if (response.ok) {
@@ -78,7 +78,10 @@ export const flashcardsActions = {
           }
         }
       } catch (apiError) {
-        console.warn('API load failed, falling back to hybrid storage:', apiError);
+        console.warn(
+          'API load failed, falling back to hybrid storage:',
+          apiError
+        );
       }
 
       // Fallback to hybrid storage
@@ -91,7 +94,8 @@ export const flashcardsActions = {
       const flashcards = await (hybridStorage as any).getFlashcards(user);
       flashcardsStore.set(flashcards);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load flashcards';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to load flashcards';
       flashcardsErrorStore.set(errorMessage);
       console.error('Failed to load flashcards:', error);
     } finally {
@@ -100,7 +104,10 @@ export const flashcardsActions = {
   },
 
   // Guardar flashcard con sincronización MongoDB y API
-  async saveFlashcard(flashcard: FlashcardData, userId?: string): Promise<void> {
+  async saveFlashcard(
+    flashcard: FlashcardData,
+    userId?: string
+  ): Promise<void> {
     const user = userId || currentUserId;
     if (!user) {
       console.warn('No user ID provided for saving flashcard');
@@ -116,9 +123,11 @@ export const flashcardsActions = {
       // Try API first (if authenticated)
       let apiSuccess = false;
       try {
-        const endpoint = flashcard.id ? `/api/flashcards/${flashcard.id}` : '/api/flashcards/create';
+        const endpoint = flashcard.id
+          ? `/api/flashcards/${flashcard.id}`
+          : '/api/flashcards/create';
         const method = flashcard.id ? 'PUT' : 'POST';
-        
+
         const response = await fetch(endpoint, {
           method,
           headers: {
@@ -132,8 +141,8 @@ export const flashcardsActions = {
             exampleSpanish: flashcard.exampleSpanish,
             image: flashcard.image,
             category: flashcard.category || 'general',
-            tags: flashcard.tags || []
-          })
+            tags: flashcard.tags || [],
+          }),
         });
 
         if (response.ok) {
@@ -145,7 +154,10 @@ export const flashcardsActions = {
           }
         }
       } catch (apiError) {
-        console.warn('API save failed, falling back to hybrid storage:', apiError);
+        console.warn(
+          'API save failed, falling back to hybrid storage:',
+          apiError
+        );
       }
 
       // Fallback to hybrid storage if API failed
@@ -158,7 +170,9 @@ export const flashcardsActions = {
 
       // Actualizar el store local inmediatamente para UI responsiva
       const current = flashcardsStore.get();
-      const existingIndex = current.findIndex(card => card.id === flashcard.id);
+      const existingIndex = current.findIndex(
+        (card) => card.id === flashcard.id
+      );
 
       if (existingIndex >= 0) {
         // Actualizar existente
@@ -170,13 +184,16 @@ export const flashcardsActions = {
         flashcardsStore.set([...current, flashcard]);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save flashcard';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to save flashcard';
       flashcardsErrorStore.set(errorMessage);
       console.error('Failed to save flashcard:', error);
 
       // Fallback: actualizar localmente
       const current = flashcardsStore.get();
-      const existingIndex = current.findIndex(card => card.id === flashcard.id);
+      const existingIndex = current.findIndex(
+        (card) => card.id === flashcard.id
+      );
 
       if (existingIndex >= 0) {
         const updated = [...current];
@@ -197,7 +214,7 @@ export const flashcardsActions = {
       console.warn('No user ID provided for deleting flashcard');
       // Fallback to local storage only
       const current = flashcardsStore.get();
-      const filtered = current.filter(card => card.id !== id);
+      const filtered = current.filter((card) => card.id !== id);
       flashcardsStore.set(filtered);
       return;
     }
@@ -211,7 +228,7 @@ export const flashcardsActions = {
       try {
         const response = await fetch(`/api/flashcards/${id}`, {
           method: 'DELETE',
-          credentials: 'include'
+          credentials: 'include',
         });
 
         if (response.ok) {
@@ -221,7 +238,10 @@ export const flashcardsActions = {
           }
         }
       } catch (apiError) {
-        console.warn('API delete failed, falling back to hybrid storage:', apiError);
+        console.warn(
+          'API delete failed, falling back to hybrid storage:',
+          apiError
+        );
       }
 
       // Fallback to hybrid storage if API failed
@@ -234,16 +254,17 @@ export const flashcardsActions = {
 
       // Actualizar el store local
       const current = flashcardsStore.get();
-      const filtered = current.filter(card => card.id !== id);
+      const filtered = current.filter((card) => card.id !== id);
       flashcardsStore.set(filtered);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete flashcard';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to delete flashcard';
       flashcardsErrorStore.set(errorMessage);
       console.error('Failed to delete flashcard:', error);
 
       // Fallback: eliminar localmente
       const current = flashcardsStore.get();
-      const filtered = current.filter(card => card.id !== id);
+      const filtered = current.filter((card) => card.id !== id);
       flashcardsStore.set(filtered);
     } finally {
       flashcardsLoadingStore.set(false);
@@ -261,7 +282,7 @@ export const flashcardsActions = {
 
   updateFlashcard: (id: number, updates: Partial<FlashcardData>) => {
     const current = flashcardsStore.get();
-    const updated = current.map(card =>
+    const updated = current.map((card) =>
       card.id === id ? { ...card, ...updates } : card
     );
     flashcardsStore.set(updated);
@@ -269,7 +290,7 @@ export const flashcardsActions = {
 
   deleteFlashcardLocal: (id: number) => {
     const current = flashcardsStore.get();
-    const filtered = current.filter(card => card.id !== id);
+    const filtered = current.filter((card) => card.id !== id);
     flashcardsStore.set(filtered);
   },
 
@@ -293,7 +314,12 @@ export const flashcardsActions = {
   },
 
   // Procesar respuesta de calidad (SM-2)
-  async processQualityResponse(cardId: number, quality: number, responseTime: number = 0, userId?: string): Promise<void> {
+  async processQualityResponse(
+    cardId: number,
+    quality: number,
+    responseTime: number = 0,
+    userId?: string
+  ): Promise<void> {
     const user = userId || currentUserId;
     if (!user) {
       console.warn('No user ID provided for processing quality response');
@@ -315,8 +341,8 @@ export const flashcardsActions = {
           credentials: 'include',
           body: JSON.stringify({
             quality,
-            responseTime
-          })
+            responseTime,
+          }),
         });
 
         if (response.ok) {
@@ -324,7 +350,7 @@ export const flashcardsActions = {
           if (data.success && data.data?.flashcard) {
             // Update local store with new SM-2 values
             const current = flashcardsStore.get();
-            const updatedCards = current.map(card => 
+            const updatedCards = current.map((card) =>
               card.id === cardId ? data.data.flashcard : card
             );
             flashcardsStore.set(updatedCards);
@@ -338,12 +364,12 @@ export const flashcardsActions = {
       // If API failed, just update locally with basic calculation
       if (!apiSuccess) {
         const current = flashcardsStore.get();
-        const updatedCards = current.map(card => {
+        const updatedCards = current.map((card) => {
           if (card.id === cardId) {
             return {
               ...card,
               lastReviewed: new Date().toISOString(),
-              reviewCount: (card.reviewCount || 0) + 1
+              reviewCount: (card.reviewCount || 0) + 1,
             };
           }
           return card;
@@ -351,7 +377,10 @@ export const flashcardsActions = {
         flashcardsStore.set(updatedCards);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to process quality response';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to process quality response';
       flashcardsErrorStore.set(errorMessage);
       console.error('Failed to process quality response:', error);
     } finally {
@@ -362,7 +391,7 @@ export const flashcardsActions = {
   // Limpiar errores
   clearError: () => {
     flashcardsErrorStore.set(null);
-  }
+  },
 };
 
 // Acciones para navegación

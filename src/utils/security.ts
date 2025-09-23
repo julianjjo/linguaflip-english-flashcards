@@ -19,13 +19,17 @@ export function validateD1Environment(): EnvironmentValidationResult {
   const apiKey = process.env.D1_API_KEY;
 
   if (!endpoint && (!accountId || !databaseId)) {
-    errors.push('D1_URL or the pair CLOUDFLARE_ACCOUNT_ID and D1_DATABASE_ID must be provided');
+    errors.push(
+      'D1_URL or the pair CLOUDFLARE_ACCOUNT_ID and D1_DATABASE_ID must be provided'
+    );
   }
 
   if (!apiKey) {
     errors.push('D1_API_KEY environment variable is required');
   } else if (apiKey.toLowerCase() === 'token') {
-    warnings.push('D1_API_KEY appears to be a placeholder token. Replace it with a valid API token.');
+    warnings.push(
+      'D1_API_KEY appears to be a placeholder token. Replace it with a valid API token.'
+    );
   }
 
   if (endpoint && !endpoint.startsWith('https://')) {
@@ -49,7 +53,9 @@ export function buildD1Endpoint(): string {
   const databaseId = process.env.D1_DATABASE_ID;
 
   if (!accountId || !databaseId) {
-    throw new Error('Either D1_URL or CLOUDFLARE_ACCOUNT_ID and D1_DATABASE_ID must be set');
+    throw new Error(
+      'Either D1_URL or CLOUDFLARE_ACCOUNT_ID and D1_DATABASE_ID must be set'
+    );
   }
 
   return `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}`;
@@ -68,8 +74,11 @@ export class EnvironmentEncryptor {
 
   // Generate encryption key from environment variable
   private static getEncryptionKey(): Buffer {
-    const secret = process.env.ENCRYPTION_SECRET || 'default-secret-key-for-development';
-    return Buffer.from(secret.padEnd(this.keyLength, '0').slice(0, this.keyLength));
+    const secret =
+      process.env.ENCRYPTION_SECRET || 'default-secret-key-for-development';
+    return Buffer.from(
+      secret.padEnd(this.keyLength, '0').slice(0, this.keyLength)
+    );
   }
 
   // Encrypt sensitive data
@@ -113,7 +122,11 @@ export class SecurityAuditor {
     severity: 'low' | 'medium' | 'high';
   }> = [];
 
-  static logSecurityEvent(action: string, details: Record<string, unknown>, severity: 'low' | 'medium' | 'high' = 'low'): void {
+  static logSecurityEvent(
+    action: string,
+    details: Record<string, unknown>,
+    severity: 'low' | 'medium' | 'high' = 'low'
+  ): void {
     this.auditLog.push({
       timestamp: new Date(),
       action,
@@ -137,7 +150,7 @@ export class SecurityAuditor {
   }
 
   static getHighSeverityEvents(): typeof this.auditLog {
-    return this.auditLog.filter(entry => entry.severity === 'high');
+    return this.auditLog.filter((entry) => entry.severity === 'high');
   }
 
   static clearAuditLog(): void {
@@ -147,11 +160,17 @@ export class SecurityAuditor {
 
 // Rate limiting for database operations
 export class DatabaseRateLimiter {
-  private static operationCounts = new Map<string, { count: number; resetTime: number }>();
+  private static operationCounts = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
   private static readonly WINDOW_MS = 60000; // 1 minute
   private static readonly MAX_OPERATIONS = 1000; // Max operations per minute
 
-  static checkRateLimit(operationType: string, identifier: string = 'global'): boolean {
+  static checkRateLimit(
+    operationType: string,
+    identifier: string = 'global'
+  ): boolean {
     const key = `${operationType}:${identifier}`;
     const now = Date.now();
     const record = this.operationCounts.get(key);
@@ -178,7 +197,10 @@ export class DatabaseRateLimiter {
     return true;
   }
 
-  static getRemainingOperations(operationType: string, identifier: string = 'global'): number {
+  static getRemainingOperations(
+    operationType: string,
+    identifier: string = 'global'
+  ): number {
     const key = `${operationType}:${identifier}`;
     const record = this.operationCounts.get(key);
 
@@ -193,7 +215,9 @@ export class DatabaseRateLimiter {
 // Input sanitization utilities
 export class InputSanitizer {
   // Sanitize MongoDB query objects
-  static sanitizeQuery(query: Record<string, unknown>): Record<string, unknown> {
+  static sanitizeQuery(
+    query: Record<string, unknown>
+  ): Record<string, unknown> {
     if (typeof query !== 'object' || query === null) {
       return query;
     }
@@ -201,7 +225,12 @@ export class InputSanitizer {
     const sanitized = { ...query };
 
     // Remove potentially dangerous operators
-    const dangerousOperators = ['$where', '$function', '$accumulator', '$function'];
+    const dangerousOperators = [
+      '$where',
+      '$function',
+      '$accumulator',
+      '$function',
+    ];
     for (const op of dangerousOperators) {
       if (sanitized[op]) {
         SecurityAuditor.logSecurityEvent(
@@ -216,7 +245,9 @@ export class InputSanitizer {
     // Recursively sanitize nested objects
     for (const key in sanitized) {
       if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
-        sanitized[key] = this.sanitizeQuery(sanitized[key] as Record<string, unknown>);
+        sanitized[key] = this.sanitizeQuery(
+          sanitized[key] as Record<string, unknown>
+        );
       }
     }
 
@@ -329,17 +360,17 @@ export function sanitizeTextInput(input: string): string {
 
   // Remove control characters, null bytes, and other dangerous characters
   let sanitized = input.replace(/\p{Cc}/gu, '');
-  
+
   // Remove potentially dangerous HTML/XML tags
   sanitized = sanitized.replace(/<[^>]*>/g, '');
-  
+
   // Remove script-related content
   sanitized = sanitized.replace(/javascript:/gi, '');
   sanitized = sanitized.replace(/on\w+\s*=/gi, '');
-  
+
   // Normalize whitespace
   sanitized = sanitized.replace(/\s+/g, ' ').trim();
-  
+
   return sanitized;
 }
 
@@ -357,7 +388,10 @@ export function loadSecurityConfig(): SecurityConfig {
   // Load API key from environment
   if (process.env.GEMINI_API_KEY) {
     if (!validateGeminiApiKey(process.env.GEMINI_API_KEY)) {
-      throw new SecurityError('Invalid Gemini API key format in environment', 'INVALID_API_KEY_FORMAT');
+      throw new SecurityError(
+        'Invalid Gemini API key format in environment',
+        'INVALID_API_KEY_FORMAT'
+      );
     }
     config.geminiApiKey = process.env.GEMINI_API_KEY;
   }

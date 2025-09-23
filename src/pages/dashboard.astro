@@ -13,27 +13,38 @@ import Sidebar from '../components/Sidebar.astro';
 >
   <!-- SEO Meta Tags -->
   <meta property="og:title" content="Dashboard de Progreso - LinguaFlip" />
-  <meta property="og:description" content="Analiza tu progreso de aprendizaje de inglés con métricas detalladas" />
+  <meta
+    property="og:description"
+    content="Analiza tu progreso de aprendizaje de inglés con métricas detalladas"
+  />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Dashboard - LinguaFlip" />
-  <meta name="twitter:description" content="Métricas y estadísticas de tu aprendizaje" />
+  <meta
+    name="twitter:description"
+    content="Métricas y estadísticas de tu aprendizaje"
+  />
 
   <!-- Schema.org structured data -->
   {/* eslint-disable-next-line astro/no-set-html-directive */}
-  <script type="application/ld+json" is:inline set:html={
-    JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "LinguaFlip Dashboard",
-      "description": "Dashboard de análisis de progreso para aprendizaje de inglés",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web Browser"
-    })
-  } />
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'LinguaFlip Dashboard',
+      description:
+        'Dashboard de análisis de progreso para aprendizaje de inglés',
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Web Browser',
+    })}
+  />
 
   <AppProvider client:only="react">
-    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div
+      class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+    >
       <!-- Header -->
       <Header isSidebarOpen={false} />
 
@@ -45,9 +56,11 @@ import Sidebar from '../components/Sidebar.astro';
         <main class="flex-1 p-6 lg:pl-72">
           <!-- Page Header -->
           <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
+            <div class="mb-4 flex items-center justify-between">
               <div>
-                <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+                <h1
+                  class="mb-2 text-3xl font-bold text-neutral-900 dark:text-neutral-100"
+                >
                   Dashboard de Progreso
                 </h1>
                 <p class="text-neutral-600 dark:text-neutral-300">
@@ -61,10 +74,20 @@ import Sidebar from '../components/Sidebar.astro';
 
                 <a
                   href="/study"
-                  class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                  class="flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  <svg
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    ></path>
                   </svg>
                   Continuar Estudiando
                 </a>
@@ -98,7 +121,7 @@ import Sidebar from '../components/Sidebar.astro';
 
       // Update header state
       const headerEvent = new CustomEvent('sidebarStateChange', {
-        detail: { isOpen: isSidebarOpen }
+        detail: { isOpen: isSidebarOpen },
       });
       document.dispatchEvent(headerEvent);
     });

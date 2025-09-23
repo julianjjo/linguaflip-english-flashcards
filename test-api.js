@@ -16,13 +16,13 @@ async function testRegistration() {
         email: 'test@example.com',
         password: 'TestPassword123',
         confirmPassword: 'TestPassword123',
-        username: 'testuser'
-      })
+        username: 'testuser',
+      }),
     });
 
     const data = await response.json();
     console.log('Registration response:', response.status, data);
-    
+
     if (data.success) {
       console.log('✅ Registration successful');
       return data.data.tokens?.accessToken;
@@ -47,13 +47,13 @@ async function testLogin() {
       },
       body: JSON.stringify({
         email: 'test@example.com',
-        password: 'TestPassword123'
-      })
+        password: 'TestPassword123',
+      }),
     });
 
     const data = await response.json();
     console.log('Login response:', response.status, data);
-    
+
     if (data.success) {
       console.log('✅ Login successful');
       return data.data.accessToken;
@@ -75,20 +75,20 @@ async function testCreateFlashcard(token) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         english: 'Hello',
         spanish: 'Hola',
         exampleEnglish: 'Hello, how are you?',
         exampleSpanish: 'Hola, ¿cómo estás?',
-        category: 'greetings'
-      })
+        category: 'greetings',
+      }),
     });
 
     const data = await response.json();
     console.log('Create flashcard response:', response.status, data);
-    
+
     if (data.success) {
       console.log('✅ Flashcard created successfully');
       return data.data.cardId;
@@ -108,13 +108,13 @@ async function testListFlashcards(token) {
   try {
     const response = await fetch(`${BASE_URL}/api/flashcards/list`, {
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const data = await response.json();
     console.log('List flashcards response:', response.status, data);
-    
+
     if (data.success) {
       console.log(`✅ Listed ${data.data?.flashcards?.length || 0} flashcards`);
       return data.data?.flashcards || [];
@@ -133,7 +133,7 @@ async function runTests() {
   try {
     // Try registration first
     let token = await testRegistration();
-    
+
     // If registration fails (user exists), try login
     if (!token) {
       token = await testLogin();
@@ -142,7 +142,7 @@ async function runTests() {
     if (token) {
       const cardId = await testCreateFlashcard(token);
       await testListFlashcards(token);
-      
+
       console.log('\n🎉 All tests completed!');
       console.log('You can now:');
       console.log('1. Visit http://localhost:4322/');

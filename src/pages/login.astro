@@ -10,166 +10,265 @@ import AppProvider from '../components/AppProvider.tsx';
 >
   <!-- SEO Meta Tags -->
   <meta property="og:title" content="Iniciar Sesión - LinguaFlip" />
-  <meta property="og:description" content="Accede a tu cuenta para continuar aprendiendo inglés" />
+  <meta
+    property="og:description"
+    content="Accede a tu cuenta para continuar aprendiendo inglés"
+  />
   <meta property="og:type" content="website" />
 
-  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-    <div class="max-w-md w-full">
+  <div
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4"
+  >
+    <div class="w-full max-w-md">
       <!-- Theme Toggle -->
       <AppProvider client:only="react">
-        <div class="absolute top-4 right-4">
+        <div class="absolute right-4 top-4">
           <ThemeToggle variant="icon" size="md" client:load />
         </div>
       </AppProvider>
 
-        <!-- Login Card -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-          <!-- Header -->
-          <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h1 class="text-2xl font-bold text-neutral-900 mb-2">Bienvenido de vuelta</h1>
-            <p class="text-neutral-600">Inicia sesión para continuar aprendiendo</p>
-          </div>
-
-          <!-- Login Form -->
-          <form id="loginForm" class="space-y-6">
-            <!-- Email Field -->
-            <div>
-              <label for="email" class="block text-sm font-medium text-neutral-700 mb-2">
-                Correo electrónico
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                placeholder="tu@email.com"
-              />
-            </div>
-
-            <!-- Password Field -->
-            <div>
-              <label for="password" class="block text-sm font-medium text-neutral-700 mb-2">
-                Contraseña
-              </label>
-              <div class="relative">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  required
-                  class="w-full px-4 py-3 pr-12 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  placeholder="Tu contraseña"
-                />
-                <button
-                  type="button"
-                  onclick="togglePasswordVisibility('password')"
-                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Remember Me & Forgot Password -->
-            <div class="flex items-center justify-between">
-              <label class="flex items-center">
-                <input type="checkbox" class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500" />
-                <span class="ml-2 text-sm text-neutral-600">Recordarme</span>
-              </label>
-              <a href="/forgot-password" class="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
-
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div class="flex items-center">
-                <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span id="errorText" class="text-sm text-red-800"></span>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button
-              type="submit"
-              id="loginButton"
-              class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+      <!-- Login Card -->
+      <div class="rounded-2xl bg-white p-8 shadow-xl">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+          <div
+            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100"
+          >
+            <svg
+              class="h-8 w-8 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <span id="buttonText">Iniciar Sesión</span>
-              <svg id="loadingSpinner" class="hidden animate-spin ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </button>
-          </form>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+          </div>
+          <h1 class="mb-2 text-2xl font-bold text-neutral-900">
+            Bienvenido de vuelta
+          </h1>
+          <p class="text-neutral-600">
+            Inicia sesión para continuar aprendiendo
+          </p>
+        </div>
 
-          <!-- Social Login -->
-          <div class="mt-6">
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-6">
+          <!-- Email Field -->
+          <div>
+            <label
+              for="email"
+              class="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500"
+              placeholder="tu@email.com"
+            />
+          </div>
+
+          <!-- Password Field -->
+          <div>
+            <label
+              for="password"
+              class="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Contraseña
+            </label>
             <div class="relative">
-              <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-neutral-300"></div>
-              </div>
-              <div class="relative flex justify-center text-sm">
-                <span class="px-2 bg-white text-neutral-500">O continúa con</span>
-              </div>
-            </div>
-
-            <div class="mt-6 grid grid-cols-2 gap-3">
-              <button class="w-full inline-flex justify-center py-2 px-4 border border-neutral-300 rounded-lg shadow-sm bg-white text-sm font-medium text-neutral-500 hover:bg-neutral-50 transition-colors">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                placeholder="Tu contraseña"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('password')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"
+              >
+                <svg
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
                 </svg>
-                <span class="ml-2">Google</span>
-              </button>
-
-              <button class="w-full inline-flex justify-center py-2 px-4 border border-neutral-300 rounded-lg shadow-sm bg-white text-sm font-medium text-neutral-500 hover:bg-neutral-50 transition-colors">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-                </svg>
-                <span class="ml-2">Twitter</span>
               </button>
             </div>
           </div>
 
-          <!-- Sign Up Link -->
-          <div class="mt-8 text-center">
-            <p class="text-neutral-600">
-              ¿No tienes cuenta?
-              <a href="/register" class="text-primary-600 hover:text-primary-700 font-medium">
-                Regístrate gratis
-              </a>
-            </p>
+          <!-- Remember Me & Forgot Password -->
+          <div class="flex items-center justify-between">
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="ml-2 text-sm text-neutral-600">Recordarme</span>
+            </label>
+            <a
+              href="/forgot-password"
+              class="text-sm font-medium text-primary-600 hover:text-primary-700"
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+
+          <!-- Error Message -->
+          <div
+            id="errorMessage"
+            class="hidden rounded-lg border border-red-200 bg-red-50 p-4"
+          >
+            <div class="flex items-center">
+              <svg
+                class="mr-2 h-5 w-5 text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span id="errorText" class="text-sm text-red-800"></span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="loginButton"
+            class="flex w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-primary-700"
+          >
+            <span id="buttonText">Iniciar Sesión</span>
+            <svg
+              id="loadingSpinner"
+              class="ml-2 hidden h-4 w-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Social Login -->
+        <div class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-neutral-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="bg-white px-2 text-neutral-500">O continúa con</span>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <button
+              class="inline-flex w-full justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                ></path>
+                <path
+                  fill="currentColor"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                ></path>
+                <path
+                  fill="currentColor"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                ></path>
+                <path
+                  fill="currentColor"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                ></path>
+              </svg>
+              <span class="ml-2">Google</span>
+            </button>
+
+            <button
+              class="inline-flex w-full justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50"
+            >
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
+                ></path>
+              </svg>
+              <span class="ml-2">Twitter</span>
+            </button>
           </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Sign Up Link -->
         <div class="mt-8 text-center">
-          <p class="text-sm text-neutral-500">
-            Al iniciar sesión, aceptas nuestros
-            <a href="/terms" class="text-primary-600 hover:text-primary-700">Términos de servicio</a>
-            y
-            <a href="/privacy" class="text-primary-600 hover:text-primary-700">Política de privacidad</a>
+          <p class="text-neutral-600">
+            ¿No tienes cuenta?
+            <a
+              href="/register"
+              class="font-medium text-primary-600 hover:text-primary-700"
+            >
+              Regístrate gratis
+            </a>
           </p>
         </div>
       </div>
+
+      <!-- Footer -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-neutral-500">
+          Al iniciar sesión, aceptas nuestros
+          <a href="/terms" class="text-primary-600 hover:text-primary-700"
+            >Términos de servicio</a
+          >
+          y
+          <a href="/privacy" class="text-primary-600 hover:text-primary-700"
+            >Política de privacidad</a
+          >
+        </p>
+      </div>
     </div>
+  </div>
 
   <script is:inline>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Password visibility toggle
       function togglePasswordVisibility(inputId) {
         const input = document.getElementById(inputId);
@@ -179,17 +278,21 @@ import AppProvider from '../components/AppProvider.tsx';
         if (input && icon) {
           if (input.type === 'password') {
             input.type = 'text';
-            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+            icon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
           } else {
             input.type = 'password';
-            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+            icon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
           }
         }
       }
 
       // Setup password toggle buttons
-      const toggleButtons = document.querySelectorAll('[onclick*="togglePasswordVisibility"]');
-      toggleButtons.forEach(button => {
+      const toggleButtons = document.querySelectorAll(
+        '[onclick*="togglePasswordVisibility"]'
+      );
+      toggleButtons.forEach((button) => {
         const onclick = button.getAttribute('onclick');
         if (!onclick) {
           return;
@@ -201,7 +304,9 @@ import AppProvider from '../components/AppProvider.tsx';
         }
 
         button.dataset.passwordToggleBound = 'true';
-        button.addEventListener('click', () => togglePasswordVisibility(inputId));
+        button.addEventListener('click', () =>
+          togglePasswordVisibility(inputId)
+        );
       });
 
       // Login form submission
@@ -210,7 +315,7 @@ import AppProvider from '../components/AppProvider.tsx';
         // Deshabilitar la validación nativa para mostrar mensajes personalizados
         loginForm.setAttribute('novalidate', 'true');
 
-        loginForm.addEventListener('submit', async function(e) {
+        loginForm.addEventListener('submit', async function (e) {
           e.preventDefault();
 
           const emailInput = document.getElementById('email');
@@ -221,7 +326,15 @@ import AppProvider from '../components/AppProvider.tsx';
           const errorMessage = document.getElementById('errorMessage');
           const errorText = document.getElementById('errorText');
 
-          if (!emailInput || !passwordInput || !loginButton || !buttonText || !loadingSpinner || !errorMessage || !errorText) {
+          if (
+            !emailInput ||
+            !passwordInput ||
+            !loginButton ||
+            !buttonText ||
+            !loadingSpinner ||
+            !errorMessage ||
+            !errorText
+          ) {
             return;
           }
 
@@ -232,7 +345,8 @@ import AppProvider from '../components/AppProvider.tsx';
           errorMessage.classList.add('hidden');
 
           if (!email || !password) {
-            errorText.textContent = 'Todos los campos obligatorios deben ser completados';
+            errorText.textContent =
+              'Todos los campos obligatorios deben ser completados';
             errorMessage.classList.remove('hidden');
             return;
           }
@@ -255,9 +369,18 @@ import AppProvider from '../components/AppProvider.tsx';
 
             if (response.ok && data.success) {
               // Store tokens
-              localStorage.setItem('linguaflip_auth_token', data.data.accessToken);
-              localStorage.setItem('linguaflip_refresh_token', data.data.refreshToken);
-              localStorage.setItem('linguaflip_user', JSON.stringify(data.data.user));
+              localStorage.setItem(
+                'linguaflip_auth_token',
+                data.data.accessToken
+              );
+              localStorage.setItem(
+                'linguaflip_refresh_token',
+                data.data.refreshToken
+              );
+              localStorage.setItem(
+                'linguaflip_user',
+                JSON.stringify(data.data.user)
+              );
 
               // Redirect to dashboard
               window.location.href = '/dashboard';

@@ -4,7 +4,7 @@ import {
   sanitizeTextInput,
   checkRateLimit,
   SecurityError,
-  loadSecurityConfig
+  loadSecurityConfig,
 } from '../utils/security';
 import type { SecurityConfig } from '../utils/security';
 
@@ -58,20 +58,20 @@ export const GEMINI_VOICES: TTSVoice[] = [
     name: 'Zephyr',
     displayName: 'Zephyr (Natural)',
     language: 'en-US',
-    gender: 'neutral'
+    gender: 'neutral',
   },
   {
     name: 'Coral',
     displayName: 'Coral (Warm)',
-    language: 'en-US', 
-    gender: 'female'
+    language: 'en-US',
+    gender: 'female',
   },
   {
     name: 'Sage',
     displayName: 'Sage (Calm)',
     language: 'en-US',
-    gender: 'male'
-  }
+    gender: 'male',
+  },
 ];
 
 export class GeminiTTSService {
@@ -90,7 +90,10 @@ export class GeminiTTSService {
       if (error instanceof SecurityError) {
         throw error;
       }
-      throw new SecurityError('Failed to load security configuration', 'CONFIG_LOAD_ERROR');
+      throw new SecurityError(
+        'Failed to load security configuration',
+        'CONFIG_LOAD_ERROR'
+      );
     }
 
     // Use provided API key or load from secure config
@@ -98,7 +101,10 @@ export class GeminiTTSService {
 
     // Validate API key format
     if (!validateGeminiApiKey(keyToUse as string)) {
-      throw new SecurityError('Invalid API key format', 'INVALID_API_KEY_FORMAT');
+      throw new SecurityError(
+        'Invalid API key format',
+        'INVALID_API_KEY_FORMAT'
+      );
     }
 
     this.client = new GoogleGenAI({ apiKey: keyToUse as string });
@@ -127,36 +133,47 @@ export class GeminiTTSService {
     // Sanitize and validate input
     const sanitizedText = sanitizeTextInput(request.text);
     if (!sanitizedText || sanitizedText.length === 0) {
-      throw new SecurityError('Invalid input: text cannot be empty after sanitization', 'INVALID_INPUT');
+      throw new SecurityError(
+        'Invalid input: text cannot be empty after sanitization',
+        'INVALID_INPUT'
+      );
     }
 
     if (sanitizedText.length > 1000) {
-      throw new SecurityError('Input too long: maximum 1000 characters allowed', 'INPUT_TOO_LONG');
+      throw new SecurityError(
+        'Input too long: maximum 1000 characters allowed',
+        'INPUT_TOO_LONG'
+      );
     }
 
     // Validate voice selection
     const voice = request.voice || 'Zephyr';
-    const validVoice = GEMINI_VOICES.find(v => v.name === voice);
+    const validVoice = GEMINI_VOICES.find((v) => v.name === voice);
     if (!validVoice) {
-      throw new SecurityError(`Invalid voice selection: ${voice}`, 'INVALID_VOICE');
+      throw new SecurityError(
+        `Invalid voice selection: ${voice}`,
+        'INVALID_VOICE'
+      );
     }
 
-    console.log(`[TTS] Generating speech for user ${this.userIdentifier}: "${sanitizedText.substring(0, 50)}..."`);
+    console.log(
+      `[TTS] Generating speech for user ${this.userIdentifier}: "${sanitizedText.substring(0, 50)}..."`
+    );
 
     try {
       // Configure speech generation
       const speechConfig: SpeechConfig = {
         voiceConfig: {
           prebuiltVoiceConfig: {
-            voiceName: voice
-          } as PrebuiltVoiceConfig
-        } as VoiceConfig
+            voiceName: voice,
+          } as PrebuiltVoiceConfig,
+        } as VoiceConfig,
       };
 
       const generateConfig: GenerateContentConfig = {
         temperature: request.temperature || 1,
         responseModalities: ['audio'],
-        speechConfig
+        speechConfig,
       };
 
       // Generate content with streaming
@@ -170,12 +187,12 @@ export class GeminiTTSService {
             role: 'user',
             parts: [
               {
-                text: sanitizedText
-              }
-            ]
-          }
+                text: sanitizedText,
+              },
+            ],
+          },
         ],
-        config: generateConfig
+        config: generateConfig,
       });
 
       for await (const chunk of response) {
@@ -187,9 +204,10 @@ export class GeminiTTSService {
           const inlineData = chunk.candidates[0].content.parts[0].inlineData;
           if (inlineData.data) {
             // Convert base64 string to Uint8Array
-            const audioData = typeof inlineData.data === 'string' 
-              ? new Uint8Array(Buffer.from(inlineData.data, 'base64'))
-              : inlineData.data as Uint8Array;
+            const audioData =
+              typeof inlineData.data === 'string'
+                ? new Uint8Array(Buffer.from(inlineData.data, 'base64'))
+                : (inlineData.data as Uint8Array);
             audioChunks.push(audioData);
             mimeType = inlineData.mimeType || mimeType;
           }
@@ -201,10 +219,13 @@ export class GeminiTTSService {
       }
 
       // Combine all audio chunks
-      const totalLength = audioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const totalLength = audioChunks.reduce(
+        (sum, chunk) => sum + chunk.length,
+        0
+      );
       const combinedAudio = new Uint8Array(totalLength);
       let offset = 0;
-      
+
       for (const chunk of audioChunks) {
         combinedAudio.set(chunk, offset);
         offset += chunk.length;
@@ -217,22 +238,25 @@ export class GeminiTTSService {
       return {
         audioData: finalAudioData,
         mimeType: finalMimeType,
-        duration: this.estimateAudioDuration(sanitizedText, validVoice)
+        duration: this.estimateAudioDuration(sanitizedText, validVoice),
       };
-
     } catch (error) {
       console.error('[TTS] Generation failed:', error);
       if (error instanceof SecurityError) {
         throw error;
       }
-      throw new Error(`TTS generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `TTS generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Generate speech with streaming support
    */
-  async* generateSpeechStream(request: TTSRequest): AsyncGenerator<AudioChunk, void, unknown> {
+  async *generateSpeechStream(
+    request: TTSRequest
+  ): AsyncGenerator<AudioChunk, void, unknown> {
     // Same validation as generateSpeech
     const rateLimitResult = checkRateLimit(
       `tts-stream-${this.userIdentifier}`,
@@ -249,28 +273,34 @@ export class GeminiTTSService {
 
     const sanitizedText = sanitizeTextInput(request.text);
     if (!sanitizedText || sanitizedText.length === 0) {
-      throw new SecurityError('Invalid input: text cannot be empty after sanitization', 'INVALID_INPUT');
+      throw new SecurityError(
+        'Invalid input: text cannot be empty after sanitization',
+        'INVALID_INPUT'
+      );
     }
 
     const voice = request.voice || 'Zephyr';
-    const validVoice = GEMINI_VOICES.find(v => v.name === voice);
+    const validVoice = GEMINI_VOICES.find((v) => v.name === voice);
     if (!validVoice) {
-      throw new SecurityError(`Invalid voice selection: ${voice}`, 'INVALID_VOICE');
+      throw new SecurityError(
+        `Invalid voice selection: ${voice}`,
+        'INVALID_VOICE'
+      );
     }
 
     try {
       const speechConfig: SpeechConfig = {
         voiceConfig: {
           prebuiltVoiceConfig: {
-            voiceName: voice
-          } as PrebuiltVoiceConfig
-        } as VoiceConfig
+            voiceName: voice,
+          } as PrebuiltVoiceConfig,
+        } as VoiceConfig,
       };
 
       const generateConfig: GenerateContentConfig = {
         temperature: request.temperature || 1,
         responseModalities: ['audio'],
-        speechConfig
+        speechConfig,
       };
 
       const response = await this.client.models.generateContentStream({
@@ -280,12 +310,12 @@ export class GeminiTTSService {
             role: 'user',
             parts: [
               {
-                text: sanitizedText
-              }
-            ]
-          }
+                text: sanitizedText,
+              },
+            ],
+          },
         ],
-        config: generateConfig
+        config: generateConfig,
       });
 
       for await (const chunk of response) {
@@ -296,17 +326,17 @@ export class GeminiTTSService {
         ) {
           const inlineData = chunk.candidates[0].content.parts[0].inlineData;
           if (inlineData.data) {
-            
             // Convert base64 string to Uint8Array if needed
-            let audioData = typeof inlineData.data === 'string' 
-              ? new Uint8Array(Buffer.from(inlineData.data, 'base64'))
-              : inlineData.data as Uint8Array;
+            let audioData =
+              typeof inlineData.data === 'string'
+                ? new Uint8Array(Buffer.from(inlineData.data, 'base64'))
+                : (inlineData.data as Uint8Array);
             let mimeType = inlineData.mimeType || 'audio/wav';
 
             yield {
               data: audioData,
               mimeType,
-              isComplete: false
+              isComplete: false,
             };
           }
         }
@@ -316,12 +346,13 @@ export class GeminiTTSService {
       yield {
         data: new Uint8Array(0),
         mimeType: 'audio/wav',
-        isComplete: true
+        isComplete: true,
       };
-
     } catch (error) {
       console.error('[TTS] Streaming generation failed:', error);
-      throw new Error(`TTS streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `TTS streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -335,7 +366,7 @@ export class GeminiTTSService {
     const words = text.split(/\s+/).length;
     const estimatedMinutes = words / wordsPerMinute;
     const estimatedSeconds = estimatedMinutes * 60;
-    
+
     // Add some buffer time
     return Math.max(estimatedSeconds * 1.1, 1); // Minimum 1 second
   }
@@ -354,7 +385,7 @@ export class GeminiTTSService {
     try {
       const testResponse = await this.generateSpeech({
         text: 'Test connection',
-        voice: 'Zephyr'
+        voice: 'Zephyr',
       });
       return testResponse.audioData.length > 0;
     } catch (error) {
@@ -367,7 +398,10 @@ export class GeminiTTSService {
 // Export per-user keyed instances for proper rate limiting isolation
 const geminiTTSInstances = new Map<string, GeminiTTSService>();
 
-export const getGeminiTTSService = (apiKey?: string, userIdentifier: string = 'default-user'): GeminiTTSService => {
+export const getGeminiTTSService = (
+  apiKey?: string,
+  userIdentifier: string = 'default-user'
+): GeminiTTSService => {
   const key = `${apiKey ?? 'env'}:${userIdentifier}`;
   let inst = geminiTTSInstances.get(key);
   if (!inst) {

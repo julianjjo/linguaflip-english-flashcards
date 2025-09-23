@@ -1,6 +1,6 @@
 /**
  * Validators Module Index
- * 
+ *
  * This module exports all validator functions used in MongoDB schema definitions.
  */
 
@@ -9,7 +9,7 @@ export {
   emailValidator,
   urlValidator,
   qualityValidator,
-  sanitizeInput
+  sanitizeInput,
 } from './common.ts';
 
 // SM-2 specific validators and utilities
@@ -18,7 +18,7 @@ export {
   validateSM2Params,
   getDefaultSM2Params,
   calculateNextReviewDate,
-  type SM2Params
+  type SM2Params,
 } from './sm2.ts';
 
 // Validation utilities

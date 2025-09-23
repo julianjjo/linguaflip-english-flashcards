@@ -1,5 +1,10 @@
 import { atom, map } from 'nanostores';
-import type { StudySession, StudySessionState, StudyProfile, ProgressStats } from '../types';
+import type {
+  StudySession,
+  StudySessionState,
+  StudyProfile,
+  ProgressStats,
+} from '../types';
 import { hybridStorage } from './hybridStorage';
 
 // Estado de la sesión de estudio actual
@@ -66,7 +71,10 @@ export const studySessionActions = {
       const sessions = await hybridStorage.getStudySessions(user);
       studyHistoryStore.set(sessions);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load study sessions';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to load study sessions';
       studyErrorStore.set(errorMessage);
       console.error('Failed to load study sessions:', error);
     } finally {
@@ -89,7 +97,10 @@ export const studySessionActions = {
       const stats = await hybridStorage.getProgressStats(user);
       progressStatsStore.set(stats);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load progress stats';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to load progress stats';
       studyErrorStore.set(errorMessage);
       console.error('Failed to load progress stats:', error);
     } finally {
@@ -132,7 +143,8 @@ export const studySessionActions = {
         ...current,
         isPaused: false,
         pauseTime: null,
-        totalPausedTime: current.totalPausedTime + Math.floor(pausedTime / 1000),
+        totalPausedTime:
+          current.totalPausedTime + Math.floor(pausedTime / 1000),
       });
     }
   },
@@ -149,7 +161,12 @@ export const studySessionActions = {
         cardsReviewed: current.cardsStudied,
         correctAnswers: current.correctAnswers,
         totalTime: current.startTime
-          ? Math.floor((Date.now() - current.startTime.getTime() - current.totalPausedTime * 1000) / 1000)
+          ? Math.floor(
+              (Date.now() -
+                current.startTime.getTime() -
+                current.totalPausedTime * 1000) /
+                1000
+            )
           : 0,
         averageResponseTime: 0, // Calcular basado en datos reales
       };
@@ -206,7 +223,7 @@ export const studySessionActions = {
   // Limpiar errores
   clearError: () => {
     studyErrorStore.set(null);
-  }
+  },
 };
 
 // Acciones para perfiles de estudio

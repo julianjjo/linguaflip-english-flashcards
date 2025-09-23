@@ -17,7 +17,7 @@ import {
   authCors,
   authLogging,
   securityHeaders,
-  authErrorHandler
+  authErrorHandler,
 } from '../middleware/auth';
 import { InputSanitizer } from '../utils/security';
 import { ValidationError } from '../types/database';
@@ -42,7 +42,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Email, password, and confirmPassword are required',
-        code: 'MISSING_REQUIRED_FIELDS'
+        code: 'MISSING_REQUIRED_FIELDS',
       });
     }
 
@@ -51,7 +51,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
       email: InputSanitizer.sanitizeString(email),
       username: username ? InputSanitizer.sanitizeString(username) : undefined,
       password,
-      confirmPassword
+      confirmPassword,
     };
 
     // Register user
@@ -61,16 +61,15 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: result.error || 'Registration failed',
-        code: 'REGISTRATION_FAILED'
+        code: 'REGISTRATION_FAILED',
       });
     }
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      data: result.data
+      data: result.data,
     });
-
   } catch (error) {
     console.error('Registration error:', error);
 
@@ -78,14 +77,14 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: error.message,
-        code: 'VALIDATION_ERROR'
+        code: 'VALIDATION_ERROR',
       });
     }
 
     res.status(500).json({
       success: false,
       error: 'Internal server error during registration',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });
@@ -103,7 +102,7 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Todos los campos obligatorios deben ser completados',
-        code: 'MISSING_CREDENTIALS'
+        code: 'MISSING_CREDENTIALS',
       });
     }
 
@@ -111,8 +110,10 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
     const sanitizedData = {
       email: InputSanitizer.sanitizeString(email),
       password,
-      deviceInfo: deviceInfo ? InputSanitizer.sanitizeString(deviceInfo) : undefined,
-      ipAddress: req.ip
+      deviceInfo: deviceInfo
+        ? InputSanitizer.sanitizeString(deviceInfo)
+        : undefined,
+      ipAddress: req.ip,
     };
 
     // Authenticate user
@@ -122,7 +123,7 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: result.error || 'Authentication failed',
-        code: 'AUTH_FAILED'
+        code: 'AUTH_FAILED',
       });
     }
 
@@ -131,7 +132,7 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.json({
@@ -140,10 +141,9 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
       data: {
         user: result.data!.user,
         accessToken: result.data!.tokens.accessToken,
-        expiresIn: result.data!.tokens.expiresIn
-      }
+        expiresIn: result.data!.tokens.expiresIn,
+      },
     });
-
   } catch (error) {
     console.error('Login error:', error);
 
@@ -151,14 +151,14 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password',
-        code: 'INVALID_CREDENTIALS'
+        code: 'INVALID_CREDENTIALS',
       });
     }
 
     res.status(500).json({
       success: false,
       error: 'Internal server error during login',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });
@@ -182,9 +182,8 @@ router.post('/logout', requireAuth, async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Logout successful'
+      message: 'Logout successful',
     });
-
   } catch (error) {
     console.error('Logout error:', error);
 
@@ -194,7 +193,7 @@ router.post('/logout', requireAuth, async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error during logout',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });
@@ -211,7 +210,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: 'Refresh token required',
-        code: 'REFRESH_TOKEN_MISSING'
+        code: 'REFRESH_TOKEN_MISSING',
       });
     }
 
@@ -219,7 +218,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     const result = await authService.refreshToken({
       refreshToken,
       deviceInfo: req.body.deviceInfo,
-      ipAddress: req.ip
+      ipAddress: req.ip,
     });
 
     if (!result.success) {
@@ -229,7 +228,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: result.error || 'Token refresh failed',
-        code: 'REFRESH_FAILED'
+        code: 'REFRESH_FAILED',
       });
     }
 
@@ -238,7 +237,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.json({
@@ -246,10 +245,9 @@ router.post('/refresh', async (req: Request, res: Response) => {
       message: 'Token refreshed successfully',
       data: {
         accessToken: result.data!.accessToken,
-        expiresIn: result.data!.expiresIn
-      }
+        expiresIn: result.data!.expiresIn,
+      },
     });
-
   } catch (error) {
     console.error('Token refresh error:', error);
 
@@ -259,7 +257,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error during token refresh',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });
@@ -268,98 +266,104 @@ router.post('/refresh', async (req: Request, res: Response) => {
  * POST /api/auth/forgot-password
  * Initiate password reset process
  */
-router.post('/forgot-password', authRateLimit, async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body;
+router.post(
+  '/forgot-password',
+  authRateLimit,
+  async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        error: 'Email is required',
-        code: 'MISSING_EMAIL'
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email is required',
+          code: 'MISSING_EMAIL',
+        });
+      }
+
+      // Sanitize email
+      const sanitizedEmail = InputSanitizer.sanitizeString(email);
+
+      // Initiate password reset
+      await authService.initiatePasswordReset({
+        email: sanitizedEmail,
+      });
+
+      // Always return success for security (don't reveal if email exists)
+      res.json({
+        success: true,
+        message: 'If the email exists, a password reset link has been sent',
+      });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+
+      // Still return success for security
+      res.json({
+        success: true,
+        message: 'If the email exists, a password reset link has been sent',
       });
     }
-
-    // Sanitize email
-    const sanitizedEmail = InputSanitizer.sanitizeString(email);
-
-    // Initiate password reset
-    await authService.initiatePasswordReset({
-      email: sanitizedEmail
-    });
-
-    // Always return success for security (don't reveal if email exists)
-    res.json({
-      success: true,
-      message: 'If the email exists, a password reset link has been sent'
-    });
-
-  } catch (error) {
-    console.error('Forgot password error:', error);
-
-    // Still return success for security
-    res.json({
-      success: true,
-      message: 'If the email exists, a password reset link has been sent'
-    });
   }
-});
+);
 
 /**
  * POST /api/auth/reset-password
  * Reset password using reset token
  */
-router.post('/reset-password', authRateLimit, async (req: Request, res: Response) => {
-  try {
-    const { token, newPassword, confirmPassword } = req.body;
+router.post(
+  '/reset-password',
+  authRateLimit,
+  async (req: Request, res: Response) => {
+    try {
+      const { token, newPassword, confirmPassword } = req.body;
 
-    // Validate required fields
-    if (!token || !newPassword || !confirmPassword) {
-      return res.status(400).json({
+      // Validate required fields
+      if (!token || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+          success: false,
+          error: 'Token, newPassword, and confirmPassword are required',
+          code: 'MISSING_REQUIRED_FIELDS',
+        });
+      }
+
+      // Reset password
+      const result = await authService.confirmPasswordReset({
+        token,
+        newPassword,
+        confirmPassword,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error || 'Password reset failed',
+          code: 'RESET_FAILED',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully',
+      });
+    } catch (error) {
+      console.error('Reset password error:', error);
+
+      if (error instanceof ValidationError) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+          code: 'VALIDATION_ERROR',
+        });
+      }
+
+      res.status(500).json({
         success: false,
-        error: 'Token, newPassword, and confirmPassword are required',
-        code: 'MISSING_REQUIRED_FIELDS'
+        error: 'Internal server error during password reset',
+        code: 'INTERNAL_ERROR',
       });
     }
-
-    // Reset password
-    const result = await authService.confirmPasswordReset({
-      token,
-      newPassword,
-      confirmPassword
-    });
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error || 'Password reset failed',
-        code: 'RESET_FAILED'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Password reset successfully'
-    });
-
-  } catch (error) {
-    console.error('Reset password error:', error);
-
-    if (error instanceof ValidationError) {
-      return res.status(400).json({
-        success: false,
-        error: error.message,
-        code: 'VALIDATION_ERROR'
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error during password reset',
-      code: 'INTERNAL_ERROR'
-    });
   }
-});
+);
 
 /**
  * GET /api/auth/verify
@@ -373,17 +377,16 @@ router.get('/verify', requireAuth, async (req: Request, res: Response) => {
       success: true,
       data: {
         user: req.user,
-        authenticated: true
-      }
+        authenticated: true,
+      },
     });
-
   } catch (error) {
     console.error('Token verification error:', error);
 
     res.status(500).json({
       success: false,
       error: 'Internal server error during token verification',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });
@@ -397,28 +400,29 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
     const userId = req.user!.userId;
 
     // Get user details from auth service
-    const result = await authService.verifyAccessToken(`dummy_token_user_${userId}`);
+    const result = await authService.verifyAccessToken(
+      `dummy_token_user_${userId}`
+    );
 
     if (!result.success) {
       return res.status(404).json({
         success: false,
         error: 'User not found',
-        code: 'USER_NOT_FOUND'
+        code: 'USER_NOT_FOUND',
       });
     }
 
     res.json({
       success: true,
-      data: result.data
+      data: result.data,
     });
-
   } catch (error) {
     console.error('Get current user error:', error);
 
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });
@@ -435,7 +439,7 @@ router.post('/validate-password', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Password is required',
-        code: 'MISSING_PASSWORD'
+        code: 'MISSING_PASSWORD',
       });
     }
 
@@ -459,7 +463,9 @@ router.post('/validate-password', async (req: Request, res: Response) => {
     }
 
     if (!/(?=.*[!@#$%^&*])/.test(password)) {
-      errors.push('Password must contain at least one special character (!@#$%^&*)');
+      errors.push(
+        'Password must contain at least one special character (!@#$%^&*)'
+      );
     }
 
     res.json({
@@ -467,18 +473,21 @@ router.post('/validate-password', async (req: Request, res: Response) => {
       data: {
         isValid: errors.length === 0,
         errors: errors.length > 0 ? errors : null,
-        strength: errors.length === 0 ? 'strong' :
-                 errors.length <= 2 ? 'medium' : 'weak'
-      }
+        strength:
+          errors.length === 0
+            ? 'strong'
+            : errors.length <= 2
+              ? 'medium'
+              : 'weak',
+      },
     });
-
   } catch (error) {
     console.error('Password validation error:', error);
 
     res.status(500).json({
       success: false,
       error: 'Internal server error during password validation',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
 });

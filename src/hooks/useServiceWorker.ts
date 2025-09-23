@@ -34,8 +34,10 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
 
   // Handle online/offline status
   useEffect(() => {
-    const handleOnline = () => setState(prev => ({ ...prev, isOnline: true }));
-    const handleOffline = () => setState(prev => ({ ...prev, isOnline: false }));
+    const handleOnline = () =>
+      setState((prev) => ({ ...prev, isOnline: true }));
+    const handleOffline = () =>
+      setState((prev) => ({ ...prev, isOnline: false }));
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -54,7 +56,7 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
     }
 
     try {
-      setState(prev => ({ ...prev, isInstalling: true }));
+      setState((prev) => ({ ...prev, isInstalling: true }));
 
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
@@ -68,9 +70,12 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
 
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            if (
+              newWorker.state === 'installed' &&
+              navigator.serviceWorker.controller
+            ) {
               // New version available
-              setState(prev => ({
+              setState((prev) => ({
                 ...prev,
                 updateAvailable: true,
                 isWaiting: true,
@@ -86,17 +91,16 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
         window.location.reload();
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isRegistered: true,
         isInstalling: false,
         isActive: !!registration.active,
         registration,
       }));
-
     } catch (error) {
       console.error('[SW] Registration failed:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isInstalling: false,
         isRegistered: false,
@@ -112,7 +116,7 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
       const result = await state.registration.unregister();
       console.log('[SW] Service Worker unregistered:', result);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isRegistered: false,
         isActive: false,
@@ -145,7 +149,7 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
       // Send message to waiting worker
       state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         updateAvailable: false,
         isWaiting: false,
@@ -156,7 +160,9 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
   }, [state.registration]);
 
   // Get cache statistics
-  const getCacheStats = useCallback(async (): Promise<Record<string, number>> => {
+  const getCacheStats = useCallback(async (): Promise<
+    Record<string, number>
+  > => {
     if (!state.registration?.active) {
       return {};
     }
@@ -170,10 +176,9 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
         }
       };
 
-      state.registration!.active!.postMessage(
-        { type: 'GET_CACHE_STATS' },
-        [messageChannel.port2]
-      );
+      state.registration!.active!.postMessage({ type: 'GET_CACHE_STATS' }, [
+        messageChannel.port2,
+      ]);
 
       // Timeout fallback
       setTimeout(() => resolve({}), 5000);
@@ -193,10 +198,9 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
         }
       };
 
-      state.registration!.active!.postMessage(
-        { type: 'CLEAR_CACHE' },
-        [messageChannel.port2]
-      );
+      state.registration!.active!.postMessage({ type: 'CLEAR_CACHE' }, [
+        messageChannel.port2,
+      ]);
 
       // Timeout fallback
       setTimeout(() => resolve(), 5000);
@@ -215,7 +219,7 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
     if (state.isSupported) {
       navigator.serviceWorker.getRegistration().then((registration) => {
         if (registration) {
-          setState(prev => ({
+          setState((prev) => ({
             ...prev,
             isRegistered: true,
             isActive: !!registration.active,

@@ -1,6 +1,6 @@
 /**
  * Schema Definitions Index
- * 
+ *
  * This module exports all MongoDB schema definitions used in the LinguaFlip application.
  */
 
@@ -24,5 +24,5 @@ export const Schemas = {
   FlashcardSchema,
   StudySessionSchema,
   StudyStatisticsSchema,
-  MigrationSchema
+  MigrationSchema,
 };

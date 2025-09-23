@@ -17,19 +17,23 @@ export const POST: APIRoute = async ({ request }) => {
     let refreshToken: string | null = null;
 
     if (cookieHeader) {
-      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-      
+      const cookies = cookieHeader.split(';').reduce(
+        (acc, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          acc[key] = value;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
       refreshToken = cookies.refreshToken || null;
     }
 
     // Get client IP for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIP =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     // Attempt logout
     await logout(accessToken, refreshToken, clientIP);
@@ -38,11 +42,11 @@ export const POST: APIRoute = async ({ request }) => {
     const response = new Response(
       JSON.stringify({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 
@@ -55,12 +59,15 @@ export const POST: APIRoute = async ({ request }) => {
     // Log security event
     SecurityAuditor.logSecurityEvent(
       'LOGOUT_API_SUCCESS',
-      { clientIP, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken },
+      {
+        clientIP,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+      },
       'low'
     );
 
     return response;
-
   } catch (error) {
     console.error('Logout API error:', error);
 
@@ -75,11 +82,11 @@ export const POST: APIRoute = async ({ request }) => {
     const response = new Response(
       JSON.stringify({
         success: true,
-        message: 'Logged out (client-side cleanup)'
+        message: 'Logged out (client-side cleanup)',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 

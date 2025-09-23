@@ -10,12 +10,17 @@ export { AuthService } from './authService.ts';
 
 export const authService = new AuthService();
 
-export const login = async (email: string, password: string, ipAddress?: string, deviceInfo?: string) => {
+export const login = async (
+  email: string,
+  password: string,
+  ipAddress?: string,
+  deviceInfo?: string
+) => {
   const payload: LoginData = {
     email,
     password,
     deviceInfo: deviceInfo || 'Unknown Device',
-    ipAddress: ipAddress || 'unknown'
+    ipAddress: ipAddress || 'unknown',
   };
 
   return authService.login(payload);
@@ -31,30 +36,41 @@ export const register = async (data: {
     email: data.email,
     username: data.username,
     password: data.password,
-    confirmPassword: data.password
+    confirmPassword: data.password,
   };
 
   return authService.register(payload, data.clientIP);
 };
 
-export const logout = async (accessToken?: string | null, refreshToken?: string | null, clientIP?: string) => {
+export const logout = async (
+  accessToken?: string | null,
+  refreshToken?: string | null,
+  clientIP?: string
+) => {
   if (!accessToken && !refreshToken) {
     return { success: true, message: 'No tokens to invalidate' } as const;
   }
 
   SecurityAuditor.logSecurityEvent(
     'LOGOUT_API_CALLED',
-    { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken, clientIP },
+    {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      clientIP,
+    },
     'low'
   );
 
   return { success: true, message: 'Logged out successfully' } as const;
 };
 
-export const refreshAccessToken = async (refreshToken: string, clientIP?: string) => {
+export const refreshAccessToken = async (
+  refreshToken: string,
+  clientIP?: string
+) => {
   const payload: RefreshTokenData = {
     refreshToken,
-    ipAddress: clientIP || 'unknown'
+    ipAddress: clientIP || 'unknown',
   };
 
   return authService.refreshToken(payload);

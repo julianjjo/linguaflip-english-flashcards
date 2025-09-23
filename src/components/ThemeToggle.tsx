@@ -23,14 +23,16 @@ const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
 const ThemeToggle: React.FC<ThemeToggleProps> = ({
   size = 'md',
   variant = 'button',
-  className = ''
+  className = '',
 }) => {
   const { theme, actualTheme, toggleTheme, isDark, mounted } = useTheme();
 
   // Prevent rendering theme-dependent content until after hydration
   if (!mounted) {
     return (
-      <div className={`${getSizeClasses(size)} animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg`} />
+      <div
+        className={`${getSizeClasses(size)} animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700`}
+      />
     );
   }
 
@@ -52,15 +54,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     return (
       <button
         onClick={toggleTheme}
-        className={`
-          ${getSizeClasses(size)}
-          flex items-center justify-center rounded-full
-          bg-gray-100 dark:bg-gray-800
-          hover:bg-gray-200 dark:hover:bg-gray-700
-          transition-colors duration-200
-          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-          ${className}
-        `}
+        className={` ${getSizeClasses(size)} flex items-center justify-center rounded-full bg-gray-100 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-gray-800 dark:hover:bg-gray-700 ${className} `}
         aria-label={getLabel()}
         title={getLabel()}
         suppressHydrationWarning={true}
@@ -76,16 +70,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     return (
       <button
         onClick={toggleTheme}
-        className={`
-          ${getSizeClasses(size)}
-          flex items-center justify-center rounded-lg
-          bg-gray-100 dark:bg-gray-800
-          hover:bg-gray-200 dark:hover:bg-gray-700
-          border border-gray-300 dark:border-gray-600
-          transition-all duration-200
-          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-          ${className}
-        `}
+        className={` ${getSizeClasses(size)} flex items-center justify-center rounded-lg border border-gray-300 bg-gray-100 transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 ${className} `}
         aria-label={getLabel()}
         title={getLabel()}
         suppressHydrationWarning={true}
@@ -101,17 +86,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
   return (
     <button
       onClick={toggleTheme}
-      className={`
-        ${getSizeClasses(size)}
-        flex items-center justify-center gap-2 px-3 py-2 rounded-lg
-        bg-gray-100 dark:bg-gray-800
-        hover:bg-gray-200 dark:hover:bg-gray-700
-        border border-gray-300 dark:border-gray-600
-        transition-all duration-200
-        focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-        text-gray-700 dark:text-gray-300
-        ${className}
-      `}
+      className={` ${getSizeClasses(size)} flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-gray-700 transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${className} `}
       aria-label={getLabel()}
       title={getLabel()}
       suppressHydrationWarning={true}
@@ -120,7 +95,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
         {getIcon()}
       </span>
       <span className="text-sm font-medium">
-        {theme === 'auto' ? 'Auto' : (isDark ? 'Oscuro' : 'Claro')}
+        {theme === 'auto' ? 'Auto' : isDark ? 'Oscuro' : 'Claro'}
       </span>
     </button>
   );

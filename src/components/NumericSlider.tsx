@@ -42,13 +42,14 @@ export const NumericSlider: React.FC<NumericSliderProps> = ({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
           {label}
         </label>
         {showValue && (
           <span className="text-sm font-semibold text-gray-900">
-            {value.toFixed(step < 1 ? 1 : 0)}{unit}
+            {value.toFixed(step < 1 ? 1 : 0)}
+            {unit}
           </span>
         )}
       </div>
@@ -63,9 +64,9 @@ export const NumericSlider: React.FC<NumericSliderProps> = ({
           value={value}
           onChange={handleChange}
           disabled={disabled}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider disabled:opacity-50 disabled:cursor-not-allowed"
+          className="slider h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
           style={{
-            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`
+            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`,
           }}
         />
 
@@ -74,16 +75,20 @@ export const NumericSlider: React.FC<NumericSliderProps> = ({
       </div>
 
       {/* Min/Max labels */}
-      <div className="flex justify-between text-xs text-gray-500 mt-1">
-        <span>{min}{unit}</span>
-        <span>{max}{unit}</span>
+      <div className="mt-1 flex justify-between text-xs text-gray-500">
+        <span>
+          {min}
+          {unit}
+        </span>
+        <span>
+          {max}
+          {unit}
+        </span>
       </div>
 
       {/* Description */}
       {description && (
-        <p className="mt-1 text-xs text-gray-500">
-          {description}
-        </p>
+        <p className="mt-1 text-xs text-gray-500">{description}</p>
       )}
     </div>
   );

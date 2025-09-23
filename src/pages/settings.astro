@@ -14,7 +14,7 @@ const defaultProfile = {
   name: 'Perfil Predeterminado',
   description: 'Configuración de estudio básica',
   studyMode: {
-    mode: 'mixed' as const
+    mode: 'mixed' as const,
   },
   difficultyFilter: {
     enabled: true,
@@ -22,7 +22,7 @@ const defaultProfile = {
     focusRecentCards: false,
     recentDaysThreshold: 7,
     prioritizeDueCards: true,
-    excludeMasteredCards: false
+    excludeMasteredCards: false,
   },
   isDefault: true,
   sessionControls: {
@@ -30,25 +30,25 @@ const defaultProfile = {
     breakInterval: 10,
     breakDuration: 5,
     autoAdvance: true,
-    showProgress: true
+    showProgress: true,
   },
   audioSettings: {
     enabled: true,
     speed: 'normal' as const,
     voice: 'female' as const,
-    autoPlay: true
+    autoPlay: true,
   },
   visualSettings: {
     cardSize: 'medium' as const,
     fontSize: 'medium' as const,
     theme: 'light' as const,
-    animations: true
+    animations: true,
   },
   notificationSettings: {
     sessionReminders: true,
     breakReminders: true,
     achievementNotifications: true,
-    dailyGoalReminders: true
+    dailyGoalReminders: true,
   },
   studyGoals: {
     dailyCards: 20,
@@ -56,10 +56,10 @@ const defaultProfile = {
     weeklyCards: 100,
     weeklyTime: 180,
     monthlyCards: 400,
-    monthlyTime: 720
+    monthlyTime: 720,
   },
   createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  updatedAt: new Date().toISOString(),
 };
 
 // Inicializar con perfil por defecto si no existe
@@ -74,241 +74,406 @@ if (!currentProfileStore.get()) {
 >
   <!-- SEO Meta Tags -->
   <meta property="og:title" content="Configuración de LinguaFlip" />
-  <meta property="og:description" content="Personaliza tu experiencia de aprendizaje con configuraciones avanzadas" />
+  <meta
+    property="og:description"
+    content="Personaliza tu experiencia de aprendizaje con configuraciones avanzadas"
+  />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Configuración - LinguaFlip" />
-  <meta name="twitter:description" content="Ajustes y preferencias de estudio" />
+  <meta
+    name="twitter:description"
+    content="Ajustes y preferencias de estudio"
+  />
 
   <!-- Schema.org structured data -->
   {/* eslint-disable-next-line astro/no-set-html-directive */}
-  <script type="application/ld+json" is:inline set:html={
-    JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "LinguaFlip Settings",
-      "description": "Panel de configuración para personalizar la experiencia de aprendizaje",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web Browser",
-      "featureList": [
-        "Configuración de sesiones de estudio",
-        "Preferencias de audio",
-        "Ajustes visuales",
-        "Notificaciones",
-        "Metas de estudio"
-      ]
-    })
-  } />
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'LinguaFlip Settings',
+      description:
+        'Panel de configuración para personalizar la experiencia de aprendizaje',
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Web Browser',
+      featureList: [
+        'Configuración de sesiones de estudio',
+        'Preferencias de audio',
+        'Ajustes visuales',
+        'Notificaciones',
+        'Metas de estudio',
+      ],
+    })}
+  />
 
   <AppProvider client:only="react">
-    <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+    <div
+      class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50"
+    >
       <div class="flex">
         <!-- Main Content -->
         <main class="flex-1 p-6 lg:pl-72">
-          <div class="max-w-4xl mx-auto">
-          <!-- Page Header -->
-          <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h1 class="text-3xl font-bold text-neutral-900 mb-2">
-                  Configuración
-                </h1>
-                <p class="text-neutral-600">
-                  Personaliza tu experiencia de aprendizaje
-                </p>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <!-- Theme Toggle -->
-                <ThemeToggle variant="icon" size="md" client:load />
-
-                <button
-                  class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  id="reset-settings"
-                >
-                  Restablecer
-                </button>
-                <button
-                  class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
-                  id="save-settings"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Settings Content -->
-          <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <!-- Settings Header -->
+          <div class="mx-auto max-w-4xl">
+            <!-- Page Header -->
             <div class="mb-8">
-              <div class="flex items-center gap-4 mb-6">
-                <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                  <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
+              <div class="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 class="text-2xl font-bold text-neutral-900">Preferencias de Estudio</h2>
-                  <p class="text-neutral-600">Configura cómo quieres aprender</p>
+                  <h1 class="mb-2 text-3xl font-bold text-neutral-900">
+                    Configuración
+                  </h1>
+                  <p class="text-neutral-600">
+                    Personaliza tu experiencia de aprendizaje
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <!-- Theme Toggle -->
+                  <ThemeToggle variant="icon" size="md" client:load />
+
+                  <button
+                    class="rounded-lg bg-neutral-100 px-4 py-2 font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-200"
+                    id="reset-settings"
+                  >
+                    Restablecer
+                  </button>
+                  <button
+                    class="rounded-lg bg-primary-600 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-primary-700"
+                    id="save-settings"
+                  >
+                    Guardar Cambios
+                  </button>
                 </div>
               </div>
             </div>
 
-            <!-- Settings Form Container -->
-            <div id="settings-container">
-              <!-- StudySettings component will be rendered here -->
-            </div>
-          </div>
-
-          <!-- Profile Management -->
-          <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <h3 class="text-xl font-bold text-neutral-900 mb-6">Perfiles de Estudio</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Current Profile -->
-              <div class="border-2 border-primary-200 bg-primary-50 rounded-xl p-6">
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <!-- Settings Content -->
+            <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl">
+              <!-- Settings Header -->
+              <div class="mb-8">
+                <div class="mb-6 flex items-center gap-4">
+                  <div
+                    class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-100"
+                  >
+                    <svg
+                      class="h-6 w-6 text-primary-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      ></path>
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                   </div>
                   <div>
-                    <h4 class="font-semibold text-neutral-900">Perfil Actual</h4>
-                    <p class="text-sm text-neutral-600" id="current-profile-name">Perfil Predeterminado</p>
+                    <h2 class="text-2xl font-bold text-neutral-900">
+                      Preferencias de Estudio
+                    </h2>
+                    <p class="text-neutral-600">
+                      Configura cómo quieres aprender
+                    </p>
                   </div>
-                </div>
-                <div class="space-y-2 text-sm text-neutral-600">
-                  <p>📚 <span id="profile-daily-cards">20</span> tarjetas diarias</p>
-                  <p>⏰ <span id="profile-daily-time">30</span> minutos diarios</p>
-                  <p>🎵 Audio: <span id="profile-audio">Activado</span></p>
                 </div>
               </div>
 
-              <!-- Profile Actions -->
-              <div class="border-2 border-dashed border-neutral-300 rounded-xl p-6 flex flex-col items-center justify-center">
-                <div class="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <!-- Settings Form Container -->
+              <div id="settings-container">
+                <!-- StudySettings component will be rendered here -->
+              </div>
+            </div>
+
+            <!-- Profile Management -->
+            <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl">
+              <h3 class="mb-6 text-xl font-bold text-neutral-900">
+                Perfiles de Estudio
+              </h3>
+
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Current Profile -->
+                <div
+                  class="rounded-xl border-2 border-primary-200 bg-primary-50 p-6"
+                >
+                  <div class="mb-4 flex items-center gap-3">
+                    <div
+                      class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100"
+                    >
+                      <svg
+                        class="h-5 w-5 text-primary-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-neutral-900">
+                        Perfil Actual
+                      </h4>
+                      <p
+                        class="text-sm text-neutral-600"
+                        id="current-profile-name"
+                      >
+                        Perfil Predeterminado
+                      </p>
+                    </div>
+                  </div>
+                  <div class="space-y-2 text-sm text-neutral-600">
+                    <p>
+                      📚 <span id="profile-daily-cards">20</span> tarjetas diarias
+                    </p>
+                    <p>
+                      ⏰ <span id="profile-daily-time">30</span> minutos diarios
+                    </p>
+                    <p>🎵 Audio: <span id="profile-audio">Activado</span></p>
+                  </div>
+                </div>
+
+                <!-- Profile Actions -->
+                <div
+                  class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 p-6"
+                >
+                  <div
+                    class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-100"
+                  >
+                    <svg
+                      class="h-6 w-6 text-neutral-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                  </div>
+                  <h4 class="mb-2 font-semibold text-neutral-900">
+                    Crear Nuevo Perfil
+                  </h4>
+                  <p class="mb-4 text-center text-sm text-neutral-600">
+                    Crea un perfil personalizado para diferentes estilos de
+                    aprendizaje
+                  </p>
+                  <button
+                    class="rounded-lg bg-neutral-100 px-4 py-2 font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-200"
+                  >
+                    Crear Perfil
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl">
+              <h3 class="mb-6 text-xl font-bold text-neutral-900">
+                Configuración Avanzada
+              </h3>
+
+              <div class="space-y-6">
+                <!-- API Settings -->
+                <div class="rounded-xl border border-neutral-200 p-6">
+                  <div class="mb-4 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-semibold text-neutral-900">
+                        Configuración de API
+                      </h4>
+                      <p class="text-sm text-neutral-600">
+                        Configura la integración con Google AI
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-neutral-600">Estado:</span>
+                      <span
+                        class="rounded-full bg-success-100 px-2 py-1 text-xs font-medium text-success-700"
+                      >
+                        Conectado
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div>
+                      <label
+                        class="mb-2 block text-sm font-medium text-neutral-700"
+                      >
+                        API Key de Google AI
+                      </label>
+                      <input
+                        type="password"
+                        class="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary-500"
+                        placeholder="Ingresa tu API key..."
+                        id="google-api-key"
+                      />
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-neutral-900">
+                          Generación Automática
+                        </p>
+                        <p class="text-xs text-neutral-600">
+                          Permitir generación automática de tarjetas
+                        </p>
+                      </div>
+                      <label
+                        class="relative inline-flex cursor-pointer items-center"
+                      >
+                        <input
+                          type="checkbox"
+                          class="peer sr-only"
+                          id="auto-generate-toggle"
+                          checked
+                        />
+                        <div
+                          class="peer h-6 w-11 rounded-full bg-neutral-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300"
+                        >
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Data Management -->
+                <div class="rounded-xl border border-neutral-200 p-6">
+                  <div class="mb-4 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-semibold text-neutral-900">
+                        Gestión de Datos
+                      </h4>
+                      <p class="text-sm text-neutral-600">
+                        Copia de seguridad y restauración
+                      </p>
+                    </div>
+                    <a
+                      href="/data"
+                      class="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      Gestionar Datos
+                      <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"></path>
+                      </svg>
+                    </a>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <button
+                      class="flex items-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 p-4 transition-colors duration-200 hover:border-primary-300 hover:bg-primary-50"
+                    >
+                      <div
+                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100"
+                      >
+                        <svg
+                          class="h-5 w-5 text-neutral-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 12l2 2 4-4"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div class="text-left">
+                        <p class="font-medium text-neutral-900">
+                          Exportar Datos
+                        </p>
+                        <p class="text-sm text-neutral-600">
+                          Descarga tu progreso
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      class="flex items-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 p-4 transition-colors duration-200 hover:border-primary-300 hover:bg-primary-50"
+                    >
+                      <div
+                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100"
+                      >
+                        <svg
+                          class="h-5 w-5 text-neutral-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div class="text-left">
+                        <p class="font-medium text-neutral-900">
+                          Importar Datos
+                        </p>
+                        <p class="text-sm text-neutral-600">
+                          Restaura desde backup
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Save Status -->
+            <div
+              class="fixed bottom-4 right-4 hidden rounded-lg bg-white p-4 shadow-lg"
+              id="save-status"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex h-5 w-5 items-center justify-center rounded-full bg-success-100"
+                >
+                  <svg
+                    class="h-3 w-3 text-success-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"></path>
                   </svg>
                 </div>
-                <h4 class="font-semibold text-neutral-900 mb-2">Crear Nuevo Perfil</h4>
-                <p class="text-sm text-neutral-600 text-center mb-4">
-                  Crea un perfil personalizado para diferentes estilos de aprendizaje
-                </p>
-                <button class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                  Crear Perfil
-                </button>
+                <span class="text-sm font-medium text-neutral-900"
+                  >Cambios guardados</span
+                >
               </div>
             </div>
-          </div>
-
-          <!-- Advanced Settings -->
-          <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <h3 class="text-xl font-bold text-neutral-900 mb-6">Configuración Avanzada</h3>
-
-            <div class="space-y-6">
-              <!-- API Settings -->
-              <div class="border border-neutral-200 rounded-xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 class="font-semibold text-neutral-900">Configuración de API</h4>
-                    <p class="text-sm text-neutral-600">Configura la integración con Google AI</p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm text-neutral-600">Estado:</span>
-                    <span class="px-2 py-1 bg-success-100 text-success-700 text-xs font-medium rounded-full">
-                      Conectado
-                    </span>
-                  </div>
-                </div>
-
-                <div class="space-y-4">
-                  <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-2">
-                      API Key de Google AI
-                    </label>
-                    <input
-                      type="password"
-                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Ingresa tu API key..."
-                      id="google-api-key"
-                    />
-                  </div>
-
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm font-medium text-neutral-900">Generación Automática</p>
-                      <p class="text-xs text-neutral-600">Permitir generación automática de tarjetas</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" class="sr-only peer" id="auto-generate-toggle" checked />
-                      <div class="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Data Management -->
-              <div class="border border-neutral-200 rounded-xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 class="font-semibold text-neutral-900">Gestión de Datos</h4>
-                    <p class="text-sm text-neutral-600">Copia de seguridad y restauración</p>
-                  </div>
-                  <a
-                    href="/data"
-                    class="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-2"
-                  >
-                    Gestionar Datos
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </a>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button class="flex items-center gap-3 p-4 border-2 border-dashed border-neutral-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors duration-200">
-                    <div class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 12l2 2 4-4" />
-                      </svg>
-                    </div>
-                    <div class="text-left">
-                      <p class="font-medium text-neutral-900">Exportar Datos</p>
-                      <p class="text-sm text-neutral-600">Descarga tu progreso</p>
-                    </div>
-                  </button>
-
-                  <button class="flex items-center gap-3 p-4 border-2 border-dashed border-neutral-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors duration-200">
-                    <div class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div class="text-left">
-                      <p class="font-medium text-neutral-900">Importar Datos</p>
-                      <p class="text-sm text-neutral-600">Restaura desde backup</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Save Status -->
-          <div class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 hidden" id="save-status">
-            <div class="flex items-center gap-3">
-              <div class="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center">
-                <svg class="w-3 h-3 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <span class="text-sm font-medium text-neutral-900">Cambios guardados</span>
-            </div>
-          </div>
           </div>
         </main>
       </div>
@@ -324,7 +489,7 @@ if (!currentProfileStore.get()) {
 
     class SettingsManager {
       currentProfile: any;
-      
+
       constructor() {
         this.currentProfile = null;
         this.init();
@@ -352,9 +517,16 @@ if (!currentProfileStore.get()) {
         const audioEl = document.getElementById('profile-audio');
 
         if (nameEl) nameEl.textContent = this.currentProfile.name;
-        if (cardsEl) cardsEl.textContent = this.currentProfile.studyGoals.dailyCards.toString();
-        if (timeEl) timeEl.textContent = this.currentProfile.studyGoals.dailyTime.toString();
-        if (audioEl) audioEl.textContent = this.currentProfile.audioSettings.enabled ? 'Activado' : 'Desactivado';
+        if (cardsEl)
+          cardsEl.textContent =
+            this.currentProfile.studyGoals.dailyCards.toString();
+        if (timeEl)
+          timeEl.textContent =
+            this.currentProfile.studyGoals.dailyTime.toString();
+        if (audioEl)
+          audioEl.textContent = this.currentProfile.audioSettings.enabled
+            ? 'Activado'
+            : 'Desactivado';
       }
 
       renderSettings() {
@@ -375,7 +547,9 @@ if (!currentProfileStore.get()) {
         //     onProfileChange: (profile: any) => this.handleProfileChange(profile)
         //   })
         // );
-        root.render(React.createElement('div', null, 'Settings component loading...'));
+        root.render(
+          React.createElement('div', null, 'Settings component loading...')
+        );
       }
 
       handleProfileChange(profile: any) {
@@ -401,7 +575,11 @@ if (!currentProfileStore.get()) {
         const resetBtn = document.getElementById('reset-settings');
         if (resetBtn) {
           resetBtn.addEventListener('click', () => {
-            if (confirm('¿Estás seguro de que quieres restablecer todas las configuraciones?')) {
+            if (
+              confirm(
+                '¿Estás seguro de que quieres restablecer todas las configuraciones?'
+              )
+            ) {
               this.resetSettings();
             }
           });
@@ -415,7 +593,7 @@ if (!currentProfileStore.get()) {
           name: 'Perfil Predeterminado',
           description: 'Configuración de estudio básica',
           studyMode: {
-            mode: 'mixed' as const
+            mode: 'mixed' as const,
           },
           difficultyFilter: {
             enabled: true,
@@ -423,7 +601,7 @@ if (!currentProfileStore.get()) {
             focusRecentCards: false,
             recentDaysThreshold: 7,
             prioritizeDueCards: true,
-            excludeMasteredCards: false
+            excludeMasteredCards: false,
           },
           isDefault: true,
           sessionControls: {
@@ -431,25 +609,25 @@ if (!currentProfileStore.get()) {
             breakInterval: 10,
             breakDuration: 5,
             autoAdvance: true,
-            showProgress: true
+            showProgress: true,
           },
           audioSettings: {
             enabled: true,
             speed: 'normal',
             voice: 'female',
-            autoPlay: true
+            autoPlay: true,
           },
           visualSettings: {
             cardSize: 'medium',
             fontSize: 'medium',
             theme: 'light',
-            animations: true
+            animations: true,
           },
           notificationSettings: {
             sessionReminders: true,
             breakReminders: true,
             achievementNotifications: true,
-            dailyGoalReminders: true
+            dailyGoalReminders: true,
           },
           studyGoals: {
             dailyCards: 20,
@@ -457,10 +635,10 @@ if (!currentProfileStore.get()) {
             weeklyCards: 100,
             weeklyTime: 180,
             monthlyCards: 400,
-            monthlyTime: 720
+            monthlyTime: 720,
           },
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         };
 
         this.currentProfile = defaultProfile;

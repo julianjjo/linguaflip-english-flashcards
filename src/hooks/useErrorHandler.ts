@@ -39,7 +39,7 @@ export const useErrorHandler = (
   const {
     showUserMessage = false,
     logLevel = 'error',
-    fallbackMessage = 'An unexpected error occurred'
+    fallbackMessage = 'An unexpected error occurred',
   } = options;
 
   const handleError = useCallback(

@@ -4,7 +4,8 @@ export interface Props {
   description?: string;
 }
 
-const { title, description = "Aprende inglés con flashcards inteligentes" } = Astro.props;
+const { title, description = 'Aprende inglés con flashcards inteligentes' } =
+  Astro.props;
 ---
 
 <!doctype html>
@@ -21,8 +22,8 @@ const { title, description = "Aprende inglés con flashcards inteligentes" } = A
     <link rel="stylesheet" href="/src/index.css" />
 
     <!-- Preload critical fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -115,13 +116,42 @@ const { title, description = "Aprende inglés con flashcards inteligentes" } = A
         --color-error-900: #7f1d1d;
         --color-error-950: #450a0a;
 
-        --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
-        --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-700));
-        --gradient-accent: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
-        --gradient-success: linear-gradient(135deg, var(--color-success-500), var(--color-success-700));
-        --gradient-background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-neutral-100) 50%, var(--color-secondary-50) 100%);
-        --gradient-card-front: linear-gradient(145deg, var(--color-neutral-50) 0%, var(--color-primary-100) 100%);
-        --gradient-card-back: linear-gradient(145deg, var(--color-neutral-50) 0%, var(--color-secondary-100) 100%);
+        --gradient-primary: linear-gradient(
+          135deg,
+          var(--color-primary-500),
+          var(--color-primary-700)
+        );
+        --gradient-secondary: linear-gradient(
+          135deg,
+          var(--color-secondary-500),
+          var(--color-secondary-700)
+        );
+        --gradient-accent: linear-gradient(
+          135deg,
+          var(--color-accent-500),
+          var(--color-accent-700)
+        );
+        --gradient-success: linear-gradient(
+          135deg,
+          var(--color-success-500),
+          var(--color-success-700)
+        );
+        --gradient-background: linear-gradient(
+          135deg,
+          var(--color-primary-50) 0%,
+          var(--color-neutral-100) 50%,
+          var(--color-secondary-50) 100%
+        );
+        --gradient-card-front: linear-gradient(
+          145deg,
+          var(--color-neutral-50) 0%,
+          var(--color-primary-100) 100%
+        );
+        --gradient-card-back: linear-gradient(
+          145deg,
+          var(--color-neutral-50) 0%,
+          var(--color-secondary-100) 100%
+        );
 
         --shadow-glow-primary: 0 0 20px rgba(14, 165, 233, 0.3);
         --shadow-glow-secondary: 0 0 20px rgba(100, 116, 139, 0.2);
@@ -135,7 +165,13 @@ const { title, description = "Aprende inglés con flashcards inteligentes" } = A
       }
 
       html {
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
         scroll-behavior: smooth;
         color-scheme: light dark;
         text-rendering: optimizeLegibility;
@@ -149,7 +185,9 @@ const { title, description = "Aprende inglés con flashcards inteligentes" } = A
         color: var(--color-neutral-900);
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
-        font-feature-settings: 'liga' 1, 'kern' 1;
+        font-feature-settings:
+          'liga' 1,
+          'kern' 1;
       }
 
       img,

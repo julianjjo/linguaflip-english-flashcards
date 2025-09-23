@@ -9,9 +9,9 @@ interface RecentActivityProps {
   maxItems?: number;
 }
 
-const RecentActivity: React.FC<RecentActivityProps> = ({ 
-  studyHistory, 
-  maxItems = 5 
+const RecentActivity: React.FC<RecentActivityProps> = ({
+  studyHistory,
+  maxItems = 5,
 }) => {
   // Sort sessions by date (most recent first) and limit
   const recentSessions = studyHistory
@@ -29,9 +29,9 @@ const RecentActivity: React.FC<RecentActivityProps> = ({
     } else if (date.toDateString() === yesterday.toDateString()) {
       return 'Ayer';
     } else {
-      return date.toLocaleDateString('es-ES', { 
-        day: 'numeric', 
-        month: 'short' 
+      return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
       });
     }
   };
@@ -43,16 +43,26 @@ const RecentActivity: React.FC<RecentActivityProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-neutral-200 dark:border-gray-600">
-      <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+    <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+      <h3 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Actividad Reciente
       </h3>
-      
+
       {recentSessions.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-neutral-500 dark:text-neutral-400 mb-2">
-            <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <div className="py-8 text-center">
+          <div className="mb-2 text-neutral-500 dark:text-neutral-400">
+            <svg
+              className="mx-auto mb-4 h-12 w-12 opacity-50"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
             </svg>
           </div>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -60,7 +70,7 @@ const RecentActivity: React.FC<RecentActivityProps> = ({
           </p>
           <a
             href="/study"
-            className="inline-flex items-center mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+            className="mt-4 inline-flex items-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-700"
           >
             Comenzar a Estudiar
           </a>
@@ -69,14 +79,29 @@ const RecentActivity: React.FC<RecentActivityProps> = ({
         <>
           <div className="space-y-4">
             {recentSessions.map((session, index) => {
-              const accuracy = Math.round((session.correctAnswers / session.cardsReviewed) * 100);
-              
+              const accuracy = Math.round(
+                (session.correctAnswers / session.cardsReviewed) * 100
+              );
+
               return (
-                <div key={session.id || index} className="flex items-center justify-between py-2">
+                <div
+                  key={session.id || index}
+                  className="flex items-center justify-between py-2"
+                >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
+                      <svg
+                        className="h-4 w-4 text-primary-600 dark:text-primary-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
                       </svg>
                     </div>
                     <div>
@@ -100,15 +125,25 @@ const RecentActivity: React.FC<RecentActivityProps> = ({
               );
             })}
           </div>
-          
-          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-gray-600">
+
+          <div className="mt-4 border-t border-neutral-200 pt-4 dark:border-gray-600">
             <a
               href="/study"
-              className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium text-sm flex items-center gap-2"
+              className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
             >
               Ver todas las sesiones
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </a>
           </div>

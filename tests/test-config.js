@@ -32,7 +32,7 @@ class TestConfig {
       const envContent = readFileSync(envPath, 'utf8');
       const config = {};
 
-      envContent.split('\n').forEach(line => {
+      envContent.split('\n').forEach((line) => {
         const [key, ...valueParts] = line.split('=');
         if (key && valueParts.length > 0) {
           const value = valueParts.join('=').trim();
@@ -43,7 +43,9 @@ class TestConfig {
 
       return config;
     } catch (error) {
-      console.warn(`Warning: Could not load ${envFile}, using default configuration`);
+      console.warn(
+        `Warning: Could not load ${envFile}, using default configuration`
+      );
       return this.getDefaultConfig();
     }
   }
@@ -77,13 +79,15 @@ class TestConfig {
    */
   getTimeouts() {
     const env = this.getEnvironment();
-    const prefix = env === 'production' ? 'PROD' : env === 'development' ? 'DEV' : 'TEST';
+    const prefix =
+      env === 'production' ? 'PROD' : env === 'development' ? 'DEV' : 'TEST';
 
     return {
       test: parseInt(this.config[`${prefix}_TIMEOUT`]) || 30000,
       pageLoad: parseInt(this.config[`${prefix}_PAGE_LOAD_TIMEOUT`]) || 10000,
-      elementWait: parseInt(this.config[`${prefix}_ELEMENT_WAIT_TIMEOUT`]) || 5000,
-      healthCheck: parseInt(this.config.HEALTH_CHECK_TIMEOUT) || 5000
+      elementWait:
+        parseInt(this.config[`${prefix}_ELEMENT_WAIT_TIMEOUT`]) || 5000,
+      healthCheck: parseInt(this.config.HEALTH_CHECK_TIMEOUT) || 5000,
     };
   }
 
@@ -92,7 +96,8 @@ class TestConfig {
    */
   getBrowserConfig() {
     const env = this.getEnvironment();
-    const prefix = env === 'production' ? 'PROD' : env === 'development' ? 'DEV' : 'TEST';
+    const prefix =
+      env === 'production' ? 'PROD' : env === 'development' ? 'DEV' : 'TEST';
 
     const headless = this.config[`${prefix}_BROWSER`] !== 'false';
     const args = this.config[`${prefix}_BROWSER_ARGS`]
@@ -101,7 +106,7 @@ class TestConfig {
 
     return {
       headless,
-      args: args.map(arg => arg.trim())
+      args: args.map((arg) => arg.trim()),
     };
   }
 
@@ -113,7 +118,7 @@ class TestConfig {
       useMocks: this.config.USE_MOCKS === 'true',
       mockGemini: this.config.MOCK_GEMINI_API === 'true',
       mockSpeech: this.config.MOCK_SPEECH_SYNTHESIS === 'true',
-      mockImages: this.config.MOCK_EXTERNAL_IMAGES === 'true'
+      mockImages: this.config.MOCK_EXTERNAL_IMAGES === 'true',
     };
   }
 
@@ -135,7 +140,7 @@ class TestConfig {
       TEST_BROWSER_ARGS: '--no-sandbox,--disable-setuid-sandbox',
       HEALTH_CHECK_ENABLED: 'true',
       HEALTH_CHECK_TIMEOUT: '5000',
-      HEALTH_CHECK_RETRIES: '3'
+      HEALTH_CHECK_RETRIES: '3',
     };
   }
 
@@ -149,18 +154,18 @@ class TestConfig {
       case 'production':
         return {
           port: parseInt(this.config.PROD_PORT) || 3000,
-          host: this.config.PROD_HOST || '0.0.0.0'
+          host: this.config.PROD_HOST || '0.0.0.0',
         };
       case 'development':
         return {
           port: parseInt(this.config.DEV_PORT) || 5173,
-          host: this.config.DEV_HOST || 'localhost'
+          host: this.config.DEV_HOST || 'localhost',
         };
       case 'test':
       default:
         return {
           port: parseInt(this.config.TEST_PORT) || 4321,
-          host: this.config.TEST_HOST || 'localhost'
+          host: this.config.TEST_HOST || 'localhost',
         };
     }
   }
@@ -172,7 +177,7 @@ class TestConfig {
     return {
       enabled: this.config.HEALTH_CHECK_ENABLED === 'true',
       timeout: parseInt(this.config.HEALTH_CHECK_TIMEOUT) || 5000,
-      retries: parseInt(this.config.HEALTH_CHECK_RETRIES) || 3
+      retries: parseInt(this.config.HEALTH_CHECK_RETRIES) || 3,
     };
   }
 
@@ -182,7 +187,7 @@ class TestConfig {
   getParallelConfig() {
     return {
       enabled: this.config.TEST_PARALLEL !== 'false',
-      maxConcurrent: parseInt(this.config.MAX_CONCURRENT_TESTS) || 4
+      maxConcurrent: parseInt(this.config.MAX_CONCURRENT_TESTS) || 4,
     };
   }
 }

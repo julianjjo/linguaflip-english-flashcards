@@ -1,6 +1,6 @@
 /**
  * Document Validation Utilities
- * 
+ *
  * This module contains utilities for validating documents against MongoDB schemas.
  */
 
@@ -35,7 +35,7 @@ export interface ValidationDocument {
  * Validate collection data against schema
  */
 export function validateDocument(
-  document: ValidationDocument, 
+  document: ValidationDocument,
   schema: SchemaValidator
 ): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -46,7 +46,11 @@ export function validateDocument(
     const required = schema.validator?.$jsonSchema?.required;
     if (required && Array.isArray(required)) {
       for (const field of required) {
-        if (!(field in document) || document[field] === null || document[field] === undefined) {
+        if (
+          !(field in document) ||
+          document[field] === null ||
+          document[field] === undefined
+        ) {
           errors.push(`Missing required field: ${field}`);
         }
       }
@@ -72,12 +76,14 @@ export function validateDocument(
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   } catch (error) {
     return {
       isValid: false,
-      errors: [`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+      errors: [
+        `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      ],
     };
   }
 }
