@@ -24,16 +24,12 @@ import AppProvider from '../components/AppProvider.tsx';
   />
 
   <!-- Schema.org structured data -->
-  {/* eslint-disable-next-line astro/no-set-html-directive */}
-  <script
-    type="application/ld+json"
-    is:inline
-    set:html={JSON.stringify({
+  <script type="application/ld+json" is:inline>
+    {JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'LinguaFlip Data Management',
-      description:
-        'Herramientas para gestionar y respaldar datos de aprendizaje',
+      description: 'Herramientas para gestionar y respaldar datos de aprendizaje',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Web Browser',
       featureList: [
@@ -43,7 +39,7 @@ import AppProvider from '../components/AppProvider.tsx';
         'Restauración de progreso',
       ],
     })}
-  />
+  </script>
 
   <AppProvider client:only="react">
     <div

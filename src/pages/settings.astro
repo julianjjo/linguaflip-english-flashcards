@@ -87,11 +87,8 @@ if (!currentProfileStore.get()) {
   />
 
   <!-- Schema.org structured data -->
-  {/* eslint-disable-next-line astro/no-set-html-directive */}
-  <script
-    type="application/ld+json"
-    is:inline
-    set:html={JSON.stringify({
+  <script type="application/ld+json" is:inline>
+    {JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'LinguaFlip Settings',
@@ -107,7 +104,7 @@ if (!currentProfileStore.get()) {
         'Metas de estudio',
       ],
     })}
-  />
+  </script>
 
   <AppProvider client:only="react">
     <div

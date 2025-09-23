@@ -26,11 +26,8 @@ import Sidebar from '../components/Sidebar.astro';
   />
 
   <!-- Schema.org structured data -->
-  {/* eslint-disable-next-line astro/no-set-html-directive */}
-  <script
-    type="application/ld+json"
-    is:inline
-    set:html={JSON.stringify({
+  <script type="application/ld+json" is:inline>
+    {JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'LinguaFlip Dashboard',
@@ -39,7 +36,7 @@ import Sidebar from '../components/Sidebar.astro';
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Web Browser',
     })}
-  />
+  </script>
 
   <AppProvider client:only="react">
     <div
