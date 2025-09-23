@@ -9,7 +9,7 @@
  * - Password reset
  */
 
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import { authService } from '../services/auth';
 import {
   requireAuth,
@@ -33,7 +33,7 @@ router.use(authLogging);
  * POST /api/auth/register
  * Register a new user account
  */
-router.post('/register', authRateLimit, async (req, res) => {
+router.post('/register', authRateLimit, async (req: Request, res: Response) => {
   try {
     const { email, username, password, confirmPassword } = req.body;
 
@@ -94,7 +94,7 @@ router.post('/register', authRateLimit, async (req, res) => {
  * POST /api/auth/login
  * Authenticate user and return tokens
  */
-router.post('/login', authRateLimit, async (req, res) => {
+router.post('/login', authRateLimit, async (req: Request, res: Response) => {
   try {
     const { email, password, deviceInfo } = req.body;
 
@@ -167,7 +167,7 @@ router.post('/login', authRateLimit, async (req, res) => {
  * POST /api/auth/logout
  * Logout user and invalidate tokens
  */
-router.post('/logout', requireAuth, async (req, res) => {
+router.post('/logout', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
     const refreshToken = req.cookies?.refreshToken;
@@ -203,7 +203,7 @@ router.post('/logout', requireAuth, async (req, res) => {
  * POST /api/auth/refresh
  * Refresh access token using refresh token
  */
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
 
@@ -268,7 +268,7 @@ router.post('/refresh', async (req, res) => {
  * POST /api/auth/forgot-password
  * Initiate password reset process
  */
-router.post('/forgot-password', authRateLimit, async (req, res) => {
+router.post('/forgot-password', authRateLimit, async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
 
@@ -309,7 +309,7 @@ router.post('/forgot-password', authRateLimit, async (req, res) => {
  * POST /api/auth/reset-password
  * Reset password using reset token
  */
-router.post('/reset-password', authRateLimit, async (req, res) => {
+router.post('/reset-password', authRateLimit, async (req: Request, res: Response) => {
   try {
     const { token, newPassword, confirmPassword } = req.body;
 
@@ -365,7 +365,7 @@ router.post('/reset-password', authRateLimit, async (req, res) => {
  * GET /api/auth/verify
  * Verify JWT token and return user information
  */
-router.get('/verify', requireAuth, async (req, res) => {
+router.get('/verify', requireAuth, async (req: Request, res: Response) => {
   try {
     // Token is already verified by middleware
     // Just return user information
@@ -392,7 +392,7 @@ router.get('/verify', requireAuth, async (req, res) => {
  * GET /api/auth/me
  * Get current user profile (requires authentication)
  */
-router.get('/me', requireAuth, async (req, res) => {
+router.get('/me', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
@@ -427,7 +427,7 @@ router.get('/me', requireAuth, async (req, res) => {
  * POST /api/auth/validate-password
  * Validate password strength (public endpoint)
  */
-router.post('/validate-password', async (req, res) => {
+router.post('/validate-password', async (req: Request, res: Response) => {
   try {
     const { password } = req.body;
 
