@@ -12,12 +12,10 @@ interface UseLazyLoadReturn {
   hasTriggered: boolean;
 }
 
-export const useLazyLoad = (options: UseLazyLoadOptions = {}): UseLazyLoadReturn => {
-  const {
-    threshold = 0.1,
-    rootMargin = '50px',
-    triggerOnce = true,
-  } = options;
+export const useLazyLoad = (
+  options: UseLazyLoadOptions = {}
+): UseLazyLoadReturn => {
+  const { threshold = 0.1, rootMargin = '50px', triggerOnce = true } = options;
 
   const [isInView, setIsInView] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
@@ -82,7 +80,9 @@ export const useLazyLoad = (options: UseLazyLoadOptions = {}): UseLazyLoadReturn
 };
 
 // Hook for lazy loading components with React.lazy
-export const useLazyComponent = <T extends React.ComponentType<Record<string, unknown>>>(
+export const useLazyComponent = <
+  T extends React.ComponentType<Record<string, unknown>>,
+>(
   importFunc: () => Promise<{ default: T }>,
   options: UseLazyLoadOptions = {}
 ) => {

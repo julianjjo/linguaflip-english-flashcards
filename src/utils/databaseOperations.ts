@@ -2,10 +2,15 @@ import { randomBytes } from 'node:crypto';
 
 import { d1Client } from './d1Client';
 import { dbConnection } from './database';
-import type { DatabaseOperationResult, BulkOperationResult } from '../types/database';
+import type {
+  DatabaseOperationResult,
+  BulkOperationResult,
+} from '../types/database';
 
 type Filter = Record<string, unknown>;
-type UpdateFilter = Record<string, unknown> & { $set?: Record<string, unknown> };
+type UpdateFilter = Record<string, unknown> & {
+  $set?: Record<string, unknown>;
+};
 
 interface QueryOptions {
   limit?: number;
@@ -75,7 +80,22 @@ const COLLECTION_CONFIGS: Record<string, CollectionConfig> = {
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 
-const DATE_KEY_HINTS = ['createdAt', 'updatedAt', 'startTime', 'endTime', 'nextReviewDate', 'lastStudyDate', 'passwordChangedAt', 'passwordResetExpires', 'emailVerifiedAt', 'lastLogin', 'accountLockedUntil', 'timestamp', 'date', 'appliedAt'];
+const DATE_KEY_HINTS = [
+  'createdAt',
+  'updatedAt',
+  'startTime',
+  'endTime',
+  'nextReviewDate',
+  'lastStudyDate',
+  'passwordChangedAt',
+  'passwordResetExpires',
+  'emailVerifiedAt',
+  'lastLogin',
+  'accountLockedUntil',
+  'timestamp',
+  'date',
+  'appliedAt',
+];
 
 const OBJECT_ID_REGEX = /^[a-f0-9]{24}$/;
 
@@ -137,19 +157,27 @@ export class DatabaseOperations {
     }
 
     if (Array.isArray(value)) {
-      return value.map(item => this.restoreDates(item));
+      return value.map((item) => this.restoreDates(item));
     }
 
     if (typeof value === 'object') {
       const result: Record<string, unknown> = {};
-      for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+      for (const [key, nestedValue] of Object.entries(
+        value as Record<string, unknown>
+      )) {
         result[key] = this.restoreDates(nestedValue, key);
       }
       return result;
     }
 
     if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
-      if (keyHint && (DATE_KEY_HINTS.includes(keyHint) || keyHint.endsWith('At') || keyHint.endsWith('Date') || keyHint.includes('Time'))) {
+      if (
+        keyHint &&
+        (DATE_KEY_HINTS.includes(keyHint) ||
+          keyHint.endsWith('At') ||
+          keyHint.endsWith('Date') ||
+          keyHint.includes('Time'))
+      ) {
         const parsed = new Date(value);
         if (!Number.isNaN(parsed.getTime())) {
           return parsed;
@@ -165,14 +193,22 @@ export class DatabaseOperations {
     return this.restoreDates(parsed) as Record<string, unknown>;
   }
 
-  private setNestedValue(target: Record<string, unknown>, path: string, value: unknown): void {
+  private setNestedValue(
+    target: Record<string, unknown>,
+    path: string,
+    value: unknown
+  ): void {
     const segments = path.split('.');
     let current: Record<string, unknown> = target;
 
     for (let i = 0; i < segments.length - 1; i++) {
       const segment = segments[i];
       const existing = current[segment];
-      if (typeof existing !== 'object' || existing === null || Array.isArray(existing)) {
+      if (
+        typeof existing !== 'object' ||
+        existing === null ||
+        Array.isArray(existing)
+      ) {
         current[segment] = {};
       }
       current = current[segment] as Record<string, unknown>;
@@ -181,7 +217,10 @@ export class DatabaseOperations {
     current[segments[segments.length - 1]] = value;
   }
 
-  private applyUpdates(document: Record<string, unknown>, updates: Record<string, unknown>): void {
+  private applyUpdates(
+    document: Record<string, unknown>,
+    updates: Record<string, unknown>
+  ): void {
     for (const [key, value] of Object.entries(updates)) {
       if (key.includes('.')) {
         this.setNestedValue(document, key, value);
@@ -202,7 +241,10 @@ export class DatabaseOperations {
     return null;
   }
 
-  private getNestedValue(object: Record<string, unknown>, path: string): unknown {
+  private getNestedValue(
+    object: Record<string, unknown>,
+    path: string
+  ): unknown {
     const segments = path.split('.');
     let current: unknown = object;
 
@@ -219,7 +261,9 @@ export class DatabaseOperations {
     return current;
   }
 
-  private prepareDocument(document: Record<string, unknown>): Record<string, unknown> {
+  private prepareDocument(
+    document: Record<string, unknown>
+  ): Record<string, unknown> {
     const now = new Date();
     const prepared: Record<string, unknown> = { ...document };
     if (!prepared._id) {
@@ -232,7 +276,9 @@ export class DatabaseOperations {
     return prepared;
   }
 
-  private prepareRow(document: Record<string, unknown>): Record<string, unknown> {
+  private prepareRow(
+    document: Record<string, unknown>
+  ): Record<string, unknown> {
     const row: Record<string, unknown> = {
       id: document._id,
       createdAt: this.normalizeValue(document.createdAt),
@@ -252,19 +298,25 @@ export class DatabaseOperations {
     return row;
   }
 
-  private buildInsert(row: Record<string, unknown>): { sql: string; params: unknown[] } {
+  private buildInsert(row: Record<string, unknown>): {
+    sql: string;
+    params: unknown[];
+  } {
     const columns = Object.keys(row);
     const placeholders = columns.map(() => '?').join(', ');
     const sql = `INSERT INTO ${this.config.table} (${columns.join(', ')}) VALUES (${placeholders})`;
-    const params = columns.map(column => row[column]);
+    const params = columns.map((column) => row[column]);
     return { sql, params };
   }
 
-  private buildUpdate(row: Record<string, unknown>): { sql: string; params: unknown[] } {
-    const columns = Object.keys(row).filter(column => column !== 'id');
-    const assignments = columns.map(column => `${column} = ?`).join(', ');
+  private buildUpdate(row: Record<string, unknown>): {
+    sql: string;
+    params: unknown[];
+  } {
+    const columns = Object.keys(row).filter((column) => column !== 'id');
+    const assignments = columns.map((column) => `${column} = ?`).join(', ');
     const sql = `UPDATE ${this.config.table} SET ${assignments} WHERE id = ?`;
-    const params = columns.map(column => row[column]);
+    const params = columns.map((column) => row[column]);
     params.push(row.id);
     return { sql, params };
   }
@@ -281,7 +333,11 @@ export class DatabaseOperations {
     return document;
   }
 
-  private buildWhereClause(filter: Filter): { clause: string; params: unknown[]; fallback: Filter } {
+  private buildWhereClause(filter: Filter): {
+    clause: string;
+    params: unknown[];
+    fallback: Filter;
+  } {
     const conditions: string[] = [];
     const params: unknown[] = [];
     const fallback: Filter = {};
@@ -293,8 +349,15 @@ export class DatabaseOperations {
         continue;
       }
 
-      if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
-        const operatorEntries = Object.entries(value as Record<string, unknown>);
+      if (
+        value &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        !(value instanceof Date)
+      ) {
+        const operatorEntries = Object.entries(
+          value as Record<string, unknown>
+        );
         const supported = ['$ne', '$in', '$nin', '$gte', '$lte', '$gt', '$lt'];
         if (operatorEntries.every(([op]) => supported.includes(op))) {
           for (const [operator, operand] of operatorEntries) {
@@ -307,14 +370,18 @@ export class DatabaseOperations {
                 if (Array.isArray(operand) && operand.length) {
                   const placeholders = operand.map(() => '?').join(', ');
                   conditions.push(`${column} IN (${placeholders})`);
-                  params.push(...operand.map(item => this.normalizeValue(item)));
+                  params.push(
+                    ...operand.map((item) => this.normalizeValue(item))
+                  );
                 }
                 break;
               case '$nin':
                 if (Array.isArray(operand) && operand.length) {
                   const placeholders = operand.map(() => '?').join(', ');
                   conditions.push(`${column} NOT IN (${placeholders})`);
-                  params.push(...operand.map(item => this.normalizeValue(item)));
+                  params.push(
+                    ...operand.map((item) => this.normalizeValue(item))
+                  );
                 }
                 break;
               case '$gte':
@@ -349,23 +416,36 @@ export class DatabaseOperations {
       }
     }
 
-    const clause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
+    const clause = conditions.length
+      ? ` WHERE ${conditions.join(' AND ')}`
+      : '';
     return { clause, params, fallback };
   }
 
-  private applyFallbackFilter(documents: Record<string, unknown>[], filter: Filter): Record<string, unknown>[] {
+  private applyFallbackFilter(
+    documents: Record<string, unknown>[],
+    filter: Filter
+  ): Record<string, unknown>[] {
     if (!filter || Object.keys(filter).length === 0) {
       return documents;
     }
 
-    return documents.filter(document => this.matchesFilter(document, filter));
+    return documents.filter((document) => this.matchesFilter(document, filter));
   }
 
-  private matchesFilter(document: Record<string, unknown>, filter: Filter): boolean {
+  private matchesFilter(
+    document: Record<string, unknown>,
+    filter: Filter
+  ): boolean {
     for (const [field, condition] of Object.entries(filter)) {
       const value = this.getNestedValue(document, field);
 
-      if (condition && typeof condition === 'object' && !Array.isArray(condition) && !(condition instanceof Date)) {
+      if (
+        condition &&
+        typeof condition === 'object' &&
+        !Array.isArray(condition) &&
+        !(condition instanceof Date)
+      ) {
         const objectCondition = condition as Record<string, unknown>;
         for (const [operator, operand] of Object.entries(objectCondition)) {
           switch (operator) {
@@ -376,14 +456,14 @@ export class DatabaseOperations {
               break;
             case '$in':
               if (Array.isArray(operand)) {
-                if (!operand.some(item => this.areEqual(value, item))) {
+                if (!operand.some((item) => this.areEqual(value, item))) {
                   return false;
                 }
               }
               break;
             case '$nin':
               if (Array.isArray(operand)) {
-                if (operand.some(item => this.areEqual(value, item))) {
+                if (operand.some((item) => this.areEqual(value, item))) {
                   return false;
                 }
               }
@@ -410,7 +490,11 @@ export class DatabaseOperations {
               break;
             default:
               if (typeof operand === 'object' && operand !== null) {
-                if (!this.matchesFilter(value as Record<string, unknown>, { [operator]: operand })) {
+                if (
+                  !this.matchesFilter(value as Record<string, unknown>, {
+                    [operator]: operand,
+                  })
+                ) {
                   return false;
                 }
               }
@@ -444,23 +528,30 @@ export class DatabaseOperations {
     right: unknown,
     comparator: (a: number | string, b: number | string) => boolean
   ): boolean {
-    if (left instanceof Date || (typeof left === 'string' && ISO_DATE_REGEX.test(left))) {
+    if (
+      left instanceof Date ||
+      (typeof left === 'string' && ISO_DATE_REGEX.test(left))
+    ) {
       const leftDate = left instanceof Date ? left : new Date(left);
       const rightDate = right instanceof Date ? right : new Date(String(right));
       return comparator(leftDate.getTime(), rightDate.getTime());
     }
 
     if (typeof left === 'number' || typeof left === 'string') {
-      const rightValue = typeof right === 'number' || typeof right === 'string'
-        ? right
-        : Number(right);
+      const rightValue =
+        typeof right === 'number' || typeof right === 'string'
+          ? right
+          : Number(right);
       return comparator(left as number | string, rightValue as number | string);
     }
 
     return false;
   }
 
-  private async query(filter: Filter, options: QueryOptions = {}): Promise<Record<string, unknown>[]> {
+  private async query(
+    filter: Filter,
+    options: QueryOptions = {}
+  ): Promise<Record<string, unknown>[]> {
     await this.ensureReady();
     const { clause, params, fallback } = this.buildWhereClause(filter);
 
@@ -492,11 +583,13 @@ export class DatabaseOperations {
 
     const result = await d1Client.execute(sql, params);
     const rows = (result.results || []) as Record<string, unknown>[];
-    const documents = rows.map(row => this.rowToDocument(row));
+    const documents = rows.map((row) => this.rowToDocument(row));
     return this.applyFallbackFilter(documents, fallback);
   }
 
-  public async create(document: Record<string, unknown>): Promise<DatabaseOperationResult<Record<string, unknown>>> {
+  public async create(
+    document: Record<string, unknown>
+  ): Promise<DatabaseOperationResult<Record<string, unknown>>> {
     const start = Date.now();
     try {
       const prepared = this.prepareDocument(document);
@@ -523,7 +616,10 @@ export class DatabaseOperations {
     }
   }
 
-  public async findOne(filter: Filter, options?: QueryOptions): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
+  public async findOne(
+    filter: Filter,
+    options?: QueryOptions
+  ): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
     const start = Date.now();
     try {
       const documents = await this.query(filter, { ...options, limit: 1 });
@@ -542,7 +638,10 @@ export class DatabaseOperations {
     }
   }
 
-  public async findMany(filter: Filter = {}, options?: QueryOptions): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
+  public async findMany(
+    filter: Filter = {},
+    options?: QueryOptions
+  ): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
     const start = Date.now();
     try {
       const documents = await this.query(filter, options);
@@ -561,7 +660,11 @@ export class DatabaseOperations {
     }
   }
 
-  public async updateOne(filter: Filter, update: UpdateFilter, options: { upsert?: boolean } = {}): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
+  public async updateOne(
+    filter: Filter,
+    update: UpdateFilter,
+    options: { upsert?: boolean } = {}
+  ): Promise<DatabaseOperationResult<Record<string, unknown> | null>> {
     const start = Date.now();
     try {
       const existing = await this.findOne(filter);
@@ -573,7 +676,11 @@ export class DatabaseOperations {
         if (options.upsert) {
           const base: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(filter)) {
-            if (typeof value !== 'object' || value instanceof Date || Array.isArray(value)) {
+            if (
+              typeof value !== 'object' ||
+              value instanceof Date ||
+              Array.isArray(value)
+            ) {
               base[key] = value;
             }
           }
@@ -621,7 +728,10 @@ export class DatabaseOperations {
     }
   }
 
-  public async updateMany(filter: Filter, update: UpdateFilter): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
+  public async updateMany(
+    filter: Filter,
+    update: UpdateFilter
+  ): Promise<DatabaseOperationResult<{ modifiedCount: number }>> {
     const start = Date.now();
     try {
       const documents = await this.query(filter);
@@ -656,16 +766,26 @@ export class DatabaseOperations {
     }
   }
 
-  public async deleteOne(filter: Filter): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+  public async deleteOne(
+    filter: Filter
+  ): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
     const start = Date.now();
     try {
       const existing = await this.findOne(filter);
       if (!existing.success) {
-        return { success: false, error: existing.error, operationTime: Date.now() - start };
+        return {
+          success: false,
+          error: existing.error,
+          operationTime: Date.now() - start,
+        };
       }
 
       if (!existing.data) {
-        return { success: true, data: { deletedCount: 0 }, operationTime: Date.now() - start };
+        return {
+          success: true,
+          data: { deletedCount: 0 },
+          operationTime: Date.now() - start,
+        };
       }
 
       const sql = `DELETE FROM ${this.config.table} WHERE id = ?`;
@@ -690,7 +810,9 @@ export class DatabaseOperations {
     }
   }
 
-  public async deleteMany(filter: Filter): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
+  public async deleteMany(
+    filter: Filter
+  ): Promise<DatabaseOperationResult<{ deletedCount: number }>> {
     const start = Date.now();
     try {
       const documents = await this.query(filter);
@@ -719,13 +841,19 @@ export class DatabaseOperations {
     }
   }
 
-  public async count(filter: Filter = {}): Promise<DatabaseOperationResult<number>> {
+  public async count(
+    filter: Filter = {}
+  ): Promise<DatabaseOperationResult<number>> {
     const start = Date.now();
     try {
       const { clause, params } = this.buildWhereClause(filter);
       const sql = `SELECT COUNT(*) as count FROM ${this.config.table}${clause}`;
       const result = await d1Client.execute(sql, params);
-      const count = (result.results && result.results[0] && (result.results[0] as Record<string, unknown>).count) || 0;
+      const count =
+        (result.results &&
+          result.results[0] &&
+          (result.results[0] as Record<string, unknown>).count) ||
+        0;
       return {
         success: true,
         data: typeof count === 'number' ? count : Number(count),
@@ -741,7 +869,9 @@ export class DatabaseOperations {
     }
   }
 
-  public async exists(filter: Filter): Promise<DatabaseOperationResult<boolean>> {
+  public async exists(
+    filter: Filter
+  ): Promise<DatabaseOperationResult<boolean>> {
     const countResult = await this.count(filter);
     if (!countResult.success) {
       return {
@@ -757,7 +887,9 @@ export class DatabaseOperations {
     };
   }
 
-  public async bulkWrite(operations: Record<string, unknown>[]): Promise<DatabaseOperationResult<BulkOperationResult>> {
+  public async bulkWrite(
+    operations: Record<string, unknown>[]
+  ): Promise<DatabaseOperationResult<BulkOperationResult>> {
     const start = Date.now();
     const result: BulkOperationResult = {
       success: true,
@@ -771,14 +903,20 @@ export class DatabaseOperations {
     for (const operation of operations) {
       try {
         if (operation.insertOne) {
-          const { document } = operation.insertOne as { document: Record<string, unknown> };
+          const { document } = operation.insertOne as {
+            document: Record<string, unknown>;
+          };
           const createResult = await this.create(document);
           if (!createResult.success) {
             throw new Error(createResult.error || 'Insert failed');
           }
           result.insertedCount++;
         } else if (operation.updateOne) {
-          const { filter, update, options } = operation.updateOne as { filter: Filter; update: UpdateFilter; options?: { upsert?: boolean } };
+          const { filter, update, options } = operation.updateOne as {
+            filter: Filter;
+            update: UpdateFilter;
+            options?: { upsert?: boolean };
+          };
           const updateResult = await this.updateOne(filter, update, options);
           if (!updateResult.success) {
             throw new Error(updateResult.error || 'Update failed');
@@ -811,7 +949,9 @@ export class DatabaseOperations {
     };
   }
 
-  public async aggregate(): Promise<DatabaseOperationResult<Record<string, unknown>[]>> {
+  public async aggregate(): Promise<
+    DatabaseOperationResult<Record<string, unknown>[]>
+  > {
     return {
       success: false,
       error: 'Aggregation pipelines are not supported in the D1 adapter',
@@ -827,12 +967,18 @@ export class DatabaseOperations {
     };
   }
 
-  public async distinct(field: string, filter: Filter = {}): Promise<DatabaseOperationResult<unknown[]>> {
+  public async distinct(
+    field: string,
+    filter: Filter = {}
+  ): Promise<DatabaseOperationResult<unknown[]>> {
     const start = Date.now();
     try {
       const documentsResult = await this.findMany(filter);
       if (!documentsResult.success || !documentsResult.data) {
-        throw new Error(documentsResult.error || 'Failed to retrieve documents for distinct query');
+        throw new Error(
+          documentsResult.error ||
+            'Failed to retrieve documents for distinct query'
+        );
       }
 
       const values = new Set<unknown>();
@@ -840,7 +986,7 @@ export class DatabaseOperations {
         const value = this.getNestedValue(document, field);
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            value.forEach(item => values.add(item));
+            value.forEach((item) => values.add(item));
           } else {
             values.add(value);
           }
@@ -863,7 +1009,9 @@ export class DatabaseOperations {
   }
 }
 
-export function createDatabaseOperations(collectionName: string): DatabaseOperations {
+export function createDatabaseOperations(
+  collectionName: string
+): DatabaseOperations {
   return new DatabaseOperations(collectionName);
 }
 
@@ -887,9 +1035,16 @@ export const databaseUtils = {
     return id;
   },
 
-  validateDocument(document: Record<string, unknown>, requiredFields: string[]): Error | null {
+  validateDocument(
+    document: Record<string, unknown>,
+    requiredFields: string[]
+  ): Error | null {
     for (const field of requiredFields) {
-      if (!(field in document) || document[field] === null || document[field] === undefined) {
+      if (
+        !(field in document) ||
+        document[field] === null ||
+        document[field] === undefined
+      ) {
         return new Error(`Missing required field: ${field}`);
       }
     }

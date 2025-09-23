@@ -39,7 +39,6 @@ class TestRunner {
 
       // Execute tests
       await this.executeTests();
-
     } catch (error) {
       console.error('❌ Test execution failed:', error.message);
       process.exit(1);
@@ -96,7 +95,9 @@ class TestRunner {
     if (this.config.getMockConfig().useMocks) {
       // Simple mock server health check
       try {
-        const response = await fetch(`${this.mockServer.getServerUrl()}/health`);
+        const response = await fetch(
+          `${this.mockServer.getServerUrl()}/health`
+        );
         if (!response.ok) {
           console.warn('⚠️ Mock server health check returned non-200 status');
         }
@@ -114,10 +115,7 @@ class TestRunner {
   async executeTests() {
     console.log('🧪 Executing tests...');
 
-    const testFiles = [
-      'tests/design-tests.js',
-      'tests/interaction-tests.js'
-    ];
+    const testFiles = ['tests/design-tests.js', 'tests/interaction-tests.js'];
 
     const results = [];
 
@@ -125,19 +123,21 @@ class TestRunner {
       console.log(`\n📄 Running ${testFile}...`);
 
       try {
-        const { stdout, stderr } = await execAsync(`npx jest ${testFile} --testTimeout=30000`, {
-          env: {
-            ...process.env,
-            NODE_ENV: 'test',
-            TEST_BASE_URL: this.testServer.getServerUrl()
+        const { stdout, stderr } = await execAsync(
+          `npx jest ${testFile} --testTimeout=30000`,
+          {
+            env: {
+              ...process.env,
+              NODE_ENV: 'test',
+              TEST_BASE_URL: this.testServer.getServerUrl(),
+            },
           }
-        });
+        );
 
         if (stdout) console.log(stdout);
         if (stderr) console.error(stderr);
 
         results.push({ file: testFile, success: true });
-
       } catch (error) {
         console.error(`❌ Test file ${testFile} failed:`, error.message);
         results.push({ file: testFile, success: false, error: error.message });
@@ -148,7 +148,7 @@ class TestRunner {
     this.reportResults(results);
 
     // Check if any tests failed
-    const failedTests = results.filter(r => !r.success);
+    const failedTests = results.filter((r) => !r.success);
     if (failedTests.length > 0) {
       throw new Error(`${failedTests.length} test file(s) failed`);
     }
@@ -161,7 +161,7 @@ class TestRunner {
     console.log('\n📊 Test Results Summary:');
     console.log('='.repeat(50));
 
-    results.forEach(result => {
+    results.forEach((result) => {
       const status = result.success ? '✅ PASS' : '❌ FAIL';
       console.log(`${status} ${result.file}`);
 
@@ -170,11 +170,13 @@ class TestRunner {
       }
     });
 
-    const passed = results.filter(r => r.success).length;
+    const passed = results.filter((r) => r.success).length;
     const total = results.length;
 
     console.log('='.repeat(50));
-    console.log(`Total: ${total}, Passed: ${passed}, Failed: ${total - passed}`);
+    console.log(
+      `Total: ${total}, Passed: ${passed}, Failed: ${total - passed}`
+    );
 
     // Log memory usage
     logMemoryUsage();
@@ -205,7 +207,7 @@ if (watch) {
   console.log('⚡ Parallel mode enabled - not yet implemented');
   // TODO: Implement parallel execution
 } else {
-  runner.run().catch(error => {
+  runner.run().catch((error) => {
     console.error('💥 Fatal error:', error);
     process.exit(1);
   });

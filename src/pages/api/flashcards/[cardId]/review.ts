@@ -10,11 +10,11 @@ export const POST: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authentication required'
+          error: 'Authentication required',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -26,11 +26,11 @@ export const POST: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Card ID is required'
+          error: 'Card ID is required',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -39,15 +39,19 @@ export const POST: APIRoute = async ({ request, params }) => {
     const body = await request.json();
 
     // Validate required fields
-    if (typeof body.quality !== 'number' || body.quality < 0 || body.quality > 5) {
+    if (
+      typeof body.quality !== 'number' ||
+      body.quality < 0 ||
+      body.quality > 5
+    ) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Quality must be a number between 0 and 5'
+          error: 'Quality must be a number between 0 and 5',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -67,46 +71,48 @@ export const POST: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Failed to process review response'
+          error: result.error || 'Failed to process review response',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Convert to frontend format
     const updatedCard = result.data;
-    const flashcard = updatedCard ? {
-      id: parseInt(updatedCard.cardId),
-      english: updatedCard.front,
-      spanish: updatedCard.back,
-      exampleEnglish: updatedCard.exampleFront,
-      exampleSpanish: updatedCard.exampleBack,
-      image: updatedCard.image,
-      category: updatedCard.category,
-      difficulty: updatedCard.difficulty,
-      tags: updatedCard.tags,
-      dueDate: updatedCard.sm2.nextReviewDate.toISOString(),
-      interval: updatedCard.sm2.interval,
-      easinessFactor: updatedCard.sm2.easeFactor,
-      repetitions: updatedCard.sm2.repetitions,
-      lastReviewed: updatedCard.sm2.lastReviewed?.toISOString() || null,
-      reviewCount: updatedCard.sm2.totalReviews || 0,
-      isSuspended: updatedCard.sm2.isSuspended || false,
-      createdAt: updatedCard.createdAt?.toISOString(),
-      updatedAt: updatedCard.updatedAt?.toISOString(),
-      // Add SM-2 specific data for frontend
-      sm2: {
-        quality: quality,
-        interval: updatedCard.sm2.interval,
-        easeFactor: updatedCard.sm2.easeFactor,
-        repetitions: updatedCard.sm2.repetitions,
-        nextReviewDate: updatedCard.sm2.nextReviewDate.toISOString(),
-        lastReviewed: updatedCard.sm2.lastReviewed?.toISOString() || null
-      }
-    } : null;
+    const flashcard = updatedCard
+      ? {
+          id: parseInt(updatedCard.cardId),
+          english: updatedCard.front,
+          spanish: updatedCard.back,
+          exampleEnglish: updatedCard.exampleFront,
+          exampleSpanish: updatedCard.exampleBack,
+          image: updatedCard.image,
+          category: updatedCard.category,
+          difficulty: updatedCard.difficulty,
+          tags: updatedCard.tags,
+          dueDate: updatedCard.sm2.nextReviewDate.toISOString(),
+          interval: updatedCard.sm2.interval,
+          easinessFactor: updatedCard.sm2.easeFactor,
+          repetitions: updatedCard.sm2.repetitions,
+          lastReviewed: updatedCard.sm2.lastReviewed?.toISOString() || null,
+          reviewCount: updatedCard.sm2.totalReviews || 0,
+          isSuspended: updatedCard.sm2.isSuspended || false,
+          createdAt: updatedCard.createdAt?.toISOString(),
+          updatedAt: updatedCard.updatedAt?.toISOString(),
+          // Add SM-2 specific data for frontend
+          sm2: {
+            quality: quality,
+            interval: updatedCard.sm2.interval,
+            easeFactor: updatedCard.sm2.easeFactor,
+            repetitions: updatedCard.sm2.repetitions,
+            nextReviewDate: updatedCard.sm2.nextReviewDate.toISOString(),
+            lastReviewed: updatedCard.sm2.lastReviewed?.toISOString() || null,
+          },
+        }
+      : null;
 
     return new Response(
       JSON.stringify({
@@ -118,28 +124,27 @@ export const POST: APIRoute = async ({ request, params }) => {
             responseTime,
             newInterval: updatedCard?.sm2.interval,
             newEaseFactor: updatedCard?.sm2.easeFactor,
-            nextReviewDate: updatedCard?.sm2.nextReviewDate.toISOString()
-          }
+            nextReviewDate: updatedCard?.sm2.nextReviewDate.toISOString(),
+          },
         },
-        message: 'Review response processed successfully'
+        message: 'Review response processed successfully',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Review flashcard API error:', error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

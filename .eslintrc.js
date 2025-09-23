@@ -20,12 +20,7 @@ module.exports = {
       jsx: true,
     },
   },
-  plugins: [
-    'react',
-    'react-hooks',
-    'jsx-a11y',
-    '@typescript-eslint',
-  ],
+  plugins: ['react', 'react-hooks', 'jsx-a11y', '@typescript-eslint'],
   rules: {
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',

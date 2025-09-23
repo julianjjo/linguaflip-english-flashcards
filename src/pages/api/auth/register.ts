@@ -7,52 +7,66 @@ import { getRateLimitConfig } from '../../../config/security';
 export const POST: APIRoute = async ({ request }) => {
   try {
     // Get client IP for rate limiting
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIP =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     // Rate limiting - environment-based configuration
     const rateLimitConfig = getRateLimitConfig('register');
-    const rateLimitResult = checkRateLimit(`register:${clientIP}`, rateLimitConfig.maxAttempts, rateLimitConfig.windowMs);
+    const rateLimitResult = checkRateLimit(
+      `register:${clientIP}`,
+      rateLimitConfig.maxAttempts,
+      rateLimitConfig.windowMs
+    );
     if (!rateLimitResult.allowed) {
       return new Response(
         JSON.stringify({
           success: false,
           error: rateLimitConfig.message,
-          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+          retryAfter: Math.ceil(
+            (rateLimitResult.resetTime - Date.now()) / 1000
+          ),
         }),
         {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
-          }
+            'Retry-After': Math.ceil(
+              (rateLimitResult.resetTime - Date.now()) / 1000
+            ).toString(),
+          },
         }
       );
     }
 
     // Parse request body
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.email || !body.password || !body.confirmPassword) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Email, password, and password confirmation are required'
+          error: 'Email, password, and password confirmation are required',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Sanitize inputs
-    const email = InputSanitizer.sanitizeString(body.email.toLowerCase().trim(), 254);
+    const email = InputSanitizer.sanitizeString(
+      body.email.toLowerCase().trim(),
+      254
+    );
     const password = body.password;
     const confirmPassword = body.confirmPassword;
-    const username = body.username ? InputSanitizer.sanitizeString(body.username.trim(), 50) : undefined;
+    const username = body.username
+      ? InputSanitizer.sanitizeString(body.username.trim(), 50)
+      : undefined;
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,11 +74,11 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Invalid email format'
+          error: 'Invalid email format',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -74,11 +88,11 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Password must be at least 8 characters long'
+          error: 'Password must be at least 8 characters long',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -92,11 +106,12 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Password must contain lowercase, uppercase, and numeric characters'
+          error:
+            'Password must contain lowercase, uppercase, and numeric characters',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -106,11 +121,11 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Passwords do not match'
+          error: 'Passwords do not match',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -121,11 +136,11 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(
           JSON.stringify({
             success: false,
-            error: 'Username must be between 3 and 50 characters'
+            error: 'Username must be between 3 and 50 characters',
           }),
           {
             status: 400,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
           }
         );
       }
@@ -136,11 +151,12 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(
           JSON.stringify({
             success: false,
-            error: 'Username can only contain letters, numbers, underscores, and hyphens'
+            error:
+              'Username can only contain letters, numbers, underscores, and hyphens',
           }),
           {
             status: 400,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
           }
         );
       }
@@ -151,18 +167,18 @@ export const POST: APIRoute = async ({ request }) => {
       email,
       password,
       username,
-      clientIP
+      clientIP,
     });
 
     if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Registration failed'
+          error: result.error || 'Registration failed',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -177,20 +193,20 @@ export const POST: APIRoute = async ({ request }) => {
             accessToken: result.data?.tokens?.accessToken,
             refreshToken: result.data?.tokens?.refreshToken,
             expiresIn: result.data?.tokens?.expiresIn,
-            tokenType: 'Bearer'
-          }
+            tokenType: 'Bearer',
+          },
         },
-        message: 'Registration successful'
+        message: 'Registration successful',
       }),
       {
         status: 201,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 
     // Set cookies for both access and refresh tokens
     const cookies = [];
-    
+
     // Set access token cookie (shorter expiry for security)
     if (result.data?.tokens?.accessToken) {
       const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
@@ -198,7 +214,7 @@ export const POST: APIRoute = async ({ request }) => {
         `accessToken=${result.data.tokens.accessToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${2 * 60 * 60}; Path=/`
       );
     }
-    
+
     // Set refresh token cookie (longer expiry)
     if (result.data?.tokens?.refreshToken) {
       const isSecure = process.env.NODE_ENV === 'production' ? 'Secure; ' : '';
@@ -206,16 +222,15 @@ export const POST: APIRoute = async ({ request }) => {
         `refreshToken=${result.data.tokens.refreshToken}; HttpOnly; ${isSecure}SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/`
       );
     }
-    
+
     // Set multiple cookies
     if (cookies.length > 0) {
-      cookies.forEach(cookie => {
+      cookies.forEach((cookie) => {
         response.headers.append('Set-Cookie', cookie);
       });
     }
 
     return response;
-
   } catch (error) {
     console.error('Registration API error:', error);
 
@@ -223,11 +238,11 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: error.message
+          error: error.message,
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -235,11 +250,11 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

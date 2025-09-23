@@ -15,8 +15,11 @@ export function createNewUser({
   username,
   passwordHash,
   emailVerified = false,
-  emailVerificationToken
-}: CreateNewUserOptions): Omit<UserDocument, '_id' | 'createdAt' | 'updatedAt'> {
+  emailVerificationToken,
+}: CreateNewUserOptions): Omit<
+  UserDocument,
+  '_id' | 'createdAt' | 'updatedAt'
+> {
   const now = new Date();
 
   return {
@@ -27,7 +30,7 @@ export function createNewUser({
       theme: 'light',
       language: 'en',
       audioEnabled: true,
-      studyReminders: true
+      studyReminders: true,
     },
     statistics: {
       totalCardsStudied: 0,
@@ -36,7 +39,7 @@ export function createNewUser({
       streakDays: 0,
       lastStudyDate: undefined,
       cardsMastered: 0,
-      totalSessions: 0
+      totalSessions: 0,
     },
     authentication: {
       password: passwordHash,
@@ -46,7 +49,7 @@ export function createNewUser({
       passwordChangedAt: now,
       passwordResetToken: undefined,
       passwordResetExpires: undefined,
-      refreshTokens: []
+      refreshTokens: [],
     },
     security: {
       lastLogin: undefined,
@@ -54,10 +57,10 @@ export function createNewUser({
       loginAttempts: 0,
       accountLocked: false,
       accountLockedUntil: undefined,
-      suspiciousActivity: []
+      suspiciousActivity: [],
     },
     profile: {
-      joinDate: now
-    }
+      joinDate: now,
+    },
   };
 }

@@ -16,7 +16,7 @@ export class DataExportImport {
   private static readonly EXPORT_VERSION = '1.0.0';
   private static readonly STORAGE_KEYS = {
     CARDS: 'linguaFlipCards',
-    SESSIONS: 'linguaFlipStudySessions'
+    SESSIONS: 'linguaFlipStudySessions',
   };
 
   /**
@@ -34,8 +34,8 @@ export class DataExportImport {
       metadata: {
         totalCards: flashcards.length,
         totalSessions: studySessions.length,
-        exportType: 'full'
-      }
+        exportType: 'full',
+      },
     };
   }
 
@@ -53,8 +53,8 @@ export class DataExportImport {
       metadata: {
         totalCards: 0,
         totalSessions: studySessions.length,
-        exportType: 'progress-only'
-      }
+        exportType: 'progress-only',
+      },
     };
   }
 
@@ -63,9 +63,12 @@ export class DataExportImport {
    */
   static downloadExportData(data: ExportData, filename?: string): void {
     const dataStr = JSON.stringify(data, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const dataUri =
+      'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
-    const exportFileDefaultName = filename || `linguaflip-backup-${new Date().toISOString().split('T')[0]}.json`;
+    const exportFileDefaultName =
+      filename ||
+      `linguaflip-backup-${new Date().toISOString().split('T')[0]}.json`;
 
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -76,7 +79,9 @@ export class DataExportImport {
   /**
    * Import data from JSON file
    */
-  static async importData(file: File): Promise<{ success: boolean; message: string; data?: ExportData }> {
+  static async importData(
+    file: File
+  ): Promise<{ success: boolean; message: string; data?: ExportData }> {
     return new Promise((resolve) => {
       const reader = new FileReader();
 
@@ -89,7 +94,8 @@ export class DataExportImport {
           if (!this.validateImportData(importData)) {
             resolve({
               success: false,
-              message: 'Invalid file format. Please select a valid LinguaFlip export file.'
+              message:
+                'Invalid file format. Please select a valid LinguaFlip export file.',
             });
             return;
           }
@@ -97,11 +103,11 @@ export class DataExportImport {
           // Import the data
           const result = this.processImport(importData);
           resolve(result);
-
         } catch {
           resolve({
             success: false,
-            message: 'Failed to parse the import file. Please ensure it\'s a valid JSON file.'
+            message:
+              "Failed to parse the import file. Please ensure it's a valid JSON file.",
           });
         }
       };
@@ -109,7 +115,7 @@ export class DataExportImport {
       reader.onerror = () => {
         resolve({
           success: false,
-          message: 'Failed to read the file. Please try again.'
+          message: 'Failed to read the file. Please try again.',
         });
       };
 
@@ -136,7 +142,8 @@ export class DataExportImport {
         typedData.metadata &&
         typeof typedData.metadata.totalCards === 'number' &&
         typeof typedData.metadata.totalSessions === 'number' &&
-        (typedData.metadata.exportType === 'full' || typedData.metadata.exportType === 'progress-only')
+        (typedData.metadata.exportType === 'full' ||
+          typedData.metadata.exportType === 'progress-only')
       );
     } catch {
       return false;
@@ -146,33 +153,43 @@ export class DataExportImport {
   /**
    * Process the import and save data to localStorage
    */
-  private static processImport(data: ExportData): { success: boolean; message: string; data: ExportData } {
+  private static processImport(data: ExportData): {
+    success: boolean;
+    message: string;
+    data: ExportData;
+  } {
     try {
       // Import flashcards if present
       if (data.flashcards.length > 0) {
-        localStorage.setItem(this.STORAGE_KEYS.CARDS, JSON.stringify(data.flashcards));
+        localStorage.setItem(
+          this.STORAGE_KEYS.CARDS,
+          JSON.stringify(data.flashcards)
+        );
       }
 
       // Import study sessions if present
       if (data.studySessions.length > 0) {
-        localStorage.setItem(this.STORAGE_KEYS.SESSIONS, JSON.stringify(data.studySessions));
+        localStorage.setItem(
+          this.STORAGE_KEYS.SESSIONS,
+          JSON.stringify(data.studySessions)
+        );
       }
 
-      const message = data.metadata.exportType === 'full'
-        ? `Successfully imported ${data.flashcards.length} cards and ${data.studySessions.length} study sessions.`
-        : `Successfully imported ${data.studySessions.length} study sessions.`;
+      const message =
+        data.metadata.exportType === 'full'
+          ? `Successfully imported ${data.flashcards.length} cards and ${data.studySessions.length} study sessions.`
+          : `Successfully imported ${data.studySessions.length} study sessions.`;
 
       return {
         success: true,
         message,
-        data
+        data,
       };
-
     } catch {
       return {
         success: false,
         message: 'Failed to save imported data. Please try again.',
-        data
+        data,
       };
     }
   }
@@ -214,18 +231,24 @@ export class DataExportImport {
   /**
    * Get data summary for display
    */
-  static getDataSummary(): { cardsCount: number; sessionsCount: number; lastBackup?: string } {
+  static getDataSummary(): {
+    cardsCount: number;
+    sessionsCount: number;
+    lastBackup?: string;
+  } {
     const cards = this.loadCardsFromStorage();
     const sessions = this.loadSessionsFromStorage();
 
     // Find the most recent export date from sessions (as a proxy for last activity)
-    const lastSession = sessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+    const lastSession = sessions.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
     const lastBackup = lastSession ? lastSession.date : undefined;
 
     return {
       cardsCount: cards.length,
       sessionsCount: sessions.length,
-      lastBackup
+      lastBackup,
     };
   }
 }

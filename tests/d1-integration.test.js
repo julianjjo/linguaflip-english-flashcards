@@ -30,10 +30,16 @@ describe('Cloudflare D1 Flashcards Integration', () => {
 
   test('should create and retrieve flashcard', async () => {
     const flashcardInput = buildFlashcard();
-    const createResult = await flashcardsService.createFlashcard(flashcardInput, testUserId);
+    const createResult = await flashcardsService.createFlashcard(
+      flashcardInput,
+      testUserId
+    );
     expect(createResult.success).toBe(true);
 
-    const getResult = await flashcardsService.getFlashcardById(flashcardInput.cardId, testUserId);
+    const getResult = await flashcardsService.getFlashcardById(
+      flashcardInput.cardId,
+      testUserId
+    );
     expect(getResult.success).toBe(true);
     expect(getResult.data.front).toBe('Hello');
     expect(getResult.data.back).toBe('Hola');
@@ -41,11 +47,19 @@ describe('Cloudflare D1 Flashcards Integration', () => {
 
   test('should process SM-2 review responses', async () => {
     const flashcardInput = buildFlashcard();
-    const createResult = await flashcardsService.createFlashcard(flashcardInput, testUserId);
+    const createResult = await flashcardsService.createFlashcard(
+      flashcardInput,
+      testUserId
+    );
     expect(createResult.success).toBe(true);
 
     const cardId = flashcardInput.cardId;
-    const reviewResult = await flashcardsService.processReviewResponse(cardId, 4, 3000, testUserId);
+    const reviewResult = await flashcardsService.processReviewResponse(
+      cardId,
+      4,
+      3000,
+      testUserId
+    );
     expect(reviewResult.success).toBe(true);
     expect(reviewResult.data.sm2.repetitions).toBeGreaterThan(0);
     expect(reviewResult.data.statistics.timesCorrect).toBe(1);
@@ -69,7 +83,9 @@ describe('Cloudflare D1 Flashcards Integration', () => {
     expect(dueCards.success).toBe(true);
     expect(dueCards.data.length).toBe(0);
 
-    const withSuspended = await flashcardsService.getDueFlashcards(testUserId, { includeSuspended: true });
+    const withSuspended = await flashcardsService.getDueFlashcards(testUserId, {
+      includeSuspended: true,
+    });
     expect(withSuspended.success).toBe(true);
     expect(withSuspended.data.length).toBe(1);
   });

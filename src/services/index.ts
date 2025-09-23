@@ -32,24 +32,22 @@ import {
   validateObjectId,
   validateRequired,
   validateQuality,
-  validateOwnership
+  validateOwnership,
 } from '../types/database';
 
 import {
   getDatabase,
   initializeDatabase,
-  closeDatabase
+  closeDatabase,
 } from '../utils/database';
 
-import {
-  databaseUtils
-} from '../utils/databaseOperations';
+import { databaseUtils } from '../utils/databaseOperations';
 
 import {
   validateDocument,
   sanitizeInput,
   calculateNextReviewDate,
-  getDefaultSM2Params
+  getDefaultSM2Params,
 } from '../schemas/mongodb';
 
 // ============================================================================
@@ -77,7 +75,7 @@ export type {
   WithTimestamps,
   Optional,
   RequiredFields,
-  AggregationPipeline
+  AggregationPipeline,
 } from '../types/database';
 
 // Re-export collection names enum
@@ -105,7 +103,7 @@ export {
   validateObjectId,
   validateRequired,
   validateQuality,
-  validateOwnership
+  validateOwnership,
 } from '../types/database';
 
 // ============================================================================
@@ -115,7 +113,7 @@ export {
 // Re-export database utilities
 export {
   createDatabaseOperations,
-  databaseUtils
+  databaseUtils,
 } from '../utils/databaseOperations';
 
 // Re-export database connection
@@ -124,7 +122,7 @@ export {
   getDatabase,
   initializeDatabase,
   closeDatabase,
-  databaseConfig
+  databaseConfig,
 } from '../utils/database';
 
 // ============================================================================
@@ -148,7 +146,7 @@ export {
   urlValidator,
   sm2Validator,
   qualityValidator,
-  DatabaseIndexes
+  DatabaseIndexes,
 } from '../schemas/mongodb';
 
 // ============================================================================
@@ -181,7 +179,7 @@ export class ServiceFactory {
       studySessions: studySessionsService,
       studyStatistics: studyStatisticsService,
       bulkOperations: bulkOperationsService,
-      sync: syncService
+      sync: syncService,
     };
   }
 
@@ -260,7 +258,7 @@ const linguaFlipServices = {
   validateObjectId,
   validateRequired,
   validateQuality,
-  validateOwnership
+  validateOwnership,
 };
 
 export default linguaFlipServices;

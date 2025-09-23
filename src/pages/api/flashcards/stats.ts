@@ -10,11 +10,11 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authentication required'
+          error: 'Authentication required',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -28,11 +28,11 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Failed to retrieve flashcard statistics'
+          error: result.error || 'Failed to retrieve flashcard statistics',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -41,25 +41,24 @@ export const GET: APIRoute = async ({ request }) => {
       JSON.stringify({
         success: true,
         data: result.data,
-        message: 'Flashcard statistics retrieved successfully'
+        message: 'Flashcard statistics retrieved successfully',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Flashcard stats API error:', error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

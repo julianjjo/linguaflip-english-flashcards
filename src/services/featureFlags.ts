@@ -24,10 +24,11 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
   'gemini-tts': {
     key: 'gemini-tts',
     name: 'Gemini Text-to-Speech',
-    description: 'Enable Gemini AI-powered text-to-speech with high-quality voices',
+    description:
+      'Enable Gemini AI-powered text-to-speech with high-quality voices',
     enabled: true,
     rolloutPercentage: 100,
-    category: 'audio'
+    category: 'audio',
   },
   'tts-caching': {
     key: 'tts-caching',
@@ -35,7 +36,7 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
     description: 'Cache generated audio for improved performance',
     enabled: true,
     dependencies: ['gemini-tts'],
-    category: 'audio'
+    category: 'audio',
   },
   'tts-streaming': {
     key: 'tts-streaming',
@@ -43,7 +44,7 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
     description: 'Stream audio generation for faster response times',
     enabled: true,
     dependencies: ['gemini-tts'],
-    category: 'audio'
+    category: 'audio',
   },
   'voice-presets': {
     key: 'voice-presets',
@@ -51,14 +52,14 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
     description: 'Pre-configured voice settings for different use cases',
     enabled: true,
     dependencies: ['gemini-tts'],
-    category: 'audio'
+    category: 'audio',
   },
   'fallback-tts': {
     key: 'fallback-tts',
     name: 'Fallback TTS',
     description: 'Automatically fallback to browser TTS if Gemini fails',
     enabled: true,
-    category: 'audio'
+    category: 'audio',
   },
   'enhanced-audio-settings': {
     key: 'enhanced-audio-settings',
@@ -66,8 +67,8 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
     description: 'Advanced audio configuration options',
     enabled: true,
     dependencies: ['gemini-tts'],
-    category: 'ui'
-  }
+    category: 'ui',
+  },
 };
 
 export class FeatureFlagService {
@@ -76,7 +77,10 @@ export class FeatureFlagService {
   private userId?: string;
   private storageKey = 'linguaflip-feature-flags';
 
-  constructor(environment: 'development' | 'staging' | 'production' = 'development', userId?: string) {
+  constructor(
+    environment: 'development' | 'staging' | 'production' = 'development',
+    userId?: string
+  ) {
     this.environment = environment;
     this.userId = userId;
     this.flags = this.loadFlags();
@@ -129,7 +133,9 @@ export class FeatureFlagService {
 
     // Check dependencies
     if (flag.dependencies) {
-      const dependenciesMet = flag.dependencies.every(dep => this.isEnabled(dep));
+      const dependenciesMet = flag.dependencies.every((dep) =>
+        this.isEnabled(dep)
+      );
       if (!dependenciesMet) {
         return false;
       }
@@ -202,14 +208,16 @@ export class FeatureFlagService {
    * Get flags by category
    */
   getFlagsByCategory(category: FeatureFlag['category']): FeatureFlag[] {
-    return Object.values(this.flags).filter(flag => flag.category === category);
+    return Object.values(this.flags).filter(
+      (flag) => flag.category === category
+    );
   }
 
   /**
    * Get enabled flags
    */
   getEnabledFlags(): FeatureFlag[] {
-    return Object.values(this.flags).filter(flag => this.isEnabled(flag.key));
+    return Object.values(this.flags).filter((flag) => this.isEnabled(flag.key));
   }
 
   /**
@@ -217,9 +225,14 @@ export class FeatureFlagService {
    */
   updateRolloutPercentage(flagKey: string, percentage: number): void {
     if (this.flags[flagKey] && percentage >= 0 && percentage <= 100) {
-      this.flags[flagKey] = { ...this.flags[flagKey], rolloutPercentage: percentage };
+      this.flags[flagKey] = {
+        ...this.flags[flagKey],
+        rolloutPercentage: percentage,
+      };
       this.saveFlags();
-      console.log(`[FeatureFlags] Updated rollout for ${flagKey}: ${percentage}%`);
+      console.log(
+        `[FeatureFlags] Updated rollout for ${flagKey}: ${percentage}%`
+      );
     }
   }
 
@@ -259,7 +272,7 @@ export class FeatureFlagService {
     return {
       flags: this.flags,
       environment: this.environment,
-      userId: this.userId
+      userId: this.userId,
     };
   }
 
@@ -270,7 +283,7 @@ export class FeatureFlagService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);
@@ -280,8 +293,10 @@ export class FeatureFlagService {
    * Check if user should see experimental features
    */
   showExperimentalFeatures(): boolean {
-    return this.environment === 'development' || 
-           this.isEnabled('experimental-features');
+    return (
+      this.environment === 'development' ||
+      this.isEnabled('experimental-features')
+    );
   }
 
   /**
@@ -289,14 +304,18 @@ export class FeatureFlagService {
    */
   validateDependencies(): { valid: boolean; issues: string[] } {
     const issues: string[] = [];
-    
-    Object.values(this.flags).forEach(flag => {
+
+    Object.values(this.flags).forEach((flag) => {
       if (flag.dependencies) {
-        flag.dependencies.forEach(depKey => {
+        flag.dependencies.forEach((depKey) => {
           if (!this.flags[depKey]) {
-            issues.push(`Flag '${flag.key}' depends on missing flag '${depKey}'`);
+            issues.push(
+              `Flag '${flag.key}' depends on missing flag '${depKey}'`
+            );
           } else if (flag.enabled && !this.flags[depKey].enabled) {
-            issues.push(`Flag '${flag.key}' is enabled but dependency '${depKey}' is disabled`);
+            issues.push(
+              `Flag '${flag.key}' is enabled but dependency '${depKey}' is disabled`
+            );
           }
         });
       }
@@ -304,7 +323,7 @@ export class FeatureFlagService {
 
     return {
       valid: issues.length === 0,
-      issues
+      issues,
     };
   }
 }
@@ -315,9 +334,15 @@ let featureFlagInstance: FeatureFlagService | null = null;
 /**
  * Get or create feature flag service instance
  */
-export const getFeatureFlags = (environment?: 'development' | 'staging' | 'production', userId?: string): FeatureFlagService => {
+export const getFeatureFlags = (
+  environment?: 'development' | 'staging' | 'production',
+  userId?: string
+): FeatureFlagService => {
   if (!featureFlagInstance || environment || userId) {
-    const env = environment || (process.env.NODE_ENV as 'development' | 'staging' | 'production') || 'development';
+    const env =
+      environment ||
+      (process.env.NODE_ENV as 'development' | 'staging' | 'production') ||
+      'development';
     featureFlagInstance = new FeatureFlagService(env, userId);
   }
   return featureFlagInstance;
@@ -334,13 +359,15 @@ export const useFeatureFlag = (flagKey: string): boolean => {
 /**
  * Utility hook for getting all flags of a category
  */
-export const useFeatureFlags = (category?: FeatureFlag['category']): FeatureFlag[] => {
+export const useFeatureFlags = (
+  category?: FeatureFlag['category']
+): FeatureFlag[] => {
   const featureFlags = getFeatureFlags();
-  
+
   if (category) {
     return featureFlags.getFlagsByCategory(category);
   }
-  
+
   return featureFlags.getEnabledFlags();
 };
 

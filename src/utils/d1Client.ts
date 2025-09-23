@@ -25,7 +25,9 @@ export class CloudflareD1Client {
   private schemaInitialized = false;
 
   constructor() {
-    this.remoteUrl = process.env.D1_URL ? process.env.D1_URL.replace(/\/$/, '') : null;
+    this.remoteUrl = process.env.D1_URL
+      ? process.env.D1_URL.replace(/\/$/, '')
+      : null;
     this.apiKey = process.env.D1_API_KEY || null;
     this.accountId = process.env.CLOUDFLARE_ACCOUNT_ID || null;
     this.databaseId = process.env.D1_DATABASE_ID || null;
@@ -35,7 +37,10 @@ export class CloudflareD1Client {
     }
   }
 
-  public async execute(sql: string, params: QueryParam[] = []): Promise<D1QueryResult> {
+  public async execute(
+    sql: string,
+    params: QueryParam[] = []
+  ): Promise<D1QueryResult> {
     if (this.shouldUseRemote()) {
       try {
         const result = await this.executeRemote(sql, params);
@@ -43,7 +48,9 @@ export class CloudflareD1Client {
         return result;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Remote D1 query failed (${message}). Falling back to local SQLite.`);
+        console.warn(
+          `Remote D1 query failed (${message}). Falling back to local SQLite.`
+        );
         this.remoteStatus = 'failed';
         this.ensureLocalDatabase();
       }
@@ -53,7 +60,9 @@ export class CloudflareD1Client {
     return this.executeLocal(sql, params);
   }
 
-  public async executeBatch(queries: Array<{ sql: string; params?: QueryParam[] }>): Promise<D1QueryResult[]> {
+  public async executeBatch(
+    queries: Array<{ sql: string; params?: QueryParam[] }>
+  ): Promise<D1QueryResult[]> {
     const results: D1QueryResult[] = [];
 
     if (this.shouldUseRemote()) {
@@ -63,7 +72,9 @@ export class CloudflareD1Client {
         return remoteResult;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Remote D1 batch failed (${message}). Falling back to local SQLite.`);
+        console.warn(
+          `Remote D1 batch failed (${message}). Falling back to local SQLite.`
+        );
         this.remoteStatus = 'failed';
         this.ensureLocalDatabase();
       }
@@ -71,15 +82,17 @@ export class CloudflareD1Client {
 
     this.ensureLocalDatabase();
     const db = this.localDb!;
-    const transaction = db.transaction((batchedQueries: Array<{ sql: string; params?: QueryParam[] }>) => {
-      for (const { sql, params } of batchedQueries) {
-        const result = this.executeLocal(sql, params || []);
-        results.push(result);
-        if (!result.success) {
-          throw new Error(result.error || 'Unknown SQLite error');
+    const transaction = db.transaction(
+      (batchedQueries: Array<{ sql: string; params?: QueryParam[] }>) => {
+        for (const { sql, params } of batchedQueries) {
+          const result = this.executeLocal(sql, params || []);
+          results.push(result);
+          if (!result.success) {
+            throw new Error(result.error || 'Unknown SQLite error');
+          }
         }
       }
-    });
+    );
 
     try {
       transaction(queries);
@@ -126,10 +139,11 @@ export class CloudflareD1Client {
     return true;
   }
 
-  private async executeRemote(sql: string, params: QueryParam[]): Promise<D1QueryResult> {
-    const payload = Array.isArray(sql)
-      ? { sql, params }
-      : { sql, params };
+  private async executeRemote(
+    sql: string,
+    params: QueryParam[]
+  ): Promise<D1QueryResult> {
+    const payload = Array.isArray(sql) ? { sql, params } : { sql, params };
 
     const response = await fetch(`${this.remoteUrl}/query`, {
       method: 'POST',
@@ -142,7 +156,9 @@ export class CloudflareD1Client {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Cloudflare D1 responded with ${response.status}: ${text}`);
+      throw new Error(
+        `Cloudflare D1 responded with ${response.status}: ${text}`
+      );
     }
 
     const data = await response.json();
@@ -172,8 +188,10 @@ export class CloudflareD1Client {
     };
   }
 
-  private async executeRemoteBatch(queries: Array<{ sql: string; params?: QueryParam[] }>): Promise<D1QueryResult[]> {
-    const payload = queries.map(query => ({
+  private async executeRemoteBatch(
+    queries: Array<{ sql: string; params?: QueryParam[] }>
+  ): Promise<D1QueryResult[]> {
+    const payload = queries.map((query) => ({
       sql: query.sql,
       params: query.params || [],
     }));
@@ -189,7 +207,9 @@ export class CloudflareD1Client {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Cloudflare D1 responded with ${response.status}: ${text}`);
+      throw new Error(
+        `Cloudflare D1 responded with ${response.status}: ${text}`
+      );
     }
 
     const data = await response.json();
@@ -217,12 +237,18 @@ export class CloudflareD1Client {
       throw new Error('Local SQLite database not initialized');
     }
 
-    const normalizedParams = params.map(param => this.normalizeParam(param));
+    const normalizedParams = params.map((param) => this.normalizeParam(param));
     const trimmed = sql.trim().toLowerCase();
     const statement = this.localDb.prepare(sql);
 
-    if (trimmed.startsWith('select') || trimmed.startsWith('with') || trimmed.startsWith('pragma')) {
-      const rows = statement.all(...normalizedParams) as Array<Record<string, unknown>>;
+    if (
+      trimmed.startsWith('select') ||
+      trimmed.startsWith('with') ||
+      trimmed.startsWith('pragma')
+    ) {
+      const rows = statement.all(...normalizedParams) as Array<
+        Record<string, unknown>
+      >;
       return { success: true, results: rows };
     }
 

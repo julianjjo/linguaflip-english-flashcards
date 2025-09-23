@@ -34,7 +34,12 @@ class CacheManager<T = unknown> {
     };
   }
 
-  set(key: string, data: T, customTtl?: number, metadata?: Record<string, unknown>): void {
+  set(
+    key: string,
+    data: T,
+    customTtl?: number,
+    metadata?: Record<string, unknown>
+  ): void {
     const now = Date.now();
     const ttl = customTtl || this.options.ttl;
     const expiresAt = now + ttl;
@@ -134,7 +139,7 @@ class CacheManager<T = unknown> {
       }
     }
 
-    expiredKeys.forEach(key => {
+    expiredKeys.forEach((key) => {
       this.cache.delete(key);
       this.accessOrder.delete(key);
     });
@@ -311,7 +316,11 @@ export const useCacheSystem = () => {
 };
 
 // Utility functions for cache keys
-export const createAICacheKey = (userId: string, operation: string, params: Record<string, unknown>): string => {
+export const createAICacheKey = (
+  userId: string,
+  operation: string,
+  params: Record<string, unknown>
+): string => {
   const paramString = Object.entries(params)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}:${JSON.stringify(value)}`)
@@ -323,6 +332,9 @@ export const createImageCacheKey = (url: string, quality: number): string => {
   return `img:${url}:${quality}`;
 };
 
-export const createGeneralCacheKey = (namespace: string, key: string): string => {
+export const createGeneralCacheKey = (
+  namespace: string,
+  key: string
+): string => {
   return `general:${namespace}:${key}`;
 };

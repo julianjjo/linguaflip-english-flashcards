@@ -9,7 +9,7 @@ import { atom, computed } from 'nanostores';
 import {
   SecureTokenStorage,
   TokenRefreshManager,
-  AuthStateManager
+  AuthStateManager,
 } from '../utils/tokenStorage';
 import { SecurityAuditor } from '../utils/security';
 
@@ -79,14 +79,21 @@ const isAuthenticatedAtom = computed([userAtom, tokensAtom], (user, tokens) => {
 });
 
 const authStateAtom = computed(
-  [userAtom, tokensAtom, isAuthenticatedAtom, isLoadingAtom, errorAtom, lastActivityAtom],
+  [
+    userAtom,
+    tokensAtom,
+    isAuthenticatedAtom,
+    isLoadingAtom,
+    errorAtom,
+    lastActivityAtom,
+  ],
   (user, tokens, isAuthenticated, isLoading, error, lastActivity) => ({
     user,
     tokens,
     isAuthenticated,
     isLoading,
     error,
-    lastActivity
+    lastActivity,
   })
 );
 
@@ -118,18 +125,13 @@ const setError = (error: string | null) => {
   lastActivityAtom.set(new Date());
 };
 
-
 const clearAuth = () => {
   userAtom.set(null);
   tokensAtom.set(null);
   errorAtom.set(null);
   lastActivityAtom.set(new Date());
 
-  SecurityAuditor.logSecurityEvent(
-    'AUTH_STATE_CLEARED',
-    {},
-    'low'
-  );
+  SecurityAuditor.logSecurityEvent('AUTH_STATE_CLEARED', {}, 'low');
 };
 
 // Authentication actions
@@ -180,7 +182,7 @@ const login = async (credentials: {
       accessToken: data.data.accessToken,
       refreshToken: data.data.refreshToken,
       expiresIn: data.data.expiresIn,
-      tokenType: 'Bearer'
+      tokenType: 'Bearer',
     });
 
     setLoading(false);
@@ -196,7 +198,8 @@ const login = async (credentials: {
 
     return true;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Login failed';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Login failed';
     setError(errorMessage);
     setLoading(false);
 
@@ -250,7 +253,9 @@ const register = async (registerData: {
       data.data.tokens.expiresIn / 1000
     );
 
-    SecureTokenStorage.storeRefreshTokenReference(data.data.tokens.refreshToken);
+    SecureTokenStorage.storeRefreshTokenReference(
+      data.data.tokens.refreshToken
+    );
 
     // Update store
     setUser(data.data.user);
@@ -269,7 +274,8 @@ const register = async (registerData: {
 
     return true;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Registration failed';
     setError(errorMessage);
     setLoading(false);
 
@@ -304,11 +310,7 @@ const logout = async (): Promise<void> => {
 
     setLoading(false);
 
-    SecurityAuditor.logSecurityEvent(
-      'LOGOUT_SUCCESS',
-      {},
-      'low'
-    );
+    SecurityAuditor.logSecurityEvent('LOGOUT_SUCCESS', {}, 'low');
   } catch (error) {
     console.error('Logout error:', error);
 
@@ -341,7 +343,7 @@ const refreshToken = async (): Promise<boolean> => {
         // Update with new access token
         const updatedTokens = {
           ...currentTokens,
-          accessToken: newToken
+          accessToken: newToken,
         };
         setTokens(updatedTokens);
 
@@ -359,7 +361,8 @@ const refreshToken = async (): Promise<boolean> => {
     setLoading(false);
     return false;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Token refresh failed';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Token refresh failed';
     setError(errorMessage);
     setLoading(false);
     return false;
@@ -379,8 +382,8 @@ const checkAuth = async (): Promise<void> => {
       if (token) {
         const response = await fetch('/api/auth/me', {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (response.ok) {
@@ -393,7 +396,7 @@ const checkAuth = async (): Promise<void> => {
             accessToken: token,
             refreshToken: '', // We don't store refresh token in memory
             expiresIn: timeUntilExpiry,
-            tokenType: 'Bearer'
+            tokenType: 'Bearer',
           });
         }
       }
@@ -451,7 +454,7 @@ export {
   // Types
   type User,
   type AuthTokens,
-  type AuthState
+  type AuthState,
 };
 
 // Default export for convenience
@@ -476,5 +479,5 @@ export default {
   logout,
   refreshToken,
   checkAuth,
-  initializeAuthStore
+  initializeAuthStore,
 };

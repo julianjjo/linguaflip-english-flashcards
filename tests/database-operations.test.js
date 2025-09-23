@@ -59,7 +59,10 @@ describe('Database Operations Integration (Cloudflare D1)', () => {
     const flashcard = createSampleFlashcard();
     const createResult = await flashcardOps.create(flashcard);
 
-    const findResult = await flashcardOps.findOne({ cardId: flashcard.cardId, userId: flashcard.userId });
+    const findResult = await flashcardOps.findOne({
+      cardId: flashcard.cardId,
+      userId: flashcard.userId,
+    });
 
     expect(findResult.success).toBe(true);
     expect(findResult.data.cardId).toBe(flashcard.cardId);
@@ -70,7 +73,7 @@ describe('Database Operations Integration (Cloudflare D1)', () => {
     const flashcard = createSampleFlashcard();
     const createResult = await flashcardOps.create(flashcard);
 
-    await new Promise(resolve => setTimeout(resolve, 5));
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
     const updateResult = await flashcardOps.updateOne(
       { cardId: flashcard.cardId, userId: flashcard.userId },
@@ -80,18 +83,26 @@ describe('Database Operations Integration (Cloudflare D1)', () => {
     expect(updateResult.success).toBe(true);
     expect(updateResult.data.back).toBe('Bonjour');
     expect(updateResult.data.difficulty).toBe('medium');
-    expect(updateResult.data.updatedAt.getTime()).toBeGreaterThan(createResult.data.updatedAt.getTime());
+    expect(updateResult.data.updatedAt.getTime()).toBeGreaterThan(
+      createResult.data.updatedAt.getTime()
+    );
   });
 
   test('deleteOne() should remove document', async () => {
     const flashcard = createSampleFlashcard();
     await flashcardOps.create(flashcard);
 
-    const deleteResult = await flashcardOps.deleteOne({ cardId: flashcard.cardId, userId: flashcard.userId });
+    const deleteResult = await flashcardOps.deleteOne({
+      cardId: flashcard.cardId,
+      userId: flashcard.userId,
+    });
     expect(deleteResult.success).toBe(true);
     expect(deleteResult.data.deletedCount).toBe(1);
 
-    const findResult = await flashcardOps.findOne({ cardId: flashcard.cardId, userId: flashcard.userId });
+    const findResult = await flashcardOps.findOne({
+      cardId: flashcard.cardId,
+      userId: flashcard.userId,
+    });
     expect(findResult.data).toBeNull();
   });
 
@@ -115,11 +126,17 @@ describe('Database Operations Integration (Cloudflare D1)', () => {
     const flashcard = createSampleFlashcard({ userId: 'user_exists' });
     await flashcardOps.create(flashcard);
 
-    const existsResult = await flashcardOps.exists({ userId: 'user_exists', cardId: flashcard.cardId });
+    const existsResult = await flashcardOps.exists({
+      userId: 'user_exists',
+      cardId: flashcard.cardId,
+    });
     expect(existsResult.success).toBe(true);
     expect(existsResult.data).toBe(true);
 
-    const missingResult = await flashcardOps.exists({ userId: 'user_missing', cardId: 'none' });
+    const missingResult = await flashcardOps.exists({
+      userId: 'user_missing',
+      cardId: 'none',
+    });
     expect(missingResult.success).toBe(true);
     expect(missingResult.data).toBe(false);
   });

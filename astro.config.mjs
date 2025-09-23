@@ -7,34 +7,36 @@ export default defineConfig({
   output: 'server',
   server: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 4321,
-    host: process.env.HOST || 'localhost'
+    host: process.env.HOST || 'localhost',
   },
   integrations: [
     react({
-      include: ['**/react/*']
+      include: ['**/react/*'],
     }),
     tailwind({
-      applyBaseStyles: false
-    })
+      applyBaseStyles: false,
+    }),
   ],
   vite: {
     resolve: {
       alias: {
-        '@': '/src'
-      }
+        '@': '/src',
+      },
     },
     build: {
       rollupOptions: {
         output: {
           manualChunks: (id) => {
             // Exclude server-only modules completely from client bundle
-            if (id.includes('mongodb') || 
-                id.includes('bcrypt') || 
-                id.includes('jsonwebtoken') ||
-                id.includes('/services/') ||
-                id.includes('/utils/database') ||
-                id.includes('/utils/migration') ||
-                id.includes('/pages/api/')) {
+            if (
+              id.includes('mongodb') ||
+              id.includes('bcrypt') ||
+              id.includes('jsonwebtoken') ||
+              id.includes('/services/') ||
+              id.includes('/utils/database') ||
+              id.includes('/utils/migration') ||
+              id.includes('/pages/api/')
+            ) {
               return undefined; // Don't bundle server-only modules
             }
 
@@ -65,43 +67,49 @@ export default defineConfig({
               }
               return 'ui-components';
             }
-            if (id.includes('/utils/') && !id.includes('database') && !id.includes('migration')) {
+            if (
+              id.includes('/utils/') &&
+              !id.includes('database') &&
+              !id.includes('migration')
+            ) {
               return 'utils';
             }
-          }
-        }
-      }
+          },
+        },
+      },
     },
     // Optimize dependencies
     optimizeDeps: {
-      include: [
-        'react',
-        'react-dom',
-        '@nanostores/react',
-        'nanostores'
-      ],
+      include: ['react', 'react-dom', '@nanostores/react', 'nanostores'],
       exclude: [
         '@google/genai',
         'mongodb',
         'whatwg-url',
         'webidl-conversions',
         'bcrypt',
-        'jsonwebtoken'
-      ]
+        'jsonwebtoken',
+      ],
     },
     // Configure SSR externals to keep server-only modules out of client bundle
     ssr: {
-      external: ['mongodb', 'bcrypt', 'jsonwebtoken', 'crypto', 'whatwg-url', 'webidl-conversions'],
-      noExternal: []
-    }
+      external: [
+        'mongodb',
+        'bcrypt',
+        'jsonwebtoken',
+        'crypto',
+        'whatwg-url',
+        'webidl-conversions',
+      ],
+      noExternal: [],
+    },
   },
   image: {
     service: {
-      entrypoint: 'astro/assets/services/sharp'
-    }
+      entrypoint: 'astro/assets/services/sharp',
+    },
   },
   compressHTML: true,
   build: {
-    inlineStylesheets: 'auto'
-  }
+    inlineStylesheets: 'auto',
+  },
 });

@@ -11,13 +11,13 @@ export const POST: APIRoute = async ({ request }) => {
       requestData = await request.json();
     } catch {
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid JSON', 
-          message: 'Request body must be valid JSON' 
+        JSON.stringify({
+          error: 'Invalid JSON',
+          message: 'Request body must be valid JSON',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -25,13 +25,13 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate required fields
     if (!requestData.text || typeof requestData.text !== 'string') {
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input', 
-          message: 'Text field is required and must be a string' 
+        JSON.stringify({
+          error: 'Invalid input',
+          message: 'Text field is required and must be a string',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Get user identifier
     const authHeader = request.headers.get('authorization');
     let userIdentifier = 'anonymous';
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       userIdentifier = 'authenticated-user';
     }
@@ -52,14 +52,14 @@ export const POST: APIRoute = async ({ request }) => {
       async start(controller) {
         try {
           const generator = ttsService.generateSpeechStream(requestData);
-          
+
           for await (const chunk of generator) {
             // Send chunk as server-sent event
             const eventData = JSON.stringify({
               type: chunk.isComplete ? 'complete' : 'chunk',
               data: Array.from(chunk.data), // Convert Uint8Array to regular array
               mimeType: chunk.mimeType,
-              isComplete: chunk.isComplete
+              isComplete: chunk.isComplete,
             });
 
             const eventString = `data: ${eventData}\n\n`;
@@ -73,16 +73,21 @@ export const POST: APIRoute = async ({ request }) => {
           controller.close();
         } catch (error) {
           console.error('[API] TTS Streaming Error:', error);
-          
+
           const errorData = JSON.stringify({
             type: 'error',
-            error: error instanceof SecurityError ? error.message : 'TTS generation failed'
+            error:
+              error instanceof SecurityError
+                ? error.message
+                : 'TTS generation failed',
           });
-          
-          controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
+
+          controller.enqueue(
+            new TextEncoder().encode(`data: ${errorData}\n\n`)
+          );
           controller.close();
         }
-      }
+      },
     });
 
     return new Response(stream, {
@@ -90,38 +95,37 @@ export const POST: APIRoute = async ({ request }) => {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
     });
-
   } catch (error) {
     console.error('[API] TTS Streaming Setup Error:', error);
 
     if (error instanceof SecurityError) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Security Error', 
+        JSON.stringify({
+          error: 'Security Error',
           message: error.message,
-          code: error.code 
+          code: error.code,
         }),
         {
           status: error.code === 'RATE_LIMIT_EXCEEDED' ? 429 : 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal Server Error', 
-        message: 'TTS streaming failed. Please try again later.' 
+      JSON.stringify({
+        error: 'Internal Server Error',
+        message: 'TTS streaming failed. Please try again later.',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -135,7 +139,7 @@ export const OPTIONS: APIRoute = async () => {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   });
 };

@@ -8,7 +8,7 @@ interface StudyHeatmapProps {
 
 const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
   studySessions,
-  months = 12
+  months = 12,
 }) => {
   // Generate date range for the heatmap
   const generateDateRange = (monthsBack: number) => {
@@ -28,7 +28,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
   const createStudyDataMap = (sessions: StudySession[]) => {
     const dataMap: { [date: string]: number } = {};
 
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       const date = session.date;
       dataMap[date] = (dataMap[date] || 0) + session.totalTime;
     });
@@ -52,7 +52,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
       'bg-green-200', // Light
       'bg-green-300', // Moderate
       'bg-green-400', // Heavy
-      'bg-green-500'  // Very heavy
+      'bg-green-500', // Very heavy
     ];
     return colors[level];
   };
@@ -96,34 +96,45 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
   });
 
   // Calculate statistics
-  const totalStudyTime = Object.values(studyDataMap).reduce((sum, time) => sum + time, 0);
+  const totalStudyTime = Object.values(studyDataMap).reduce(
+    (sum, time) => sum + time,
+    0
+  );
   const studyDays = Object.keys(studyDataMap).length;
   const averageDailyTime = studyDays > 0 ? totalStudyTime / studyDays : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="rounded-xl bg-white p-6 shadow-lg">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Study Consistency</h3>
-          <p className="text-sm text-gray-600">Your study activity over the past {months} months</p>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Study Consistency
+          </h3>
+          <p className="text-sm text-gray-600">
+            Your study activity over the past {months} months
+          </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-green-600">{Math.round(totalStudyTime)}m</div>
+          <div className="text-2xl font-bold text-green-600">
+            {Math.round(totalStudyTime)}m
+          </div>
           <div className="text-xs text-gray-500">Total study time</div>
         </div>
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        <div className="rounded-lg bg-blue-50 p-3 text-center">
           <div className="text-lg font-semibold text-blue-600">{studyDays}</div>
           <div className="text-xs text-gray-600">Study Days</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-lg font-semibold text-green-600">{Math.round(averageDailyTime)}m</div>
+        <div className="rounded-lg bg-green-50 p-3 text-center">
+          <div className="text-lg font-semibold text-green-600">
+            {Math.round(averageDailyTime)}m
+          </div>
           <div className="text-xs text-gray-600">Daily Average</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
+        <div className="rounded-lg bg-purple-50 p-3 text-center">
           <div className="text-lg font-semibold text-purple-600">
             {studyDays > 0 ? Math.round((studyDays / (months * 30)) * 100) : 0}%
           </div>
@@ -137,7 +148,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
           {/* Day labels */}
           <div className="flex flex-col justify-around pr-2 text-xs text-gray-500">
             {dayLabels.map((day, index) => (
-              <div key={day} className="h-3 flex items-center">
+              <div key={day} className="flex h-3 items-center">
                 {index % 2 === 0 ? day : ''}
               </div>
             ))}
@@ -155,7 +166,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
                   return (
                     <div
                       key={date}
-                      className={`w-3 h-3 rounded-sm ${colorClass} border border-gray-200 cursor-pointer transition-all hover:ring-2 hover:ring-blue-300`}
+                      className={`h-3 w-3 rounded-sm ${colorClass} cursor-pointer border border-gray-200 transition-all hover:ring-2 hover:ring-blue-300`}
                       title={`${date}: ${studyTime > 0 ? `${studyTime} minutes` : 'No study'}`}
                     />
                   );
@@ -166,7 +177,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
         </div>
 
         {/* Month labels */}
-        <div className="flex mt-2 pl-8">
+        <div className="mt-2 flex pl-8">
           {monthLabels.map((month) => (
             <div
               key={month}
@@ -180,19 +191,23 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+      <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
         <div className="text-sm text-gray-600">Less</div>
         <div className="flex space-x-1">
           {[0, 1, 2, 3, 4].map((level) => (
             <div
               key={level}
-              className={`w-3 h-3 rounded-sm ${getColorClass(level)} border border-gray-200`}
+              className={`h-3 w-3 rounded-sm ${getColorClass(level)} border border-gray-200`}
               title={
-                level === 0 ? 'No study' :
-                level === 1 ? '< 15 min' :
-                level === 2 ? '15-30 min' :
-                level === 3 ? '30-60 min' :
-                '> 60 min'
+                level === 0
+                  ? 'No study'
+                  : level === 1
+                    ? '< 15 min'
+                    : level === 2
+                      ? '15-30 min'
+                      : level === 3
+                        ? '30-60 min'
+                        : '> 60 min'
               }
             />
           ))}
@@ -201,26 +216,29 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({
       </div>
 
       {/* Insights */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="text-sm font-semibold text-gray-900 mb-2">Study Insights</h4>
-        <div className="text-sm text-gray-600 space-y-1">
+      <div className="mt-6 rounded-lg bg-gray-50 p-4">
+        <h4 className="mb-2 text-sm font-semibold text-gray-900">
+          Study Insights
+        </h4>
+        <div className="space-y-1 text-sm text-gray-600">
           {studyDays === 0 ? (
             <p>Start studying to see your consistency pattern!</p>
           ) : (
             <>
               <p>
-                You&apos;ve studied on <strong>{studyDays}</strong> days in the past {months} months.
+                You&apos;ve studied on <strong>{studyDays}</strong> days in the
+                past {months} months.
               </p>
               <p>
-                Your average daily study time is <strong>{Math.round(averageDailyTime)} minutes</strong>.
+                Your average daily study time is{' '}
+                <strong>{Math.round(averageDailyTime)} minutes</strong>.
               </p>
               <p>
                 {averageDailyTime < 15
-                  ? "Consider increasing your daily study time for better retention."
+                  ? 'Consider increasing your daily study time for better retention.'
                   : averageDailyTime > 60
-                  ? "Great job maintaining consistent long study sessions!"
-                  : "Your study time looks balanced and consistent."
-                }
+                    ? 'Great job maintaining consistent long study sessions!'
+                    : 'Your study time looks balanced and consistent.'}
               </p>
             </>
           )}

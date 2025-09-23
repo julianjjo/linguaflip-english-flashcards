@@ -5,13 +5,19 @@ import type { ToastMessage } from './Toast';
 interface ToastContainerProps {
   toasts: ToastMessage[];
   onRemoveToast: (id: string) => void;
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  position?:
+    | 'top-right'
+    | 'top-left'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'top-center'
+    | 'bottom-center';
 }
 
 const ToastContainer: React.FC<ToastContainerProps> = ({
   toasts,
   onRemoveToast,
-  position = 'top-right'
+  position = 'top-right',
 }) => {
   const getPositionClasses = () => {
     switch (position) {
@@ -38,7 +44,7 @@ const ToastContainer: React.FC<ToastContainerProps> = ({
 
   return (
     <div
-      className={`fixed z-50 ${getPositionClasses()} space-y-2 pointer-events-none`}
+      className={`fixed z-50 ${getPositionClasses()} pointer-events-none space-y-2`}
       aria-label="Notificaciones"
       role="region"
       aria-live="polite"

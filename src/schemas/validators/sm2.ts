@@ -1,6 +1,6 @@
 /**
  * SM-2 Algorithm Validators and Utilities
- * 
+ *
  * This module contains validation functions and utilities specific
  * to the SM-2 spaced repetition algorithm used in LinguaFlip.
  */
@@ -19,7 +19,9 @@ export interface SM2Params {
  */
 import type { FlashcardSM2Data } from '../../types/database';
 
-export const sm2Validator = function(sm2: Record<string, unknown> | FlashcardSM2Data): boolean {
+export const sm2Validator = function (
+  sm2: Record<string, unknown> | FlashcardSM2Data
+): boolean {
   if (!sm2) return true;
 
   const { easeFactor, interval, repetitions } = sm2 as SM2Params;
@@ -52,9 +54,13 @@ export function validateSM2Params(params: {
 }): boolean {
   const { quality, easeFactor, interval } = params;
 
-  return quality >= 0 && quality <= 5 &&
-         easeFactor >= 1.3 && easeFactor <= 2.5 &&
-         interval >= 1;
+  return (
+    quality >= 0 &&
+    quality <= 5 &&
+    easeFactor >= 1.3 &&
+    easeFactor <= 2.5 &&
+    interval >= 1
+  );
 }
 
 /**
@@ -70,7 +76,7 @@ export function getDefaultSM2Params(): {
     easeFactor: 2.5,
     interval: 1,
     repetitions: 0,
-    nextReviewDate: new Date()
+    nextReviewDate: new Date(),
   };
 }
 

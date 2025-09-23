@@ -11,11 +11,11 @@ export const PUT: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authentication required'
+          error: 'Authentication required',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -27,11 +27,11 @@ export const PUT: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Card ID is required'
+          error: 'Card ID is required',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -51,19 +51,28 @@ export const PUT: APIRoute = async ({ request, params }) => {
     }
 
     if (body.exampleEnglish !== undefined) {
-      updates.exampleFront = body.exampleEnglish ? InputSanitizer.sanitizeString(body.exampleEnglish.trim(), 1000) : '';
+      updates.exampleFront = body.exampleEnglish
+        ? InputSanitizer.sanitizeString(body.exampleEnglish.trim(), 1000)
+        : '';
     }
 
     if (body.exampleSpanish !== undefined) {
-      updates.exampleBack = body.exampleSpanish ? InputSanitizer.sanitizeString(body.exampleSpanish.trim(), 1000) : '';
+      updates.exampleBack = body.exampleSpanish
+        ? InputSanitizer.sanitizeString(body.exampleSpanish.trim(), 1000)
+        : '';
     }
 
     if (body.image !== undefined) {
-      updates.image = body.image ? InputSanitizer.sanitizeString(body.image.trim(), 500) : null;
+      updates.image = body.image
+        ? InputSanitizer.sanitizeString(body.image.trim(), 500)
+        : null;
     }
 
     if (body.category !== undefined) {
-      updates.category = InputSanitizer.sanitizeString(body.category.trim(), 100);
+      updates.category = InputSanitizer.sanitizeString(
+        body.category.trim(),
+        100
+      );
     }
 
     if (body.difficulty !== undefined) {
@@ -71,75 +80,82 @@ export const PUT: APIRoute = async ({ request, params }) => {
     }
 
     if (body.tags !== undefined) {
-      updates.tags = Array.isArray(body.tags) 
-        ? body.tags.map((tag: string) => InputSanitizer.sanitizeString(tag.trim(), 50)).filter(Boolean)
+      updates.tags = Array.isArray(body.tags)
+        ? body.tags
+            .map((tag: string) => InputSanitizer.sanitizeString(tag.trim(), 50))
+            .filter(Boolean)
         : [];
     }
 
     // Update flashcard using service
-    const result = await flashcardsService.updateFlashcard(cardId, updates, userId);
+    const result = await flashcardsService.updateFlashcard(
+      cardId,
+      updates,
+      userId
+    );
 
     if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Failed to update flashcard'
+          error: result.error || 'Failed to update flashcard',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Convert to frontend format
     const updatedCard = result.data;
-    const flashcard = updatedCard ? {
-      id: parseInt(updatedCard.cardId),
-      english: updatedCard.front,
-      spanish: updatedCard.back,
-      exampleEnglish: updatedCard.exampleFront,
-      exampleSpanish: updatedCard.exampleBack,
-      image: updatedCard.image,
-      category: updatedCard.category,
-      difficulty: updatedCard.difficulty,
-      tags: updatedCard.tags,
-      dueDate: updatedCard.sm2.nextReviewDate.toISOString(),
-      interval: updatedCard.sm2.interval,
-      easinessFactor: updatedCard.sm2.easeFactor,
-      repetitions: updatedCard.sm2.repetitions,
-      lastReviewed: updatedCard.sm2.lastReviewed?.toISOString() || null,
-      reviewCount: updatedCard.sm2.totalReviews || 0,
-      isSuspended: updatedCard.sm2.isSuspended || false,
-      createdAt: updatedCard.createdAt?.toISOString(),
-      updatedAt: updatedCard.updatedAt?.toISOString()
-    } : null;
+    const flashcard = updatedCard
+      ? {
+          id: parseInt(updatedCard.cardId),
+          english: updatedCard.front,
+          spanish: updatedCard.back,
+          exampleEnglish: updatedCard.exampleFront,
+          exampleSpanish: updatedCard.exampleBack,
+          image: updatedCard.image,
+          category: updatedCard.category,
+          difficulty: updatedCard.difficulty,
+          tags: updatedCard.tags,
+          dueDate: updatedCard.sm2.nextReviewDate.toISOString(),
+          interval: updatedCard.sm2.interval,
+          easinessFactor: updatedCard.sm2.easeFactor,
+          repetitions: updatedCard.sm2.repetitions,
+          lastReviewed: updatedCard.sm2.lastReviewed?.toISOString() || null,
+          reviewCount: updatedCard.sm2.totalReviews || 0,
+          isSuspended: updatedCard.sm2.isSuspended || false,
+          createdAt: updatedCard.createdAt?.toISOString(),
+          updatedAt: updatedCard.updatedAt?.toISOString(),
+        }
+      : null;
 
     return new Response(
       JSON.stringify({
         success: true,
         data: {
-          flashcard
+          flashcard,
         },
-        message: 'Flashcard updated successfully'
+        message: 'Flashcard updated successfully',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Update flashcard API error:', error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

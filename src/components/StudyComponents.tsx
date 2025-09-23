@@ -25,7 +25,7 @@ const StudyComponents: React.FC<StudyComponentsProps> = ({
   userId,
   onCardUpdate,
   onQualityResponse,
-  onRate = (quality) => console.log('Quality rated:', quality)
+  onRate = (quality) => console.log('Quality rated:', quality),
 }) => {
   // Internal flip state management
   const [isFlipped, setIsFlipped] = useState(initialFlipped);
@@ -34,25 +34,32 @@ const StudyComponents: React.FC<StudyComponentsProps> = ({
   // Detect dark mode
   useEffect(() => {
     const checkDarkMode = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark') || 
-                        document.body.classList.contains('dark') ||
-                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDarkMode =
+        document.documentElement.classList.contains('dark') ||
+        document.body.classList.contains('dark') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsDark(isDarkMode);
     };
 
     checkDarkMode();
-    
+
     // Watch for theme changes
     const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
 
     return () => observer.disconnect();
   }, []);
 
   // Handle flip with optional external handler
   const handleFlip = () => {
-    setIsFlipped(prev => !prev);
+    setIsFlipped((prev) => !prev);
     onFlip?.();
   };
   return (
@@ -60,7 +67,7 @@ const StudyComponents: React.FC<StudyComponentsProps> = ({
       <div className={`study-components ${isDark ? 'dark' : ''}`}>
         {/* Flashcard Container */}
         <div className="mb-8" id="flashcard-container">
-          <div className="aspect-[4/3] max-w-2xl mx-auto">
+          <div className="mx-auto aspect-[4/3] max-w-2xl">
             <Flashcard
               cardData={cardData}
               isFlipped={isFlipped}

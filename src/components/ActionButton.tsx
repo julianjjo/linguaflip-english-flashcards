@@ -50,12 +50,16 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   className = '',
   'aria-label': ariaLabel,
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses =
+    'inline-flex items-center justify-center font-semibold rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantClasses = {
-    primary: 'bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500 hover:scale-105',
-    secondary: 'bg-secondary-600 hover:bg-secondary-700 text-white focus:ring-secondary-500 hover:scale-105',
-    accent: 'bg-accent-500 hover:bg-accent-600 text-white focus:ring-accent-500 hover:scale-105',
+    primary:
+      'bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500 hover:scale-105',
+    secondary:
+      'bg-secondary-600 hover:bg-secondary-700 text-white focus:ring-secondary-500 hover:scale-105',
+    accent:
+      'bg-accent-500 hover:bg-accent-600 text-white focus:ring-accent-500 hover:scale-105',
   };
 
   const sizeClasses = {
@@ -83,7 +87,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     >
       {loading && (
         <svg
-          className="animate-spin -ml-1 mr-3 h-4 w-4"
+          className="-ml-1 mr-3 h-4 w-4 animate-spin"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

@@ -14,11 +14,7 @@ const STATIC_ASSETS = [
 ];
 
 // API endpoints to cache
-const API_ENDPOINTS = [
-  '/api/cards',
-  '/api/progress',
-  '/api/settings',
-];
+const API_ENDPOINTS = ['/api/cards', '/api/progress', '/api/settings'];
 
 // External resources that should be cached
 const EXTERNAL_RESOURCES = [
@@ -40,7 +36,7 @@ self.addEventListener('install', (event) => {
       }),
 
       // Skip waiting to activate immediately
-      self.skipWaiting()
+      self.skipWaiting(),
     ])
   );
 });
@@ -55,9 +51,11 @@ self.addEventListener('activate', (event) => {
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE &&
-                cacheName !== DYNAMIC_CACHE &&
-                cacheName !== IMAGE_CACHE) {
+            if (
+              cacheName !== STATIC_CACHE &&
+              cacheName !== DYNAMIC_CACHE &&
+              cacheName !== IMAGE_CACHE
+            ) {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -66,7 +64,7 @@ self.addEventListener('activate', (event) => {
       }),
 
       // Take control of all clients
-      self.clients.claim()
+      self.clients.claim(),
     ])
   );
 });
@@ -99,19 +97,23 @@ self.addEventListener('fetch', (event) => {
 
 // Check if request is for an image
 function isImageRequest(request) {
-  return request.destination === 'image' ||
-         request.url.includes('.jpg') ||
-         request.url.includes('.jpeg') ||
-         request.url.includes('.png') ||
-         request.url.includes('.gif') ||
-         request.url.includes('.webp') ||
-         request.url.includes('picsum.photos');
+  return (
+    request.destination === 'image' ||
+    request.url.includes('.jpg') ||
+    request.url.includes('.jpeg') ||
+    request.url.includes('.png') ||
+    request.url.includes('.gif') ||
+    request.url.includes('.webp') ||
+    request.url.includes('picsum.photos')
+  );
 }
 
 // Check if request is for API
 function isApiRequest(request) {
-  return request.url.includes('/api/') ||
-         API_ENDPOINTS.some(endpoint => request.url.includes(endpoint));
+  return (
+    request.url.includes('/api/') ||
+    API_ENDPOINTS.some((endpoint) => request.url.includes(endpoint))
+  );
 }
 
 // Handle image requests with cache-first strategy
@@ -140,12 +142,12 @@ async function handleImageRequest(request) {
     return new Response(
       JSON.stringify({
         error: 'Image not available offline',
-        offline: true
+        offline: true,
       }),
       {
         status: 503,
         statusText: 'Service Unavailable',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -178,12 +180,12 @@ async function handleApiRequest(request) {
       JSON.stringify({
         error: 'Content not available offline',
         offline: true,
-        cached: false
+        cached: false,
       }),
       {
         status: 503,
         statusText: 'Service Unavailable',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -214,8 +216,10 @@ async function handleStaticRequest(request) {
     // For navigation requests, return offline page
     if (request.mode === 'navigate') {
       const cache = await caches.open(STATIC_CACHE);
-      return cache.match('/') || new Response(
-        `
+      return (
+        cache.match('/') ||
+        new Response(
+          `
         <!DOCTYPE html>
         <html>
         <head>
@@ -235,11 +239,12 @@ async function handleStaticRequest(request) {
         </body>
         </html>
         `,
-        {
-          status: 200,
-          statusText: 'OK',
-          headers: { 'Content-Type': 'text/html' }
-        }
+          {
+            status: 200,
+            statusText: 'OK',
+            headers: { 'Content-Type': 'text/html' },
+          }
+        )
       );
     }
 
@@ -289,9 +294,7 @@ self.addEventListener('notificationclick', (event) => {
 
   event.notification.close();
 
-  event.waitUntil(
-    clients.openWindow(event.notification.data?.url || '/')
-  );
+  event.waitUntil(clients.openWindow(event.notification.data?.url || '/'));
 });
 
 // Periodic background fetch (for future use)
@@ -317,7 +320,7 @@ self.addEventListener('message', (event) => {
         break;
 
       case 'GET_CACHE_STATS':
-        getCacheStats().then(stats => {
+        getCacheStats().then((stats) => {
           event.ports[0].postMessage({ type: 'CACHE_STATS', stats });
         });
         break;
@@ -350,9 +353,7 @@ async function getCacheStats() {
 async function clearAllCaches() {
   const cacheNames = await caches.keys();
 
-  await Promise.all(
-    cacheNames.map(cacheName => caches.delete(cacheName))
-  );
+  await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
 
   console.log('[SW] All caches cleared');
 }

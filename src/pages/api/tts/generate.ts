@@ -4,14 +4,20 @@ import type { TTSRequest } from '../../../services/geminiTTS';
 import { SecurityError } from '../../../utils/security';
 
 // Rate limiting store (in production, use Redis or similar)
-const rateLimitStore = new Map<string, { requests: number; lastReset: number }>();
+const rateLimitStore = new Map<
+  string,
+  { requests: number; lastReset: number }
+>();
 
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 30; // 30 requests per minute per IP
 
 function checkRateLimit(clientIP: string): boolean {
   const now = Date.now();
-  const clientData = rateLimitStore.get(clientIP) || { requests: 0, lastReset: now };
+  const clientData = rateLimitStore.get(clientIP) || {
+    requests: 0,
+    lastReset: now,
+  };
 
   // Reset if window has passed
   if (now - clientData.lastReset >= RATE_LIMIT_WINDOW) {
@@ -33,11 +39,11 @@ function getClientIP(request: Request): string {
   // Try to get real IP from headers (for production behind proxy)
   const xForwardedFor = request.headers.get('x-forwarded-for');
   const xRealIP = request.headers.get('x-real-ip');
-  
+
   if (xForwardedFor) {
     return xForwardedFor.split(',')[0].trim();
   }
-  
+
   if (xRealIP) {
     return xRealIP;
   }
@@ -52,16 +58,16 @@ export const POST: APIRoute = async ({ request }) => {
     const clientIP = getClientIP(request);
     if (!checkRateLimit(clientIP)) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Rate limit exceeded', 
-          message: 'Too many requests. Please wait before trying again.' 
+        JSON.stringify({
+          error: 'Rate limit exceeded',
+          message: 'Too many requests. Please wait before trying again.',
         }),
         {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Retry-After': '60'
-          }
+            'Retry-After': '60',
+          },
         }
       );
     }
@@ -72,13 +78,13 @@ export const POST: APIRoute = async ({ request }) => {
       requestData = await request.json();
     } catch {
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid JSON', 
-          message: 'Request body must be valid JSON' 
+        JSON.stringify({
+          error: 'Invalid JSON',
+          message: 'Request body must be valid JSON',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -86,13 +92,13 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate required fields
     if (!requestData.text || typeof requestData.text !== 'string') {
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input', 
-          message: 'Text field is required and must be a string' 
+        JSON.stringify({
+          error: 'Invalid input',
+          message: 'Text field is required and must be a string',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -100,13 +106,13 @@ export const POST: APIRoute = async ({ request }) => {
     // Additional validation
     if (requestData.text.length > 1000) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Text too long', 
-          message: 'Maximum text length is 1000 characters' 
+        JSON.stringify({
+          error: 'Text too long',
+          message: 'Maximum text length is 1000 characters',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -114,7 +120,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Get authentication info (if available)
     const authHeader = request.headers.get('authorization');
     let userIdentifier = 'anonymous';
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       // In a real implementation, verify the JWT token here
       // For now, we'll use a simple identifier
@@ -138,35 +144,34 @@ export const POST: APIRoute = async ({ request }) => {
         // CORS headers for development
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
     });
-
   } catch (error) {
     console.error('[API] TTS Generation Error:', error);
 
     if (error instanceof SecurityError) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Security Error', 
+        JSON.stringify({
+          error: 'Security Error',
           message: error.message,
-          code: error.code 
+          code: error.code,
         }),
         {
           status: error.code === 'RATE_LIMIT_EXCEEDED' ? 429 : 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal Server Error', 
-        message: 'TTS generation failed. Please try again later.' 
+      JSON.stringify({
+        error: 'Internal Server Error',
+        message: 'TTS generation failed. Please try again later.',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -180,7 +185,7 @@ export const OPTIONS: APIRoute = async () => {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400' // 24 hours
-    }
+      'Access-Control-Max-Age': '86400', // 24 hours
+    },
   });
 };

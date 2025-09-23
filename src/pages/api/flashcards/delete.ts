@@ -10,11 +10,11 @@ export const DELETE: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authentication required'
+          error: 'Authentication required',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -26,11 +26,11 @@ export const DELETE: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Card ID is required'
+          error: 'Card ID is required',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -42,11 +42,11 @@ export const DELETE: APIRoute = async ({ request, params }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Failed to delete flashcard'
+          error: result.error || 'Failed to delete flashcard',
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -55,27 +55,26 @@ export const DELETE: APIRoute = async ({ request, params }) => {
       JSON.stringify({
         success: true,
         data: {
-          deletedCount: result.data?.deletedCount || 0
+          deletedCount: result.data?.deletedCount || 0,
         },
-        message: 'Flashcard deleted successfully'
+        message: 'Flashcard deleted successfully',
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Delete flashcard API error:', error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

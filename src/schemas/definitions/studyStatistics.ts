@@ -1,6 +1,6 @@
 /**
  * Study Statistics Schema Definition for MongoDB
- * 
+ *
  * This schema defines the structure for study statistics documents in the LinguaFlip application.
  * It includes daily, weekly, and monthly statistical data for user progress tracking.
  */
@@ -12,86 +12,100 @@ export const StudyStatisticsSchema = {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
-      required: ['statsId', 'userId', 'date', 'period', 'dailyStats', 'createdAt', 'updatedAt'],
+      required: [
+        'statsId',
+        'userId',
+        'date',
+        'period',
+        'dailyStats',
+        'createdAt',
+        'updatedAt',
+      ],
       properties: {
         statsId: {
           bsonType: 'string',
-          description: 'Unique statistics identifier'
+          description: 'Unique statistics identifier',
         },
         userId: {
           bsonType: 'string',
-          description: 'User identifier'
+          description: 'User identifier',
         },
         date: {
           bsonType: 'date',
-          description: 'Statistics date'
+          description: 'Statistics date',
         },
         period: {
           enum: ['daily', 'weekly', 'monthly'],
-          description: 'Statistics period type'
+          description: 'Statistics period type',
         },
         dailyStats: {
           bsonType: 'object',
-          required: ['cardsStudied', 'studyTime', 'correctAnswers', 'incorrectAnswers', 'averageRecallRate'],
+          required: [
+            'cardsStudied',
+            'studyTime',
+            'correctAnswers',
+            'incorrectAnswers',
+            'averageRecallRate',
+          ],
           properties: {
             cardsStudied: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             studyTime: {
               bsonType: 'int',
               minimum: 0,
-              description: 'Study time in minutes'
+              description: 'Study time in minutes',
             },
             correctAnswers: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             incorrectAnswers: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             averageRecallRate: {
               bsonType: 'double',
               minimum: 0,
-              maximum: 100
+              maximum: 100,
             },
             averageResponseTime: {
               bsonType: 'double',
-              minimum: 0
+              minimum: 0,
             },
             sessionsCompleted: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             newCardsLearned: {
               bsonType: 'int',
-              minimum: 0
-            }
-          }
+              minimum: 0,
+            },
+          },
         },
         weeklyStats: {
           bsonType: 'object',
           properties: {
             totalCards: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             totalTime: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             averageRate: {
               bsonType: 'double',
               minimum: 0,
-              maximum: 100
+              maximum: 100,
             },
             improvement: {
-              bsonType: 'double'
+              bsonType: 'double',
             },
             streakDays: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             categoriesStudied: {
               bsonType: 'array',
@@ -99,60 +113,60 @@ export const StudyStatisticsSchema = {
                 bsonType: 'object',
                 properties: {
                   category: {
-                    bsonType: 'string'
+                    bsonType: 'string',
                   },
                   cardsCount: {
                     bsonType: 'int',
-                    minimum: 0
-                  }
-                }
-              }
-            }
-          }
+                    minimum: 0,
+                  },
+                },
+              },
+            },
+          },
         },
         monthlyStats: {
           bsonType: 'object',
           properties: {
             totalCards: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             totalTime: {
               bsonType: 'int',
-              minimum: 0
+              minimum: 0,
             },
             averageRate: {
               bsonType: 'double',
               minimum: 0,
-              maximum: 100
+              maximum: 100,
             },
             improvement: {
-              bsonType: 'double'
+              bsonType: 'double',
             },
             mostStudiedCategory: {
-              bsonType: 'string'
+              bsonType: 'string',
             },
             leastStudiedCategory: {
-              bsonType: 'string'
+              bsonType: 'string',
             },
             consistency: {
               bsonType: 'double',
               minimum: 0,
-              maximum: 100
-            }
-          }
+              maximum: 100,
+            },
+          },
         },
         createdAt: {
-          bsonType: 'date'
+          bsonType: 'date',
         },
         updatedAt: {
-          bsonType: 'date'
+          bsonType: 'date',
         },
         version: {
           bsonType: 'int',
-          minimum: 1
-        }
-      }
-    }
-  }
+          minimum: 1,
+        },
+      },
+    },
+  },
 };

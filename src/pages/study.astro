@@ -11,17 +11,27 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
 >
   <!-- SEO Meta Tags -->
   <meta property="og:title" content="Estudiar Inglés - LinguaFlip" />
-  <meta property="og:description" content="Aprende inglés con flashcards inteligentes y repetición espaciada" />
+  <meta
+    property="og:description"
+    content="Aprende inglés con flashcards inteligentes y repetición espaciada"
+  />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Estudiar Inglés - LinguaFlip" />
-  <meta name="twitter:description" content="Sistema inteligente de aprendizaje de inglés" />
+  <meta
+    name="twitter:description"
+    content="Sistema inteligente de aprendizaje de inglés"
+  />
 
-  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+  <div
+    class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+  >
     <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
+    <header
+      class="border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+    >
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
           <div class="flex items-center">
             <h1 class="text-xl font-bold text-gray-900 dark:text-white">
               LinguaFlip
@@ -35,9 +45,9 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mb-8 text-center">
+        <h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
           Sesión de Estudio
         </h1>
         <p class="text-gray-600 dark:text-gray-300">
@@ -46,29 +56,39 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       </div>
 
       <!-- Study Area -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+      <div
+        class="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-700 dark:bg-gray-800"
+      >
         <div id="study-container">
           <!-- Loading State -->
-          <div class="flex items-center justify-center py-16" id="loading-state">
+          <div
+            class="flex items-center justify-center py-16"
+            id="loading-state"
+          >
             <div class="text-center">
-              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto mb-4"></div>
-              <p class="text-gray-600 dark:text-gray-300">Cargando flashcards...</p>
+              <div
+                class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600 dark:border-primary-400"
+              >
+              </div>
+              <p class="text-gray-600 dark:text-gray-300">
+                Cargando flashcards...
+              </p>
             </div>
           </div>
 
           <!-- No Cards State -->
-          <div class="hidden text-center py-16" id="no-cards-state">
-            <div class="max-w-md mx-auto">
-              <div class="text-6xl mb-4">📚</div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div class="hidden py-16 text-center" id="no-cards-state">
+            <div class="mx-auto max-w-md">
+              <div class="mb-4 text-6xl">📚</div>
+              <h2 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
                 ¡Crea tu primera flashcard!
               </h2>
-              <p class="text-gray-600 dark:text-gray-300 mb-6">
+              <p class="mb-6 text-gray-600 dark:text-gray-300">
                 No tienes flashcards aún. Crea una para comenzar a estudiar.
               </p>
               <button
                 id="create-first-card-btn"
-                class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                class="rounded-lg bg-primary-600 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-primary-700"
               >
                 Crear Mi Primera Flashcard
               </button>
@@ -76,24 +96,25 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
           </div>
 
           <!-- Auth Required State -->
-          <div class="hidden text-center py-16" id="auth-required-state">
-            <div class="max-w-md mx-auto">
-              <div class="text-6xl mb-4">🔐</div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div class="hidden py-16 text-center" id="auth-required-state">
+            <div class="mx-auto max-w-md">
+              <div class="mb-4 text-6xl">🔐</div>
+              <h2 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
                 Inicia Sesión para Estudiar
               </h2>
-              <p class="text-gray-600 dark:text-gray-300 mb-6">
-                Necesitas iniciar sesión para acceder a tus flashcards y estudiar.
+              <p class="mb-6 text-gray-600 dark:text-gray-300">
+                Necesitas iniciar sesión para acceder a tus flashcards y
+                estudiar.
               </p>
               <button
                 id="login-btn"
-                class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 mr-3"
+                class="mr-3 rounded-lg bg-primary-600 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-primary-700"
               >
                 Iniciar Sesión
               </button>
               <button
                 id="register-btn"
-                class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                class="rounded-lg border border-primary-600 px-6 py-3 font-medium text-primary-600 transition-colors duration-200 hover:bg-primary-50"
               >
                 Registrarse
               </button>
@@ -102,17 +123,25 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
 
           <!-- Study Content -->
           <div class="hidden" id="study-content">
-            <div class="text-center mb-6">
-              <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">Progreso</div>
-              <div class="text-lg font-semibold text-primary-600 dark:text-primary-400" id="session-progress">
+            <div class="mb-6 text-center">
+              <div class="mb-2 text-sm text-gray-600 dark:text-gray-300">
+                Progreso
+              </div>
+              <div
+                class="text-lg font-semibold text-primary-600 dark:text-primary-400"
+                id="session-progress"
+              >
                 0 / 0
               </div>
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+              <div
+                class="mt-3 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700"
+              >
                 <div
-                  class="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
+                  class="h-2 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300"
                   id="progress-bar"
                   style="width: 0%"
-                ></div>
+                >
+                </div>
               </div>
             </div>
 
@@ -126,11 +155,11 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
               <!-- Flip Button -->
               <button
                 id="flip-btn"
-                class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                class="rounded-lg bg-gray-600 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-gray-700"
               >
                 Voltear
               </button>
-              
+
               <!-- Recall Quality Controls -->
               <div id="recall-controls" style="display: none;">
                 <RecallQualityControls onRate="rateCurrentCard" client:load />
@@ -146,8 +175,17 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
           href="/dashboard"
           class="inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
         >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            class="mr-2 h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
           Volver al Dashboard
         </a>
@@ -206,7 +244,7 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       async init() {
         // Check authentication status
         await this.checkAuth();
-        
+
         if (!this.isAuthenticated) {
           this.showAuthRequired();
           this.setupAuthButtons();
@@ -215,7 +253,7 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
 
         // Load flashcards
         await this.loadFlashcards();
-        
+
         if (this.flashcards.length === 0) {
           this.showNoCards();
           this.setupCreateCardButton();
@@ -229,9 +267,9 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       async checkAuth() {
         try {
           const response = await fetch('/api/auth/me', {
-            credentials: 'include'
+            credentials: 'include',
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             this.isAuthenticated = data.success;
@@ -247,13 +285,13 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
 
         try {
           const response = await fetch('/api/flashcards', {
-            credentials: 'include'
+            credentials: 'include',
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             let flashcards = data.data?.flashcards || [];
-            
+
             // Fix flashcards with null or invalid IDs
             flashcards = flashcards.map((card: Flashcard) => {
               if (!card.id || card.id === null || card.id === undefined) {
@@ -263,7 +301,7 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
               }
               return card;
             });
-            
+
             this.flashcards = flashcards;
             console.log('Loaded flashcards:', this.flashcards);
           }
@@ -297,8 +335,13 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       }
 
       hideAll() {
-        const states = ['loading-state', 'no-cards-state', 'auth-required-state', 'study-content'];
-        states.forEach(id => {
+        const states = [
+          'loading-state',
+          'no-cards-state',
+          'auth-required-state',
+          'study-content',
+        ];
+        states.forEach((id) => {
           const element = document.getElementById(id);
           if (element) {
             element.classList.add('hidden');
@@ -313,14 +356,20 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
         if (loginBtn) {
           loginBtn.addEventListener('click', () => {
             // Trigger login modal through global event
-            window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'login' } }));
+            window.dispatchEvent(
+              new CustomEvent('open-auth-modal', { detail: { mode: 'login' } })
+            );
           });
         }
 
         if (registerBtn) {
           registerBtn.addEventListener('click', () => {
             // Trigger register modal through global event
-            window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }));
+            window.dispatchEvent(
+              new CustomEvent('open-auth-modal', {
+                detail: { mode: 'register' },
+              })
+            );
           });
         }
       }
@@ -353,11 +402,13 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
 
         const card = this.flashcards[this.currentCardIndex];
         const container = document.getElementById('flashcard-container');
-        
+
         if (container && card) {
-          const front = this.isFlipped ? card.back || card.spanish : card.front || card.english;
+          const front = this.isFlipped
+            ? card.back || card.spanish
+            : card.front || card.english;
           const isBack = this.isFlipped;
-          
+
           container.innerHTML = `
             <div class="bg-gradient-to-br ${isBack ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'} text-white rounded-xl p-8 text-center min-h-[200px] flex items-center justify-center cursor-pointer" onclick="studyManager.flipCard()">
               <div>
@@ -374,7 +425,7 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       flipCard() {
         this.isFlipped = !this.isFlipped;
         this.displayCurrentCard();
-        
+
         const recallControls = document.getElementById('recall-controls');
         if (recallControls) {
           recallControls.style.display = this.isFlipped ? 'block' : 'none';
@@ -389,8 +440,13 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
 
         try {
           console.log('Frontend - attempting to rate card:', card);
-          console.log('Frontend - cardId being sent:', card.id, 'type:', typeof card.id);
-          
+          console.log(
+            'Frontend - cardId being sent:',
+            card.id,
+            'type:',
+            typeof card.id
+          );
+
           const response = await fetch('/api/flashcards/review', {
             method: 'POST',
             headers: {
@@ -400,8 +456,8 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
             body: JSON.stringify({
               cardId: card.id,
               quality: quality,
-              responseTime: Date.now() - this.cardStartTime || 0
-            })
+              responseTime: Date.now() - this.cardStartTime || 0,
+            }),
           });
 
           const data = await response.json();
@@ -424,11 +480,12 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       }
 
       nextCard() {
-        this.currentCardIndex = (this.currentCardIndex + 1) % this.flashcards.length;
+        this.currentCardIndex =
+          (this.currentCardIndex + 1) % this.flashcards.length;
         this.isFlipped = false;
         this.cardStartTime = Date.now();
         this.displayCurrentCard();
-        
+
         const recallControls = document.getElementById('recall-controls');
         if (recallControls) {
           recallControls.style.display = 'none';
@@ -438,13 +495,14 @@ import RecallQualityControls from '../components/RecallQualityControls.tsx';
       updateProgress() {
         const progressText = document.getElementById('session-progress');
         const progressBar = document.getElementById('progress-bar');
-        
+
         if (progressText) {
           progressText.textContent = `${this.currentCardIndex + 1} / ${this.flashcards.length}`;
         }
-        
+
         if (progressBar) {
-          const progress = ((this.currentCardIndex + 1) / this.flashcards.length) * 100;
+          const progress =
+            ((this.currentCardIndex + 1) / this.flashcards.length) * 100;
           progressBar.style.width = `${progress}%`;
         }
       }

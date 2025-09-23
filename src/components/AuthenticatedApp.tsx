@@ -9,16 +9,16 @@ interface AuthenticatedAppProps {
   showCreateButton?: boolean;
 }
 
-const AuthenticatedApp: React.FC<AuthenticatedAppProps> = ({ 
-  children, 
-  showUserProfile = true, 
-  showCreateButton = true 
+const AuthenticatedApp: React.FC<AuthenticatedAppProps> = ({
+  children,
+  showUserProfile = true,
+  showCreateButton = true,
 }) => {
   return (
     <AuthProvider>
       {children}
       {showUserProfile && (
-        <div className="fixed top-0 right-16 z-50 flex items-center h-16 px-4">
+        <div className="fixed right-16 top-0 z-50 flex h-16 items-center px-4">
           <UserProfile />
         </div>
       )}

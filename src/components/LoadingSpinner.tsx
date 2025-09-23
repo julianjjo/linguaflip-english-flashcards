@@ -15,7 +15,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   className = '',
   text,
   fullScreen = false,
-  overlay = false
+  overlay = false,
 }) => {
   const getSizeClasses = () => {
     switch (size) {
@@ -48,7 +48,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   };
 
   const spinner = (
-    <div className={`inline-flex flex-col items-center justify-center ${className}`}>
+    <div
+      className={`inline-flex flex-col items-center justify-center ${className}`}
+    >
       <svg
         className={`animate-spin ${getSizeClasses()} ${getColorClasses()}`}
         xmlns="http://www.w3.org/2000/svg"
@@ -71,7 +73,10 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         />
       </svg>
       {text && (
-        <span className={`mt-2 text-sm font-medium ${getColorClasses()}`} aria-live="polite">
+        <span
+          className={`mt-2 text-sm font-medium ${getColorClasses()}`}
+          aria-live="polite"
+        >
           {text}
         </span>
       )}
@@ -80,7 +85,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
         {spinner}
       </div>
     );
@@ -88,7 +93,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (overlay) {
     return (
-      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm rounded-lg">
+      <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/60 backdrop-blur-sm dark:bg-gray-900/60">
         {spinner}
       </div>
     );

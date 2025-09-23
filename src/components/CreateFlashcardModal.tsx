@@ -22,7 +22,7 @@ interface FormData {
 const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
   const { user, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
     exampleSpanish: 'Hola, ¿cómo estás hoy?',
     category: 'general',
     image: '',
-    tags: 'básico, saludo, común'
+    tags: 'básico, saludo, común',
   });
 
   const resetForm = () => {
@@ -45,22 +45,26 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
       exampleSpanish: 'Hola, ¿cómo estás hoy?',
       category: 'general',
       image: '',
-      tags: 'básico, saludo, común'
+      tags: 'básico, saludo, común',
     });
     setError(null);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated || !user?.userId) {
       setError('Debes iniciar sesión para crear flashcards');
       return;
@@ -89,8 +93,11 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
           exampleSpanish: formData.exampleSpanish.trim() || undefined,
           category: formData.category,
           image: formData.image.trim() || null,
-          tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
-        })
+          tags: formData.tags
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter(Boolean),
+        }),
       });
 
       const data = await response.json();
@@ -114,7 +121,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
         easinessFactor: 2.5,
         repetitions: 0,
         lastReviewed: null,
-        reviewCount: 0
+        reviewCount: 0,
       };
 
       // Update local store
@@ -124,15 +131,20 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
       onSuccess?.(newFlashcard);
 
       // Emit global event for other components to listen to
-      window.dispatchEvent(new CustomEvent('flashcard-created', { detail: { flashcard: newFlashcard } }));
+      window.dispatchEvent(
+        new CustomEvent('flashcard-created', {
+          detail: { flashcard: newFlashcard },
+        })
+      );
 
       // Reset form and close modal
       resetForm();
       onClose();
-
     } catch (error) {
       console.error('Failed to create flashcard:', error);
-      setError(error instanceof Error ? error.message : 'Error al crear la flashcard');
+      setError(
+        error instanceof Error ? error.message : 'Error al crear la flashcard'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -152,16 +164,15 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
       // For now, we'll create a simple example
       const word = formData.english.trim();
       const exampleEnglish = `I love ${word} very much.`;
-      const exampleSpanish = formData.spanish.trim() 
+      const exampleSpanish = formData.spanish.trim()
         ? `Me encanta ${formData.spanish.trim()} mucho.`
         : `Me encanta esta palabra mucho.`;
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         exampleEnglish,
-        exampleSpanish
+        exampleSpanish,
       }));
-
     } catch (error) {
       console.error('AI generation failed:', error);
       setError('Error al generar ejemplos con IA');
@@ -173,21 +184,31 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 p-6 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               Crear Nueva Flashcard
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              className="text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200"
               aria-label="Cerrar modal"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -197,21 +218,21 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
           {/* Error Display */}
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-lg">
-              <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-700 dark:bg-red-900/50">
+              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </div>
           )}
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* English */}
             <div>
               <label
                 htmlFor="flashcard-english"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Palabra en Inglés *
               </label>
@@ -222,7 +243,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                 value={formData.english}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="Hello"
               />
             </div>
@@ -231,7 +252,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
             <div>
               <label
                 htmlFor="flashcard-spanish"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Traducción en Español *
               </label>
@@ -242,15 +263,15 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                 value={formData.spanish}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="Hola"
               />
             </div>
           </div>
 
           {/* Examples Section */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Ejemplos de Uso
               </h3>
@@ -258,10 +279,20 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                 type="button"
                 onClick={generateWithAI}
                 disabled={isLoading || !formData.english.trim()}
-                className="flex items-center px-3 py-2 text-sm bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
+                className="flex items-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 px-3 py-2 text-sm text-white transition-all duration-200 hover:from-purple-600 hover:to-blue-600 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="mr-2 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
                 {isLoading ? 'Generando...' : 'Generar con IA'}
               </button>
@@ -272,7 +303,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
               <div>
                 <label
                   htmlFor="flashcard-example-english"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Ejemplo en Inglés
                 </label>
@@ -282,7 +313,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                   value={formData.exampleEnglish}
                   onChange={handleInputChange}
                   rows={2}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors resize-none"
+                  className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Hello, how are you today?"
                 />
               </div>
@@ -291,7 +322,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
               <div>
                 <label
                   htmlFor="flashcard-example-spanish"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Ejemplo en Español
                 </label>
@@ -301,7 +332,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                   value={formData.exampleSpanish}
                   onChange={handleInputChange}
                   rows={2}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors resize-none"
+                  className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Hola, ¿cómo estás hoy?"
                 />
               </div>
@@ -309,12 +340,12 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
           </div>
 
           {/* Additional Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Category */}
             <div>
               <label
                 htmlFor="flashcard-category"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Categoría
               </label>
@@ -323,7 +354,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                 id="flashcard-category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option value="general">General</option>
                 <option value="family">Familia</option>
@@ -340,7 +371,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
             <div>
               <label
                 htmlFor="flashcard-tags"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Etiquetas (separadas por comas)
               </label>
@@ -350,7 +381,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
                 id="flashcard-tags"
                 value={formData.tags}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="básico, saludo, común"
               />
             </div>
@@ -360,7 +391,7 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
           <div>
             <label
               htmlFor="flashcard-image"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
               URL de Imagen (opcional)
             </label>
@@ -370,24 +401,28 @@ const CreateFlashcardModal: React.FC<CreateFlashcardModalProps> = ({
               id="flashcard-image"
               value={formData.image}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="https://ejemplo.com/imagen.jpg"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 dark:border-gray-700 sm:flex-row">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"
+              className="flex-1 rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={isLoading || !formData.english.trim() || !formData.spanish.trim()}
-              className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
+              disabled={
+                isLoading ||
+                !formData.english.trim() ||
+                !formData.spanish.trim()
+              }
+              className="flex flex-1 items-center justify-center rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700 disabled:bg-primary-400"
             >
               {isLoading ? (
                 <>

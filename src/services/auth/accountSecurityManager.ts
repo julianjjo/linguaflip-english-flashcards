@@ -3,7 +3,10 @@ import type { UsersService } from '../users.ts';
 export class AccountSecurityManager {
   constructor(private readonly usersService: UsersService) {}
 
-  async incrementLoginAttempts(userId: string, ipAddress?: string): Promise<void> {
+  async incrementLoginAttempts(
+    userId: string,
+    ipAddress?: string
+  ): Promise<void> {
     const userResult = await this.usersService.getUserById(userId);
     if (!userResult.success || !userResult.data) {
       return;
@@ -20,10 +23,10 @@ export class AccountSecurityManager {
           type: 'FAILED_LOGIN_ATTEMPT',
           timestamp: new Date(),
           ipAddress: ipAddress || 'unknown',
-          details: `Attempt ${newAttempts}`
+          details: `Attempt ${newAttempts}`,
         },
-        ...user.security.suspiciousActivity.slice(0, 9)
-      ]
+        ...user.security.suspiciousActivity.slice(0, 9),
+      ],
     });
   }
 
@@ -35,7 +38,7 @@ export class AccountSecurityManager {
 
     await this.usersService.updateUserSecurity(userId, {
       ...userResult.data.security,
-      loginAttempts: 0
+      loginAttempts: 0,
     });
   }
 
@@ -48,7 +51,7 @@ export class AccountSecurityManager {
     await this.usersService.updateUserSecurity(userId, {
       ...userResult.data.security,
       accountLocked: true,
-      accountLockedUntil: new Date(Date.now() + duration)
+      accountLockedUntil: new Date(Date.now() + duration),
     });
   }
 
@@ -62,7 +65,7 @@ export class AccountSecurityManager {
       ...userResult.data.security,
       accountLocked: false,
       accountLockedUntil: undefined,
-      loginAttempts: 0
+      loginAttempts: 0,
     });
   }
 
@@ -75,7 +78,7 @@ export class AccountSecurityManager {
     await this.usersService.updateUserSecurity(userId, {
       ...userResult.data.security,
       lastLogin: new Date(),
-      lastLoginIP: ipAddress
+      lastLoginIP: ipAddress,
     });
   }
 }

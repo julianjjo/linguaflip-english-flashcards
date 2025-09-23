@@ -20,7 +20,10 @@ export async function setupPage(browser) {
 }
 
 export async function waitForPageLoad(page, url) {
-  await page.goto(url, { waitUntil: 'networkidle0', timeout: getDynamicTimeout(60000) });
+  await page.goto(url, {
+    waitUntil: 'networkidle0',
+    timeout: getDynamicTimeout(60000),
+  });
 }
 
 export function resolveUrl(baseUrl, relativePath = '/') {

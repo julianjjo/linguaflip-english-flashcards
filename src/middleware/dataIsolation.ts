@@ -33,7 +33,11 @@ interface RequestWithFiles extends Request {
  * User data isolation middleware
  * Ensures users can only access their own data
  */
-export function isolateUserData(req: Request, res: Response, next: NextFunction) {
+export function isolateUserData(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   // This middleware should be used after requireAuth
   if (!req.user || !req.user.userId) {
     SecurityAuditor.logSecurityEvent(
@@ -41,7 +45,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
       {
         path: req.path,
         method: req.method,
-        ipAddress: req.ip
+        ipAddress: req.ip,
       },
       'high'
     );
@@ -49,7 +53,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
     return res.status(401).json({
       success: false,
       error: 'Authentication required',
-      code: 'AUTH_REQUIRED'
+      code: 'AUTH_REQUIRED',
     });
   }
 
@@ -72,7 +76,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
           authenticatedUserId: userId,
           path: req.path,
           method: req.method,
-          ipAddress: req.ip
+          ipAddress: req.ip,
         },
         'high'
       );
@@ -80,7 +84,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
       return res.status(403).json({
         success: false,
         error: 'Access denied. You can only access your own data.',
-        code: 'ACCESS_DENIED'
+        code: 'ACCESS_DENIED',
       });
     }
   }
@@ -95,7 +99,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
           authenticatedUserId: userId,
           path: req.path,
           method: req.method,
-          ipAddress: req.ip
+          ipAddress: req.ip,
         },
         'high'
       );
@@ -103,7 +107,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
       return res.status(403).json({
         success: false,
         error: 'Access denied. You cannot modify data for other users.',
-        code: 'ACCESS_DENIED'
+        code: 'ACCESS_DENIED',
       });
     }
 
@@ -114,7 +118,11 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
   }
 
   // For DELETE requests, check URL parameters
-  if (req.method === 'DELETE' && req.params.userId && req.params.userId !== userId) {
+  if (
+    req.method === 'DELETE' &&
+    req.params.userId &&
+    req.params.userId !== userId
+  ) {
     SecurityAuditor.logSecurityEvent(
       'CROSS_USER_DELETE_ATTEMPT',
       {
@@ -122,7 +130,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
         authenticatedUserId: userId,
         path: req.path,
         method: req.method,
-        ipAddress: req.ip
+        ipAddress: req.ip,
       },
       'high'
     );
@@ -130,7 +138,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
     return res.status(403).json({
       success: false,
       error: 'Access denied. You can only delete your own data.',
-      code: 'ACCESS_DENIED'
+      code: 'ACCESS_DENIED',
     });
   }
 
@@ -141,7 +149,7 @@ export function isolateUserData(req: Request, res: Response, next: NextFunction)
       userId,
       path: req.path,
       method: req.method,
-      ipAddress: req.ip
+      ipAddress: req.ip,
     },
     'low'
   );
@@ -158,7 +166,7 @@ export function isolateCollectionData(collectionName: string) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     }
 
@@ -187,7 +195,7 @@ export function isolateCollectionData(collectionName: string) {
               targetUserId: req.params.id,
               authenticatedUserId: userId,
               path: req.path,
-              method: req.method
+              method: req.method,
             },
             'high'
           );
@@ -195,7 +203,7 @@ export function isolateCollectionData(collectionName: string) {
           return res.status(403).json({
             success: false,
             error: 'Access denied. You can only access your own profile.',
-            code: 'ACCESS_DENIED'
+            code: 'ACCESS_DENIED',
           });
         }
         break;
@@ -215,12 +223,16 @@ export function isolateCollectionData(collectionName: string) {
  * Bulk operation data isolation middleware
  * Ensures bulk operations only affect user's own data
  */
-export function isolateBulkOperations(req: Request, res: Response, next: NextFunction) {
+export function isolateBulkOperations(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (!req.user || !req.user.userId) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required',
-      code: 'AUTH_REQUIRED'
+      code: 'AUTH_REQUIRED',
     });
   }
 
@@ -228,8 +240,8 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
 
   if (req.body && Array.isArray(req.body)) {
     // For bulk operations with arrays of items
-    const hasInvalidItems = req.body.some((item: Record<string, unknown>) =>
-      item.userId && item.userId !== userId
+    const hasInvalidItems = req.body.some(
+      (item: Record<string, unknown>) => item.userId && item.userId !== userId
     );
 
     if (hasInvalidItems) {
@@ -239,7 +251,7 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
           authenticatedUserId: userId,
           path: req.path,
           method: req.method,
-          ipAddress: req.ip
+          ipAddress: req.ip,
         },
         'high'
       );
@@ -247,14 +259,14 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
       return res.status(403).json({
         success: false,
         error: 'Access denied. Bulk operations can only affect your own data.',
-        code: 'ACCESS_DENIED'
+        code: 'ACCESS_DENIED',
       });
     }
 
     // Add userId to all items
     req.body = req.body.map((item: Record<string, unknown>) => ({
       ...item,
-      userId
+      userId,
     }));
   }
 
@@ -265,7 +277,11 @@ export function isolateBulkOperations(req: Request, res: Response, next: NextFun
  * Query parameter sanitization middleware
  * Removes or modifies query parameters that could bypass data isolation
  */
-export function sanitizeQueryParameters(req: Request, _res: Response, next: NextFunction) {
+export function sanitizeQueryParameters(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) {
   if (!req.user || !req.user.userId) {
     return next(); // Let auth middleware handle this
   }
@@ -274,7 +290,7 @@ export function sanitizeQueryParameters(req: Request, _res: Response, next: Next
 
   // Remove dangerous query parameters
   const dangerousParams = ['$where', '$function', 'mapReduce', 'aggregate'];
-  dangerousParams.forEach(param => {
+  dangerousParams.forEach((param) => {
     if (req.query[param]) {
       SecurityAuditor.logSecurityEvent(
         'DANGEROUS_QUERY_PARAMETER_DETECTED',
@@ -282,7 +298,7 @@ export function sanitizeQueryParameters(req: Request, _res: Response, next: Next
           parameter: param,
           userId,
           path: req.path,
-          method: req.method
+          method: req.method,
         },
         'high'
       );
@@ -305,12 +321,16 @@ export function sanitizeQueryParameters(req: Request, _res: Response, next: Next
  * File upload data isolation middleware
  * Ensures uploaded files are associated with the correct user
  */
-export function isolateFileUploads(req: Request, res: Response, next: NextFunction) {
+export function isolateFileUploads(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (!req.user || !req.user.userId) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required',
-      code: 'AUTH_REQUIRED'
+      code: 'AUTH_REQUIRED',
     });
   }
 
@@ -348,19 +368,25 @@ export function isolateFileUploads(req: Request, res: Response, next: NextFuncti
  * API key data isolation middleware
  * Ensures API keys can only be used by their owners
  */
-export function isolateApiKeys(req: Request, res: Response, next: NextFunction) {
+export function isolateApiKeys(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (!req.user || !req.user.userId) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required',
-      code: 'AUTH_REQUIRED'
+      code: 'AUTH_REQUIRED',
     });
   }
 
   const userId = req.user.userId;
 
   // Check if API key in header belongs to user
-  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+  const apiKey =
+    req.headers['x-api-key'] ||
+    req.headers['authorization']?.replace('Bearer ', '');
 
   if (apiKey) {
     // TODO: Validate API key ownership
@@ -372,7 +398,7 @@ export function isolateApiKeys(req: Request, res: Response, next: NextFunction) 
         userId,
         hasApiKey: !!apiKey,
         path: req.path,
-        method: req.method
+        method: req.method,
       },
       'low'
     );
@@ -386,10 +412,7 @@ export function isolateApiKeys(req: Request, res: Response, next: NextFunction) 
  * Applies all data isolation protections
  */
 export function comprehensiveDataIsolation(collectionName?: string) {
-  const middlewares = [
-    isolateUserData,
-    sanitizeQueryParameters
-  ];
+  const middlewares = [isolateUserData, sanitizeQueryParameters];
 
   if (collectionName) {
     middlewares.push(isolateCollectionData(collectionName));
@@ -401,7 +424,12 @@ export function comprehensiveDataIsolation(collectionName?: string) {
 /**
  * Data isolation error handler
  */
-export function dataIsolationErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+export function dataIsolationErrorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (err instanceof PermissionError) {
     SecurityAuditor.logSecurityEvent(
       'DATA_ISOLATION_VIOLATION',
@@ -410,7 +438,7 @@ export function dataIsolationErrorHandler(err: Error, req: Request, res: Respons
         path: req.path,
         method: req.method,
         error: err.message,
-        ipAddress: req.ip
+        ipAddress: req.ip,
       },
       'high'
     );
@@ -418,7 +446,7 @@ export function dataIsolationErrorHandler(err: Error, req: Request, res: Respons
     return res.status(403).json({
       success: false,
       error: err.message,
-      code: 'ACCESS_DENIED'
+      code: 'ACCESS_DENIED',
     });
   }
 

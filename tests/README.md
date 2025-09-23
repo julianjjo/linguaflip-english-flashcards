@@ -5,6 +5,7 @@ Esta documentación describe la infraestructura de testing mejorada implementada
 ## 📋 Resumen de Cambios
 
 ### ✅ Completado
+
 - **Configuración de Entorno de Testing**: Variables de entorno específicas para diferentes entornos (dev, test, prod)
 - **Configuración Dinámica de URLs**: Eliminación de URLs hardcodeadas, configuración automática basada en entorno
 - **Setup/Teardown Automático**: Servidor de testing que se inicia y detiene automáticamente
@@ -35,6 +36,7 @@ tests/
 ### Variables de Entorno
 
 #### `.env.test` (Testing)
+
 ```bash
 NODE_ENV=test
 TEST_PORT=5174
@@ -49,6 +51,7 @@ MAX_CONCURRENT_TESTS=4
 ```
 
 #### `.env.development` (Development)
+
 ```bash
 NODE_ENV=development
 DEV_PORT=5173
@@ -59,6 +62,7 @@ DEV_TIMEOUT=60000
 ```
 
 #### `.env.production` (Production)
+
 ```bash
 NODE_ENV=production
 PROD_PORT=3000
@@ -114,17 +118,20 @@ NODE_ENV=production npm test
 ### APIs Soportadas
 
 #### 1. Gemini API (`/gemini/*`)
+
 - **Endpoint**: `POST /gemini/generate`
 - **Respuesta**: Mock de generación de flashcards
 - **Configuración**: `MOCK_GEMINI_API=true`
 
 #### 2. Speech Synthesis API (`/speech/*`)
+
 - **Endpoints**:
   - `POST /speech/synthesize` - Genera audio mock
   - `GET /speech/voices` - Lista voces disponibles
 - **Configuración**: `MOCK_SPEECH_SYNTHESIS=true`
 
 #### 3. Imágenes Externas (`/picsum/*`)
+
 - **Endpoint**: `GET /picsum/{width}/{height}`
 - **Respuesta**: Imagen mock (buffer simple)
 - **Configuración**: `MOCK_EXTERNAL_IMAGES=true`
@@ -133,12 +140,12 @@ NODE_ENV=production npm test
 
 ```javascript
 // En test-config.js
-getMockConfig() {
+function getMockConfig() {
   return {
     useMocks: this.config.USE_MOCKS === 'true',
     mockGemini: this.config.MOCK_GEMINI_API === 'true',
     mockSpeech: this.config.MOCK_SPEECH_SYNTHESIS === 'true',
-    mockImages: this.config.MOCK_EXTERNAL_IMAGES === 'true'
+    mockImages: this.config.MOCK_EXTERNAL_IMAGES === 'true',
   };
 }
 ```
@@ -149,10 +156,10 @@ getMockConfig() {
 
 ```javascript
 // En test-config.js
-getParallelConfig() {
+function getParallelConfig() {
   return {
     enabled: this.config.TEST_PARALLEL !== 'false',
-    maxConcurrent: parseInt(this.config.MAX_CONCURRENT_TESTS) || 4
+    maxConcurrent: parseInt(this.config.MAX_CONCURRENT_TESTS) || 4,
   };
 }
 ```
@@ -163,11 +170,10 @@ getParallelConfig() {
 import { runParallel } from './test-utils.js';
 
 // Ejecutar tests en paralelo
-await runParallel([
-  () => testFunction1(),
-  () => testFunction2(),
-  () => testFunction3()
-], { maxConcurrent: 3 });
+await runParallel(
+  [() => testFunction1(), () => testFunction2(), () => testFunction3()],
+  { maxConcurrent: 3 }
+);
 ```
 
 ## ⏱️ Timeouts Dinámicos
@@ -176,15 +182,17 @@ await runParallel([
 
 ```javascript
 // Timeouts basados en entorno
-getTimeouts() {
+function getTimeouts() {
   const env = this.getEnvironment();
-  const prefix = env === 'production' ? 'PROD' : env === 'development' ? 'DEV' : 'TEST';
+  const prefix =
+    env === 'production' ? 'PROD' : env === 'development' ? 'DEV' : 'TEST';
 
   return {
     test: parseInt(this.config[`${prefix}_TIMEOUT`]) || 30000,
     pageLoad: parseInt(this.config[`${prefix}_PAGE_LOAD_TIMEOUT`]) || 10000,
-    elementWait: parseInt(this.config[`${prefix}_ELEMENT_WAIT_TIMEOUT`]) || 5000,
-    healthCheck: parseInt(this.config.HEALTH_CHECK_TIMEOUT) || 5000
+    elementWait:
+      parseInt(this.config[`${prefix}_ELEMENT_WAIT_TIMEOUT`]) || 5000,
+    healthCheck: parseInt(this.config.HEALTH_CHECK_TIMEOUT) || 5000,
   };
 }
 ```
@@ -195,7 +203,7 @@ getTimeouts() {
 import { getDynamicTimeout } from './test-utils.js';
 
 // Timeout dinámico basado en entorno
-it('should load page', async function() {
+it('should load page', async function () {
   this.timeout(getDynamicTimeout(30000));
   // ... test code
 });
@@ -206,11 +214,11 @@ it('should load page', async function() {
 ### Configuración
 
 ```javascript
-getHealthCheckConfig() {
+function getHealthCheckConfig() {
   return {
     enabled: this.config.HEALTH_CHECK_ENABLED === 'true',
     timeout: parseInt(this.config.HEALTH_CHECK_TIMEOUT) || 5000,
-    retries: parseInt(this.config.HEALTH_CHECK_RETRIES) || 3
+    retries: parseInt(this.config.HEALTH_CHECK_RETRIES) || 3,
   };
 }
 ```
@@ -277,7 +285,7 @@ import {
   resolveApiUrl,
   measurePerformance,
   logMemoryUsage,
-  cleanup
+  cleanup,
 } from './test-utils.js';
 ```
 
@@ -291,7 +299,9 @@ await waitForElement(page, '.flashcard', { timeout: 10000 });
 await retry(() => flakyOperation(), { maxRetries: 3, delay: 1000 });
 
 // Medición de rendimiento
-const { result, duration } = await measurePerformance(() => expensiveOperation());
+const { result, duration } = await measurePerformance(() =>
+  expensiveOperation()
+);
 console.log(`Operation took ${duration}ms`);
 ```
 
@@ -370,24 +380,28 @@ tail -f test-results/test.log
 ### Problemas Comunes
 
 #### 1. Tests Fallan por Timeouts
+
 ```bash
 # Solución: Aumentar timeouts en CI
 CI=true TEST_TIMEOUT=60000 npm run test:ci
 ```
 
 #### 2. Puerto ya en Uso
+
 ```bash
 # Solución: Cambiar puerto de test
 TEST_PORT=5175 npm test
 ```
 
 #### 3. Mocks no Funcionan
+
 ```bash
 # Solución: Verificar configuración
 USE_MOCKS=true MOCK_GEMINI_API=true npm test
 ```
 
 #### 4. Memoria Insuficiente
+
 ```bash
 # Solución: Reducir concurrencia
 MAX_CONCURRENT_TESTS=2 npm run test:parallel

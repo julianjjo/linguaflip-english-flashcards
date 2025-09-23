@@ -62,8 +62,14 @@ class MockServer {
 
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, OPTIONS'
+    );
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
@@ -75,9 +81,15 @@ class MockServer {
     // Route requests to appropriate mock handlers
     if (this.mockConfig.mockGemini && url.pathname.startsWith('/gemini')) {
       this.handleGeminiRequest(req, res, url);
-    } else if (this.mockConfig.mockSpeech && url.pathname.startsWith('/speech')) {
+    } else if (
+      this.mockConfig.mockSpeech &&
+      url.pathname.startsWith('/speech')
+    ) {
       this.handleSpeechRequest(req, res, url);
-    } else if (this.mockConfig.mockImages && url.pathname.startsWith('/picsum')) {
+    } else if (
+      this.mockConfig.mockImages &&
+      url.pathname.startsWith('/picsum')
+    ) {
       this.handleImageRequest(req, res, url);
     } else {
       this.handleNotFound(req, res);
@@ -91,7 +103,7 @@ class MockServer {
     if (req.method === 'POST' && url.pathname === '/gemini/generate') {
       let body = '';
 
-      req.on('data', chunk => {
+      req.on('data', (chunk) => {
         body += chunk.toString();
       });
 
@@ -124,40 +136,48 @@ class MockServer {
     // Mock flashcard generation response
     if (prompt && prompt.toLowerCase().includes('flashcard')) {
       return {
-        candidates: [{
-          content: {
-            parts: [{
-              text: JSON.stringify({
-                front: `Mock front for: ${prompt.substring(0, 50)}...`,
-                back: `Mock back explanation for: ${prompt.substring(0, 50)}...`,
-                language: language,
-                difficulty: 'intermediate'
-              })
-            }]
-          }
-        }],
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({
+                    front: `Mock front for: ${prompt.substring(0, 50)}...`,
+                    back: `Mock back explanation for: ${prompt.substring(0, 50)}...`,
+                    language: language,
+                    difficulty: 'intermediate',
+                  }),
+                },
+              ],
+            },
+          },
+        ],
         usageMetadata: {
           promptTokenCount: 100,
           candidatesTokenCount: 150,
-          totalTokenCount: 250
-        }
+          totalTokenCount: 250,
+        },
       };
     }
 
     // Default mock response
     return {
-      candidates: [{
-        content: {
-          parts: [{
-            text: `Mock response for prompt: ${prompt || 'No prompt provided'}`
-          }]
-        }
-      }],
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: `Mock response for prompt: ${prompt || 'No prompt provided'}`,
+              },
+            ],
+          },
+        },
+      ],
       usageMetadata: {
         promptTokenCount: 50,
         candidatesTokenCount: 75,
-        totalTokenCount: 125
-      }
+        totalTokenCount: 125,
+      },
     };
   }
 
@@ -171,7 +191,7 @@ class MockServer {
 
       res.writeHead(200, {
         'Content-Type': 'audio/mpeg',
-        'Content-Length': mockAudioBuffer.length
+        'Content-Length': mockAudioBuffer.length,
       });
       res.end(mockAudioBuffer);
     } else if (req.method === 'GET' && url.pathname === '/speech/voices') {
@@ -179,7 +199,7 @@ class MockServer {
       const mockVoices = [
         { name: 'en-US-Wavenet-A', language: 'en-US', gender: 'female' },
         { name: 'en-US-Wavenet-B', language: 'en-US', gender: 'male' },
-        { name: 'es-ES-Wavenet-A', language: 'es-ES', gender: 'female' }
+        { name: 'es-ES-Wavenet-A', language: 'es-ES', gender: 'female' },
       ];
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -206,7 +226,7 @@ class MockServer {
       res.writeHead(200, {
         'Content-Type': 'image/jpeg',
         'Content-Length': mockImageBuffer.length,
-        'Cache-Control': 'public, max-age=3600'
+        'Cache-Control': 'public, max-age=3600',
       });
       res.end(mockImageBuffer);
     } else {
@@ -231,16 +251,18 @@ class MockServer {
    */
   handleNotFound(req, res) {
     res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      error: 'Mock endpoint not found',
-      requestedUrl: req.url,
-      availableEndpoints: [
-        '/gemini/generate (POST)',
-        '/speech/synthesize (POST)',
-        '/speech/voices (GET)',
-        '/picsum/{width}/{height} (GET)'
-      ]
-    }));
+    res.end(
+      JSON.stringify({
+        error: 'Mock endpoint not found',
+        requestedUrl: req.url,
+        availableEndpoints: [
+          '/gemini/generate (POST)',
+          '/speech/synthesize (POST)',
+          '/speech/voices (GET)',
+          '/picsum/{width}/{height} (GET)',
+        ],
+      })
+    );
   }
 
   /**

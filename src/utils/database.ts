@@ -21,7 +21,7 @@ const SCHEMA_STATEMENTS: string[] = [
     updatedAt TEXT NOT NULL,
     document TEXT NOT NULL
   )`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)` ,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)`,
   `CREATE TABLE IF NOT EXISTS flashcards (
     id TEXT PRIMARY KEY,
     userId TEXT NOT NULL,
@@ -116,12 +116,20 @@ export class DatabaseConnection {
     this.initialized = false;
   }
 
-  public async healthCheck(): Promise<{ status: string; database: string; mode: DatabaseMode; tables?: string[]; error?: string }> {
+  public async healthCheck(): Promise<{
+    status: string;
+    database: string;
+    mode: DatabaseMode;
+    tables?: string[];
+    error?: string;
+  }> {
     try {
       await this.connect();
-      const tableResult = await d1Client.execute("SELECT name FROM sqlite_master WHERE type='table'");
+      const tableResult = await d1Client.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'"
+      );
       const tables = (tableResult.results || [])
-        .map(row => (typeof row.name === 'string' ? row.name : undefined))
+        .map((row) => (typeof row.name === 'string' ? row.name : undefined))
         .filter((name): name is string => Boolean(name));
 
       return {

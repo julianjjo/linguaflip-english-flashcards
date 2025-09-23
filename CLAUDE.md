@@ -5,12 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [byterover-mcp]
 
 # Important Instructions
-- Always use byterover-retrieve-knowledge tool to get the related context before any tasks 
+
+- Always use byterover-retrieve-knowledge tool to get the related context before any tasks
 - Always use byterover-store-knowledge to store all the critical informations after sucessful tasks
 - Do what has been asked; nothing more, nothing less
 - NEVER create files unless they're absolutely necessary for achieving your goal
 - ALWAYS prefer editing an existing file to creating a new one
-- NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User
+- NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User
 - BEFORE always change valid with playwright is correct in the webpage local
 
 ## Architecture Overview
@@ -50,7 +51,7 @@ LinguaFlip is an AI-powered English flashcard application built with Astro, Reac
 
 ### Data Architecture & Storage
 
-- **Hybrid Storage System**: 
+- **Hybrid Storage System**:
   - **Client-side**: localStorage for offline functionality and fast access
   - **Server-side**: MongoDB for persistent storage and cross-device sync
   - **Synchronization**: Automatic sync with conflict resolution and offline support
@@ -76,6 +77,7 @@ LinguaFlip is an AI-powered English flashcard application built with Astro, Reac
 ## Development Commands
 
 ### Core Development
+
 ```bash
 astro dev               # Development server (http://localhost:4321)
 astro build            # Production build to dist/
@@ -85,6 +87,7 @@ astro check --watch    # Watch mode for type checking
 ```
 
 ### Testing & Quality
+
 ```bash
 npm test               # Run all tests (calls run-tests.js)
 npm run test:design    # Visual/design tests with Puppeteer (30s timeout)
@@ -97,6 +100,7 @@ npm run design-review  # Generate design review report and screenshots
 ```
 
 ### Code Quality & Linting
+
 ```bash
 npm run lint           # ESLint check (.js,.jsx,.ts,.tsx,.astro files)
 npm run lint:fix       # Auto-fix linting issues
@@ -106,6 +110,7 @@ npm run type-check     # TypeScript type checking (no emit)
 ```
 
 ### Utility Commands
+
 ```bash
 npm run clean          # Remove dist, node_modules/.astro, test-results
 npm run deploy         # Build and preview (for deployment prep)
@@ -116,12 +121,14 @@ npm run test:cleanup   # Clean up test environment
 ### Environment Setup
 
 Multiple environment files for different contexts:
+
 - `.env.local` - Local development (not committed)
 - `.env.development` - Development environment
-- `.env.production` - Production environment  
+- `.env.production` - Production environment
 - `.env.test` - Test environment
 
 Required environment variables:
+
 ```bash
 GEMINI_API_KEY=your_gemini_api_key_here
 MONGODB_URI=mongodb://localhost:27017/linguaflip  # or MongoDB Atlas URI
@@ -157,6 +164,7 @@ JWT_SECRET=your_jwt_secret_here
 ## Project Structure & Key Patterns
 
 ### File Organization
+
 - **Astro Pages**: `src/pages/` - SSR pages with .astro extension
 - **React Components**: `src/components/` - Interactive UI components (.tsx)
 - **Hooks**: `src/hooks/` - Custom React hooks for state and effects
@@ -167,6 +175,7 @@ JWT_SECRET=your_jwt_secret_here
 - **Middleware**: `src/middleware/` - Astro middleware for auth/routing
 
 ### Key Development Patterns
+
 - **Server/Client Separation**: SSR pages with client-side React islands
 - **Data Synchronization**: Automatic sync between localStorage and MongoDB
 - **Authentication Flow**: JWT-based auth with secure token storage
@@ -174,6 +183,7 @@ JWT_SECRET=your_jwt_secret_here
 - **Type Safety**: Strict TypeScript with comprehensive type definitions
 
 ### Testing Strategy
+
 - **Visual Testing**: Puppeteer for UI component validation and screenshot comparison
 - **Interaction Testing**: Automated user interaction simulation with gesture support
 - **MongoDB Testing**: In-memory database for isolation and speed
@@ -184,8 +194,9 @@ JWT_SECRET=your_jwt_secret_here
 - **Health Checks**: Database connectivity and service availability tests
 
 ### Test File Structure
+
 - `tests/design-tests.js` - Visual component validation
-- `tests/interaction-tests.js` - User interaction simulation  
+- `tests/interaction-tests.js` - User interaction simulation
 - `tests/flashcard-flip-test.cjs` - Flashcard component testing
 - `tests/auth-integration-test.js` - Authentication flow testing
 - `tests/hybrid-storage-test.js` - Storage synchronization testing

@@ -117,7 +117,12 @@ export interface DeckProgress {
 }
 
 // Study Session Customization Types
-export type StudyMode = 'review-only' | 'new-cards-only' | 'mixed' | 'difficult-cards' | 'custom';
+export type StudyMode =
+  | 'review-only'
+  | 'new-cards-only'
+  | 'mixed'
+  | 'difficult-cards'
+  | 'custom';
 
 export type DifficultyLevel = 'easy' | 'medium' | 'hard';
 
@@ -274,5 +279,8 @@ export interface StudyPreset {
   description: string;
   icon: string;
   category: 'beginner' | 'intermediate' | 'advanced' | 'review' | 'intensive';
-  config: Omit<StudyProfile, 'id' | 'name' | 'description' | 'createdAt' | 'updatedAt' | 'isDefault'>;
+  config: Omit<
+    StudyProfile,
+    'id' | 'name' | 'description' | 'createdAt' | 'updatedAt' | 'isDefault'
+  >;
 }

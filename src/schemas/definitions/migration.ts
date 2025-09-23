@@ -1,6 +1,6 @@
 /**
  * Migration Schema Definition for MongoDB
- * 
+ *
  * This schema defines the structure for migration tracking documents in the LinguaFlip application.
  * It includes migration metadata, version tracking, and success/failure information.
  */
@@ -16,33 +16,33 @@ export const MigrationSchema = {
       properties: {
         migrationId: {
           bsonType: 'string',
-          description: 'Unique migration identifier'
+          description: 'Unique migration identifier',
         },
         version: {
           bsonType: 'string',
-          description: 'Schema version'
+          description: 'Schema version',
         },
         description: {
           bsonType: 'string',
-          description: 'Migration description'
+          description: 'Migration description',
         },
         appliedAt: {
           bsonType: 'date',
-          description: 'Migration application timestamp'
+          description: 'Migration application timestamp',
         },
         checksum: {
           bsonType: 'string',
-          description: 'Migration checksum for validation'
+          description: 'Migration checksum for validation',
         },
         success: {
           bsonType: 'bool',
-          description: 'Migration success status'
+          description: 'Migration success status',
         },
         error: {
           bsonType: 'string',
-          description: 'Migration error message'
-        }
-      }
-    }
-  }
+          description: 'Migration error message',
+        },
+      },
+    },
+  },
 };

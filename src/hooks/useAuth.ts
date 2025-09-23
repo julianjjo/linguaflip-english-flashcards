@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   SecureTokenStorage,
   TokenRefreshManager,
-  AuthStateManager
+  AuthStateManager,
 } from '../utils/tokenStorage';
 import { SecurityAuditor } from '../utils/security';
 
@@ -73,14 +73,14 @@ export function useAuth(): AuthHookReturn {
     user: null,
     isAuthenticated: false,
     isLoading: true,
-    error: null
+    error: null,
   });
 
   /**
    * Update authentication state
    */
   const updateAuthState = useCallback((updates: Partial<AuthState>) => {
-    setAuthState(prev => ({ ...prev, ...updates }));
+    setAuthState((prev) => ({ ...prev, ...updates }));
   }, []);
 
   /**
@@ -94,168 +94,178 @@ export function useAuth(): AuthHookReturn {
    * Update user data
    */
   const updateUser = useCallback((userData: Partial<User>) => {
-    setAuthState(prev => ({
+    setAuthState((prev) => ({
       ...prev,
-      user: prev.user ? { ...prev.user, ...userData } : null
+      user: prev.user ? { ...prev.user, ...userData } : null,
     }));
   }, []);
 
   /**
    * Login user
    */
-  const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
-    try {
-      updateAuthState({ isLoading: true, error: null });
+  const login = useCallback(
+    async (credentials: LoginCredentials): Promise<boolean> => {
+      try {
+        updateAuthState({ isLoading: true, error: null });
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        const errorMessage = data.error || 'Login failed';
+        if (!response.ok || !data.success) {
+          const errorMessage = data.error || 'Login failed';
+          updateAuthState({
+            isLoading: false,
+            error: errorMessage,
+            isAuthenticated: false,
+            user: null,
+          });
+
+          SecurityAuditor.logSecurityEvent(
+            'LOGIN_FAILED',
+            { email: credentials.email, error: errorMessage },
+            'medium'
+          );
+
+          return false;
+        }
+
+        // Store tokens securely
+        await SecureTokenStorage.storeAccessToken(
+          data.data.accessToken,
+          data.data.expiresIn / 1000 // Convert to seconds
+        );
+
+        // Store refresh token reference
+        SecureTokenStorage.storeRefreshTokenReference(data.data.refreshToken);
+
+        // Update authentication state
+        updateAuthState({
+          user: data.data.user,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+
+        // Start automatic token refresh
+        TokenRefreshManager.startAutoRefresh();
+
+        SecurityAuditor.logSecurityEvent(
+          'LOGIN_SUCCESS',
+          { userId: data.data.user.userId, email: data.data.user.email },
+          'low'
+        );
+
+        return true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Login failed';
         updateAuthState({
           isLoading: false,
           error: errorMessage,
           isAuthenticated: false,
-          user: null
+          user: null,
         });
 
         SecurityAuditor.logSecurityEvent(
-          'LOGIN_FAILED',
-          { email: credentials.email, error: errorMessage },
+          'LOGIN_ERROR',
+          { error: errorMessage },
           'medium'
         );
 
         return false;
       }
-
-      // Store tokens securely
-      await SecureTokenStorage.storeAccessToken(
-        data.data.accessToken,
-        data.data.expiresIn / 1000 // Convert to seconds
-      );
-
-      // Store refresh token reference
-      SecureTokenStorage.storeRefreshTokenReference(data.data.refreshToken);
-
-      // Update authentication state
-      updateAuthState({
-        user: data.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null
-      });
-
-      // Start automatic token refresh
-      TokenRefreshManager.startAutoRefresh();
-
-      SecurityAuditor.logSecurityEvent(
-        'LOGIN_SUCCESS',
-        { userId: data.data.user.userId, email: data.data.user.email },
-        'low'
-      );
-
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      updateAuthState({
-        isLoading: false,
-        error: errorMessage,
-        isAuthenticated: false,
-        user: null
-      });
-
-      SecurityAuditor.logSecurityEvent(
-        'LOGIN_ERROR',
-        { error: errorMessage },
-        'medium'
-      );
-
-      return false;
-    }
-  }, [updateAuthState]);
+    },
+    [updateAuthState]
+  );
 
   /**
    * Register new user
    */
-  const register = useCallback(async (registerData: RegisterData): Promise<boolean> => {
-    try {
-      updateAuthState({ isLoading: true, error: null });
+  const register = useCallback(
+    async (registerData: RegisterData): Promise<boolean> => {
+      try {
+        updateAuthState({ isLoading: true, error: null });
 
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registerData),
-      });
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(registerData),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        const errorMessage = data.error || 'Registration failed';
+        if (!response.ok || !data.success) {
+          const errorMessage = data.error || 'Registration failed';
+          updateAuthState({
+            isLoading: false,
+            error: errorMessage,
+          });
+
+          SecurityAuditor.logSecurityEvent(
+            'REGISTRATION_FAILED',
+            { email: registerData.email, error: errorMessage },
+            'medium'
+          );
+
+          return false;
+        }
+
+        // Store tokens securely
+        await SecureTokenStorage.storeAccessToken(
+          data.data.tokens.accessToken,
+          data.data.tokens.expiresIn / 1000
+        );
+
+        SecureTokenStorage.storeRefreshTokenReference(
+          data.data.tokens.refreshToken
+        );
+
+        // Update authentication state
+        updateAuthState({
+          user: data.data.user,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+
+        // Start automatic token refresh
+        TokenRefreshManager.startAutoRefresh();
+
+        SecurityAuditor.logSecurityEvent(
+          'REGISTRATION_SUCCESS',
+          { userId: data.data.user.userId, email: data.data.user.email },
+          'low'
+        );
+
+        return true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Registration failed';
         updateAuthState({
           isLoading: false,
-          error: errorMessage
+          error: errorMessage,
         });
 
         SecurityAuditor.logSecurityEvent(
-          'REGISTRATION_FAILED',
-          { email: registerData.email, error: errorMessage },
+          'REGISTRATION_ERROR',
+          { error: errorMessage },
           'medium'
         );
 
         return false;
       }
-
-      // Store tokens securely
-      await SecureTokenStorage.storeAccessToken(
-        data.data.tokens.accessToken,
-        data.data.tokens.expiresIn / 1000
-      );
-
-      SecureTokenStorage.storeRefreshTokenReference(data.data.tokens.refreshToken);
-
-      // Update authentication state
-      updateAuthState({
-        user: data.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null
-      });
-
-      // Start automatic token refresh
-      TokenRefreshManager.startAutoRefresh();
-
-      SecurityAuditor.logSecurityEvent(
-        'REGISTRATION_SUCCESS',
-        { userId: data.data.user.userId, email: data.data.user.email },
-        'low'
-      );
-
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-      updateAuthState({
-        isLoading: false,
-        error: errorMessage
-      });
-
-      SecurityAuditor.logSecurityEvent(
-        'REGISTRATION_ERROR',
-        { error: errorMessage },
-        'medium'
-      );
-
-      return false;
-    }
-  }, [updateAuthState]);
+    },
+    [updateAuthState]
+  );
 
   /**
    * Logout user
@@ -281,7 +291,7 @@ export function useAuth(): AuthHookReturn {
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: null
+        error: null,
       });
 
       SecurityAuditor.logSecurityEvent(
@@ -300,7 +310,7 @@ export function useAuth(): AuthHookReturn {
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: null
+        error: null,
       });
 
       SecurityAuditor.logSecurityEvent(
@@ -322,15 +332,15 @@ export function useAuth(): AuthHookReturn {
         // Get updated user info
         const response = await fetch('/api/auth/me', {
           headers: {
-            'Authorization': `Bearer ${newToken}`
-          }
+            Authorization: `Bearer ${newToken}`,
+          },
         });
 
         if (response.ok) {
           const data = await response.json();
           updateAuthState({
             user: data.data,
-            isAuthenticated: true
+            isAuthenticated: true,
           });
         }
 
@@ -359,8 +369,8 @@ export function useAuth(): AuthHookReturn {
         if (token) {
           const response = await fetch('/api/auth/me', {
             headers: {
-              'Authorization': `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           });
 
           if (response.ok) {
@@ -368,7 +378,7 @@ export function useAuth(): AuthHookReturn {
             updateAuthState({
               user: data.data,
               isAuthenticated: true,
-              isLoading: false
+              isLoading: false,
             });
             return;
           }
@@ -378,14 +388,14 @@ export function useAuth(): AuthHookReturn {
       updateAuthState({
         user: null,
         isAuthenticated: false,
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
       console.error('Auth check error:', error);
       updateAuthState({
         user: null,
         isAuthenticated: false,
-        isLoading: false
+        isLoading: false,
       });
     }
   }, [updateAuthState]);
@@ -402,7 +412,7 @@ export function useAuth(): AuthHookReturn {
         updateAuthState({
           user: null,
           isAuthenticated: false,
-          isLoading: false
+          isLoading: false,
         });
       }
     });
@@ -417,17 +427,20 @@ export function useAuth(): AuthHookReturn {
     logout,
     refreshToken,
     clearError,
-    updateUser
+    updateUser,
   };
 }
 
 /**
  * Hook for checking authentication status only
  */
-export function useAuthStatus(): { isAuthenticated: boolean; isLoading: boolean } {
+export function useAuthStatus(): {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+} {
   const [authStatus, setAuthStatus] = useState({
     isAuthenticated: false,
-    isLoading: true
+    isLoading: true,
   });
 
   useEffect(() => {
@@ -477,8 +490,8 @@ export function useCurrentUser(): User | null {
         if (token) {
           const response = await fetch('/api/auth/me', {
             headers: {
-              'Authorization': `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           });
 
           if (response.ok) {
@@ -508,7 +521,7 @@ export function useTokenManager() {
     hasAccessToken: false,
     hasRefreshToken: false,
     timeUntilExpiry: 0,
-    isExpired: true
+    isExpired: true,
   });
 
   const updateTokenInfo = useCallback(async () => {
@@ -521,7 +534,7 @@ export function useTokenManager() {
       hasAccessToken,
       hasRefreshToken,
       timeUntilExpiry,
-      isExpired
+      isExpired,
     });
   }, []);
 
@@ -537,6 +550,6 @@ export function useTokenManager() {
   return {
     ...tokenInfo,
     refreshToken: TokenRefreshManager.refreshAccessToken,
-    clearTokens: SecureTokenStorage.clearTokens
+    clearTokens: SecureTokenStorage.clearTokens,
   };
 }

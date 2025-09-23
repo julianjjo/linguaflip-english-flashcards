@@ -6,16 +6,16 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     // Get authorization header
     const authHeader = request.headers.get('Authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Authorization header missing or invalid'
+          error: 'Authorization header missing or invalid',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -23,9 +23,10 @@ export const GET: APIRoute = async ({ request }) => {
     const accessToken = authHeader.substring(7);
 
     // Get client IP for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIP =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     // Verify token
     const result = await verifyAccessToken(accessToken);
@@ -40,11 +41,11 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Token verification failed'
+          error: result.error || 'Token verification failed',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -61,15 +62,14 @@ export const GET: APIRoute = async ({ request }) => {
         success: true,
         data: {
           valid: true,
-          payload: result.data
-        }
+          payload: result.data,
+        },
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('Token verification API error:', error);
 
@@ -82,11 +82,11 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Token verification failed'
+        error: 'Token verification failed',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

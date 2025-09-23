@@ -1,8 +1,15 @@
 import { useStore } from '@nanostores/react';
 import { flashcardsStore, flashcardsActions } from '../stores/flashcards.js';
-import { studyHistoryStore, studySessionStore, studySessionActions } from '../stores/study.js';
+import {
+  studyHistoryStore,
+  studySessionStore,
+  studySessionActions,
+} from '../stores/study.js';
 import type { FlashcardData } from '../types/index.js';
-import { INITIAL_FLASHCARDS_DATA, DEFAULT_EASINESS_FACTOR } from '../../constants.js';
+import {
+  INITIAL_FLASHCARDS_DATA,
+  DEFAULT_EASINESS_FACTOR,
+} from '../../constants.js';
 
 export const useAppState = () => {
   const allCards = useStore(flashcardsStore);
@@ -21,31 +28,33 @@ export const useAppState = () => {
           storedCards = JSON.parse(storedCardsString) as FlashcardData[];
         }
       } catch (error) {
-        console.error("Failed to parse cards from localStorage:", error);
+        console.error('Failed to parse cards from localStorage:', error);
         localStorage.removeItem('linguaFlipCards');
       }
 
       if (storedCards && storedCards.length > 0) {
-        const migratedCards = storedCards.map(card => ({
+        const migratedCards = storedCards.map((card) => ({
           ...card,
           dueDate: card.dueDate || getTodayDateString(),
           interval: card.interval === undefined ? 0 : card.interval,
           easinessFactor: card.easinessFactor || DEFAULT_EASINESS_FACTOR,
           repetitions: card.repetitions === undefined ? 0 : card.repetitions,
           lastReviewed: card.lastReviewed || null,
-          image: card.image || `https://picsum.photos/320/180?random=${card.id}`
+          image:
+            card.image || `https://picsum.photos/320/180?random=${card.id}`,
         }));
         flashcardsActions.setFlashcards(migratedCards);
       } else {
         const today = getTodayDateString();
-        const initialCards = INITIAL_FLASHCARDS_DATA.map(card => ({
+        const initialCards = INITIAL_FLASHCARDS_DATA.map((card) => ({
           ...card,
           dueDate: today,
           interval: 0,
           easinessFactor: DEFAULT_EASINESS_FACTOR,
           repetitions: 0,
           lastReviewed: null,
-          image: card.image || `https://picsum.photos/320/180?random=${card.id}`
+          image:
+            card.image || `https://picsum.photos/320/180?random=${card.id}`,
         }));
         flashcardsActions.setFlashcards(initialCards);
         localStorage.setItem('linguaFlipCards', JSON.stringify(initialCards));
@@ -65,7 +74,9 @@ export const useAppState = () => {
 
   const updateCard = (updatedCard: FlashcardData) => {
     flashcardsActions.updateFlashcard(updatedCard.id, updatedCard);
-    const updatedCards = allCards.map((c: FlashcardData) => c.id === updatedCard.id ? updatedCard : c);
+    const updatedCards = allCards.map((c: FlashcardData) =>
+      c.id === updatedCard.id ? updatedCard : c
+    );
     localStorage.setItem('linguaFlipCards', JSON.stringify(updatedCards));
   };
 

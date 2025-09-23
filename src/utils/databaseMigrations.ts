@@ -53,20 +53,29 @@ export async function getDatabaseHealthWithMigrations(): Promise<{
   };
 }
 
-export async function createMigrationBackup(collectionName: string): Promise<string> {
+export async function createMigrationBackup(
+  collectionName: string
+): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupName = `${collectionName}_backup_${timestamp}`;
-  console.warn(`Backups are not implemented for Cloudflare D1. Requested backup: ${backupName}`);
+  console.warn(
+    `Backups are not implemented for Cloudflare D1. Requested backup: ${backupName}`
+  );
   return backupName;
 }
 
-export async function restoreMigrationBackup(_collectionName: string, _backupName: string): Promise<void> {
+export async function restoreMigrationBackup(
+  _collectionName: string,
+  _backupName: string
+): Promise<void> {
   throw new Error('Backup restoration is not implemented for Cloudflare D1');
 }
 
 export async function listMigrations(): Promise<Migration[]> {
-  const result = await d1Client.execute('SELECT id, version, description, checksum FROM migrations ORDER BY appliedAt DESC');
-  return (result.results || []).map(row => ({
+  const result = await d1Client.execute(
+    'SELECT id, version, description, checksum FROM migrations ORDER BY appliedAt DESC'
+  );
+  return (result.results || []).map((row) => ({
     id: String(row.id),
     version: String(row.version),
     description: String(row.description || ''),

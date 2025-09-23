@@ -38,7 +38,8 @@ declare global {
 
 // Authentication configuration
 const AUTH_CONFIG = {
-  jwtSecret: process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
+  jwtSecret:
+    process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
 };
 
 /**
@@ -80,7 +81,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
       return res.status(401).json({
         success: false,
         error: 'Access token required',
-        code: 'AUTH_TOKEN_MISSING'
+        code: 'AUTH_TOKEN_MISSING',
       });
     }
 
@@ -90,13 +91,17 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     if (!decoded || !decoded.userId) {
       SecurityAuditor.logSecurityEvent(
         'INVALID_AUTH_TOKEN',
-        { path: req.path, method: req.method, tokenPreview: token.substring(0, 10) + '...' },
+        {
+          path: req.path,
+          method: req.method,
+          tokenPreview: token.substring(0, 10) + '...',
+        },
         'medium'
       );
       return res.status(401).json({
         success: false,
         error: 'Invalid access token',
-        code: 'AUTH_TOKEN_INVALID'
+        code: 'AUTH_TOKEN_INVALID',
       });
     }
 
@@ -116,7 +121,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
         userId: decoded.userId,
         path: req.path,
         method: req.method,
-        ipAddress: clientInfo.ipAddress
+        ipAddress: clientInfo.ipAddress,
       },
       'low'
     );
@@ -129,14 +134,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
         {
           path: req.path,
           method: req.method,
-          error: error.message
+          error: error.message,
         },
         'medium'
       );
       return res.status(401).json({
         success: false,
         error: 'Invalid access token',
-        code: 'AUTH_TOKEN_INVALID'
+        code: 'AUTH_TOKEN_INVALID',
       });
     }
 
@@ -145,14 +150,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
         'TOKEN_EXPIRED',
         {
           path: req.path,
-          method: req.method
+          method: req.method,
         },
         'low'
       );
       return res.status(401).json({
         success: false,
         error: 'Access token expired',
-        code: 'AUTH_TOKEN_EXPIRED'
+        code: 'AUTH_TOKEN_EXPIRED',
       });
     }
 
@@ -161,7 +166,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
       {
         path: req.path,
         method: req.method,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       'high'
     );
@@ -169,7 +174,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return res.status(500).json({
       success: false,
       error: 'Authentication error',
-      code: 'AUTH_ERROR'
+      code: 'AUTH_ERROR',
     });
   }
 }
@@ -233,7 +238,11 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
  * User ownership middleware - ensures user can only access their own data
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function requireOwnership(req: Request, res: Response, next: NextFunction) {
+export function requireOwnership(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   requireAuth(req, res, (err: unknown) => {
     if (err || !req.user) {
       return; // Error already handled by requireAuth
@@ -250,7 +259,7 @@ export function requireOwnership(req: Request, res: Response, next: NextFunction
           authenticatedUserId,
           path: req.path,
           method: req.method,
-          ipAddress: req.ipAddress
+          ipAddress: req.ipAddress,
         },
         'high'
       );
@@ -258,7 +267,7 @@ export function requireOwnership(req: Request, res: Response, next: NextFunction
       return res.status(403).json({
         success: false,
         error: 'Access denied. You can only access your own data.',
-        code: 'ACCESS_DENIED'
+        code: 'ACCESS_DENIED',
       });
     }
 
@@ -282,7 +291,7 @@ export function authRateLimit(req: Request, res: Response, next: NextFunction) {
         identifier,
         path: req.path,
         method: req.method,
-        ipAddress: clientInfo.ipAddress
+        ipAddress: clientInfo.ipAddress,
       },
       'medium'
     );
@@ -291,7 +300,7 @@ export function authRateLimit(req: Request, res: Response, next: NextFunction) {
       success: false,
       error: 'Too many authentication attempts. Please try again later.',
       code: 'RATE_LIMIT_EXCEEDED',
-      retryAfter: 60 // seconds
+      retryAfter: 60, // seconds
     });
   }
 
@@ -305,7 +314,10 @@ export function authCors(req: Request, res: Response, next: NextFunction) {
   // Set CORS headers for authentication endpoints
   res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
   res.header('Access-Control-Allow-Credentials', 'true');
 
   // Handle preflight requests
@@ -320,12 +332,19 @@ export function authCors(req: Request, res: Response, next: NextFunction) {
 /**
  * Security headers middleware
  */
-export function securityHeaders(_req: Request, res: Response, next: NextFunction) {
+export function securityHeaders(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) {
   // Set security headers
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('X-Frame-Options', 'DENY');
   res.header('X-XSS-Protection', '1; mode=block');
-  res.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.header(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains'
+  );
 
   // Remove server information
   res.removeHeader('X-Powered-By');
@@ -348,7 +367,7 @@ export function authLogging(req: Request, res: Response, next: NextFunction) {
       path: req.path,
       ipAddress: clientInfo.ipAddress,
       userAgent: clientInfo.userAgent,
-      hasAuth: !!req.headers.authorization
+      hasAuth: !!req.headers.authorization,
     },
     'low'
   );
@@ -364,7 +383,7 @@ export function authLogging(req: Request, res: Response, next: NextFunction) {
         statusCode: res.statusCode,
         duration,
         ipAddress: clientInfo.ipAddress,
-        userId: req.user?.userId
+        userId: req.user?.userId,
       },
       'low'
     );
@@ -378,12 +397,7 @@ export function authLogging(req: Request, res: Response, next: NextFunction) {
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function secureAuth(required: boolean = true) {
-  const middlewares = [
-    securityHeaders,
-    authCors,
-    authLogging,
-    authRateLimit
-  ];
+  const middlewares = [securityHeaders, authCors, authLogging, authRateLimit];
 
   if (required) {
     middlewares.push(requireAuth);
@@ -398,7 +412,12 @@ export function secureAuth(required: boolean = true) {
  * Authentication error handler
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function authErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+export function authErrorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (err instanceof PermissionError) {
     SecurityAuditor.logSecurityEvent(
       'PERMISSION_DENIED',
@@ -406,7 +425,7 @@ export function authErrorHandler(err: Error, req: Request, res: Response, next: 
         userId: req.user?.userId,
         path: req.path,
         method: req.method,
-        error: err.message
+        error: err.message,
       },
       'medium'
     );
@@ -414,7 +433,7 @@ export function authErrorHandler(err: Error, req: Request, res: Response, next: 
     return res.status(403).json({
       success: false,
       error: err.message,
-      code: 'PERMISSION_DENIED'
+      code: 'PERMISSION_DENIED',
     });
   }
 
@@ -422,7 +441,7 @@ export function authErrorHandler(err: Error, req: Request, res: Response, next: 
     return res.status(400).json({
       success: false,
       error: err.message,
-      code: 'VALIDATION_ERROR'
+      code: 'VALIDATION_ERROR',
     });
   }
 

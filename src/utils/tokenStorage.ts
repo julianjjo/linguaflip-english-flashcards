@@ -28,13 +28,17 @@ export class SecureTokenStorage {
   /**
    * Store access token securely
    */
-  static async storeAccessToken(token: string, expiresIn: number): Promise<void> {
+  static async storeAccessToken(
+    token: string,
+    expiresIn: number
+  ): Promise<void> {
     try {
-      const expiryTime = Date.now() + (expiresIn * 1000);
+      const expiryTime = Date.now() + expiresIn * 1000;
 
       // Encrypt token if encryption is enabled
-      const encryptedToken = this.isEncryptionEnabled ?
-        await this.encryptData(token) : token;
+      const encryptedToken = this.isEncryptionEnabled
+        ? await this.encryptData(token)
+        : token;
 
       // Store in localStorage with additional security measures
       localStorage.setItem(TOKEN_CONFIG.accessTokenKey, encryptedToken);
@@ -49,7 +53,6 @@ export class SecureTokenStorage {
         { hasToken: !!token, expiresIn },
         'low'
       );
-
     } catch (error) {
       console.error('Failed to store access token:', error);
       SecurityAuditor.logSecurityEvent(
@@ -68,7 +71,9 @@ export class SecureTokenStorage {
     try {
       const encryptedToken = localStorage.getItem(TOKEN_CONFIG.accessTokenKey);
       const expiryTime = localStorage.getItem(TOKEN_CONFIG.tokenExpiryKey);
-      const storedChecksum = localStorage.getItem(`${TOKEN_CONFIG.storagePrefix}checksum`);
+      const storedChecksum = localStorage.getItem(
+        `${TOKEN_CONFIG.storagePrefix}checksum`
+      );
 
       if (!encryptedToken || !expiryTime) {
         return null;
@@ -83,8 +88,9 @@ export class SecureTokenStorage {
       }
 
       // Decrypt token
-      const token = this.isEncryptionEnabled ?
-        await this.decryptData(encryptedToken) : encryptedToken;
+      const token = this.isEncryptionEnabled
+        ? await this.decryptData(encryptedToken)
+        : encryptedToken;
 
       // Verify integrity
       if (storedChecksum) {
@@ -149,17 +155,13 @@ export class SecureTokenStorage {
       localStorage.removeItem(`${TOKEN_CONFIG.storagePrefix}checksum`);
 
       // Clear any other secure storage items
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         if (key.startsWith(TOKEN_CONFIG.storagePrefix)) {
           localStorage.removeItem(key);
         }
       });
 
-      SecurityAuditor.logSecurityEvent(
-        'TOKENS_CLEARED',
-        {},
-        'low'
-      );
+      SecurityAuditor.logSecurityEvent('TOKENS_CLEARED', {}, 'low');
     } catch (error) {
       console.error('Failed to clear tokens:', error);
     }
@@ -216,7 +218,9 @@ export class SecureTokenStorage {
       const encryptedBytes = new Uint8Array(encrypted);
 
       // Combine IV and encrypted data so it can be recovered during decryption
-      const combined = new Uint8Array(initializationVector.length + encryptedBytes.length);
+      const combined = new Uint8Array(
+        initializationVector.length + encryptedBytes.length
+      );
       combined.set(initializationVector);
       combined.set(encryptedBytes, initializationVector.length);
 
@@ -234,7 +238,9 @@ export class SecureTokenStorage {
    */
   private static async decryptData(encryptedData: string): Promise<string> {
     try {
-      const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      const combined = Uint8Array.from(atob(encryptedData), (c) =>
+        c.charCodeAt(0)
+      );
       if (combined.length <= 12) {
         throw new Error('Invalid encrypted data');
       }
@@ -276,7 +282,7 @@ export class SecureTokenStorage {
         name: 'PBKDF2',
         salt: encoder.encode('linguaflip_salt'),
         iterations: 100000,
-        hash: 'SHA-256'
+        hash: 'SHA-256',
       },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
@@ -293,7 +299,7 @@ export class SecureTokenStorage {
     const dataBuffer = encoder.encode(data);
     const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -303,7 +309,7 @@ export class SecureTokenStorage {
     let hash = 0;
     for (let i = 0; i < token.length; i++) {
       const char = token.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString();
@@ -335,13 +341,13 @@ export class TokenRefreshManager {
           hasAccessToken,
           hasRefreshToken,
           refreshPromise: !!this.refreshPromise,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         if (timeUntilExpiry > 0 && timeUntilExpiry <= this.REFRESH_THRESHOLD) {
           console.log('[TOKEN_DEBUG] Token near expiry, attempting refresh:', {
             timeUntilExpiry,
-            threshold: this.REFRESH_THRESHOLD
+            threshold: this.REFRESH_THRESHOLD,
           });
           await this.refreshAccessToken();
         } else if (timeUntilExpiry <= 0) {
@@ -382,7 +388,9 @@ export class TokenRefreshManager {
   static async refreshAccessToken(): Promise<string> {
     // Prevent multiple simultaneous refresh attempts
     if (this.refreshPromise) {
-      console.log('[TOKEN_DEBUG] Refresh already in progress, returning existing promise');
+      console.log(
+        '[TOKEN_DEBUG] Refresh already in progress, returning existing promise'
+      );
       return this.refreshPromise;
     }
 
@@ -421,12 +429,17 @@ export class TokenRefreshManager {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('[TOKEN_DEBUG] Refresh token expired (401), clearing tokens');
+          console.log(
+            '[TOKEN_DEBUG] Refresh token expired (401), clearing tokens'
+          );
           // Refresh token is invalid, user needs to login again
           SecureTokenStorage.clearTokens();
           throw new Error('Refresh token expired');
         }
-        console.log('[TOKEN_DEBUG] Refresh failed with status:', response.status);
+        console.log(
+          '[TOKEN_DEBUG] Refresh failed with status:',
+          response.status
+        );
         throw new Error(`Token refresh failed: ${response.status}`);
       }
 
@@ -434,7 +447,7 @@ export class TokenRefreshManager {
       console.log('[TOKEN_DEBUG] Refresh response data:', {
         success: data.success,
         hasAccessToken: !!data.data?.accessToken,
-        hasRefreshToken: !!data.data?.refreshToken
+        hasRefreshToken: !!data.data?.refreshToken,
       });
 
       if (data.success && data.data.accessToken) {
@@ -444,15 +457,14 @@ export class TokenRefreshManager {
           data.data.expiresIn / 1000 // Convert to seconds
         );
 
-        SecurityAuditor.logSecurityEvent(
-          'ACCESS_TOKEN_REFRESHED',
-          {},
-          'low'
-        );
+        SecurityAuditor.logSecurityEvent('ACCESS_TOKEN_REFRESHED', {}, 'low');
 
         return data.data.accessToken;
       } else {
-        console.error('[TOKEN_DEBUG] Invalid refresh response structure:', data);
+        console.error(
+          '[TOKEN_DEBUG] Invalid refresh response structure:',
+          data
+        );
         throw new Error('Invalid refresh response');
       }
     } catch (error) {
@@ -492,15 +504,15 @@ export class AuthStateManager {
       // Verify token with server
       const response = await fetch('/api/auth/verify', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const isAuthenticated = response.ok;
       console.log('[AUTH_DEBUG] Server verification result:', {
         status: response.status,
         isAuthenticated,
-        currentAuthState: this.isAuthenticated
+        currentAuthState: this.isAuthenticated,
       });
 
       this.setAuthenticated(isAuthenticated);
@@ -527,12 +539,15 @@ export class AuthStateManager {
       console.log('[AUTH_DEBUG] Authentication state changing:', {
         from: this.isAuthenticated,
         to: isAuthenticated,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       this.isAuthenticated = isAuthenticated;
       this.notifyListeners(isAuthenticated);
     } else {
-      console.log('[AUTH_DEBUG] Authentication state unchanged:', isAuthenticated);
+      console.log(
+        '[AUTH_DEBUG] Authentication state unchanged:',
+        isAuthenticated
+      );
     }
   }
 
@@ -562,7 +577,7 @@ export class AuthStateManager {
    * Notify all listeners of state change
    */
   private static notifyListeners(isAuthenticated: boolean): void {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(isAuthenticated);
       } catch (error) {
@@ -588,11 +603,13 @@ export function initializeSecureTokenStorage(): void {
   document.addEventListener('visibilitychange', () => {
     console.log('[VISIBILITY_DEBUG] Tab visibility changed:', {
       hidden: document.hidden,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     if (!document.hidden) {
-      console.log('[VISIBILITY_DEBUG] Tab became active, checking authentication');
+      console.log(
+        '[VISIBILITY_DEBUG] Tab became active, checking authentication'
+      );
       AuthStateManager.checkAuthentication();
     }
   });
@@ -604,11 +621,13 @@ export function initializeSecureTokenStorage(): void {
       oldValue: event.oldValue ? 'present' : 'null',
       newValue: event.newValue ? 'present' : 'null',
       url: event.url,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     if (event.key?.startsWith('linguaflip')) {
-      console.log('[STORAGE_DEBUG] LinguaFlip storage change, checking authentication');
+      console.log(
+        '[STORAGE_DEBUG] LinguaFlip storage change, checking authentication'
+      );
       AuthStateManager.checkAuthentication();
     }
   });
@@ -624,5 +643,5 @@ export function initializeSecureTokenStorage(): void {
 export {
   SecureTokenStorage as TokenStorage,
   TokenRefreshManager as TokenManager,
-  AuthStateManager as AuthManager
+  AuthStateManager as AuthManager,
 };

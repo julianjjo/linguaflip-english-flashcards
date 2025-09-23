@@ -19,7 +19,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   animated = true,
   className = '',
   label,
-  indeterminate = false
+  indeterminate = false,
 }) => {
   const getSizeClasses = () => {
     switch (size) {
@@ -39,32 +39,32 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
       case 'primary':
         return {
           bg: 'bg-primary-500',
-          track: 'bg-primary-100 dark:bg-primary-900/30'
+          track: 'bg-primary-100 dark:bg-primary-900/30',
         };
       case 'secondary':
         return {
           bg: 'bg-secondary-500',
-          track: 'bg-secondary-100 dark:bg-secondary-900/30'
+          track: 'bg-secondary-100 dark:bg-secondary-900/30',
         };
       case 'success':
         return {
           bg: 'bg-green-500',
-          track: 'bg-green-100 dark:bg-green-900/30'
+          track: 'bg-green-100 dark:bg-green-900/30',
         };
       case 'warning':
         return {
           bg: 'bg-yellow-500',
-          track: 'bg-yellow-100 dark:bg-yellow-900/30'
+          track: 'bg-yellow-100 dark:bg-yellow-900/30',
         };
       case 'error':
         return {
           bg: 'bg-red-500',
-          track: 'bg-red-100 dark:bg-red-900/30'
+          track: 'bg-red-100 dark:bg-red-900/30',
         };
       default:
         return {
           bg: 'bg-primary-500',
-          track: 'bg-primary-100 dark:bg-primary-900/30'
+          track: 'bg-primary-100 dark:bg-primary-900/30',
         };
     }
   };
@@ -76,7 +76,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className={`w-full ${className}`}>
       {/* Label */}
       {(label || showPercentage) && (
-        <div className="flex justify-between items-center mb-2">
+        <div className="mb-2 flex items-center justify-between">
           {label && (
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {label}
@@ -84,7 +84,9 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
           )}
           {showPercentage && (
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {indeterminate ? 'Procesando...' : `${Math.round(clampedProgress)}%`}
+              {indeterminate
+                ? 'Procesando...'
+                : `${Math.round(clampedProgress)}%`}
             </span>
           )}
         </div>
@@ -92,7 +94,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 
       {/* Progress bar container */}
       <div
-        className={`w-full ${getSizeClasses()} ${colors.track} rounded-full overflow-hidden`}
+        className={`w-full ${getSizeClasses()} ${colors.track} overflow-hidden rounded-full`}
         role="progressbar"
         aria-valuenow={indeterminate ? undefined : clampedProgress}
         aria-valuemin={0}
@@ -101,21 +103,19 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
       >
         {/* Progress fill */}
         <div
-          className={`
-            h-full ${colors.bg} rounded-full transition-all duration-300 ease-out
-            ${animated ? 'transition-all duration-300 ease-out' : ''}
-            ${indeterminate ? 'animate-pulse' : ''}
-          `}
+          className={`h-full ${colors.bg} rounded-full transition-all duration-300 ease-out ${animated ? 'transition-all duration-300 ease-out' : ''} ${indeterminate ? 'animate-pulse' : ''} `}
           style={{
             width: indeterminate ? '100%' : `${clampedProgress}%`,
             transform: indeterminate ? 'translateX(-100%)' : 'none',
-            animation: indeterminate ? 'shimmer 1.5s ease-in-out infinite' : undefined
+            animation: indeterminate
+              ? 'shimmer 1.5s ease-in-out infinite'
+              : undefined,
           }}
         />
 
         {/* Shimmer effect for indeterminate */}
         {indeterminate && (
-          <div className="absolute top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+          <div className="absolute top-0 h-full w-1/3 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         )}
       </div>
     </div>

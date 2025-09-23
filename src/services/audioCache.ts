@@ -24,7 +24,7 @@ export interface AudioCacheOptions {
 const DEFAULT_OPTIONS: AudioCacheOptions = {
   maxCacheSize: 100, // 100MB
   maxEntries: 500,
-  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
 export class AudioCacheService {
@@ -55,7 +55,9 @@ export class AudioCacheService {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => {
-        reject(new Error(`Failed to open IndexedDB: ${request.error?.message}`));
+        reject(
+          new Error(`Failed to open IndexedDB: ${request.error?.message}`)
+        );
       };
 
       request.onsuccess = () => {
@@ -65,11 +67,11 @@ export class AudioCacheService {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create object store if it doesn't exist
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
-          
+
           // Create indexes for efficient querying
           store.createIndex('text', 'text', { unique: false });
           store.createIndex('voice', 'voice', { unique: false });
@@ -93,10 +95,10 @@ export class AudioCacheService {
    * Store audio data in cache
    */
   async storeAudio(
-    text: string, 
-    voice: string, 
-    audioData: Uint8Array, 
-    mimeType: string, 
+    text: string,
+    voice: string,
+    audioData: Uint8Array,
+    mimeType: string,
     duration?: number
   ): Promise<void> {
     try {
@@ -113,23 +115,24 @@ export class AudioCacheService {
         duration,
         timestamp: now,
         accessCount: 1,
-        lastAccessed: now
+        lastAccessed: now,
       };
 
       const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = store.put(cacheEntry);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
 
-      console.log(`[AudioCache] Stored audio for "${text.substring(0, 50)}..." with voice ${voice}`);
-      
+      console.log(
+        `[AudioCache] Stored audio for "${text.substring(0, 50)}..." with voice ${voice}`
+      );
+
       // Cleanup old entries if needed
       await this.cleanup();
-      
     } catch (error) {
       console.error('[AudioCache] Failed to store audio:', error);
       throw error;
@@ -147,19 +150,23 @@ export class AudioCacheService {
       const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
-      const cacheEntry = await new Promise<CachedAudio | null>((resolve, reject) => {
-        const request = store.get(id);
-        request.onsuccess = () => {
-          resolve(request.result || null);
-        };
-        request.onerror = () => reject(request.error);
-      });
+      const cacheEntry = await new Promise<CachedAudio | null>(
+        (resolve, reject) => {
+          const request = store.get(id);
+          request.onsuccess = () => {
+            resolve(request.result || null);
+          };
+          request.onerror = () => reject(request.error);
+        }
+      );
 
       if (cacheEntry) {
         // Check if entry is expired
         const now = Date.now();
         if (now - cacheEntry.timestamp > this.options.maxAge) {
-          console.log(`[AudioCache] Entry expired for "${text.substring(0, 50)}..."`);
+          console.log(
+            `[AudioCache] Entry expired for "${text.substring(0, 50)}..."`
+          );
           await this.removeAudio(text, voice);
           return null;
         }
@@ -167,13 +174,18 @@ export class AudioCacheService {
         // Update access statistics
         cacheEntry.accessCount++;
         cacheEntry.lastAccessed = now;
-        
+
         const updateRequest = store.put(cacheEntry);
         updateRequest.onerror = () => {
-          console.warn('[AudioCache] Failed to update access stats:', updateRequest.error);
+          console.warn(
+            '[AudioCache] Failed to update access stats:',
+            updateRequest.error
+          );
         };
 
-        console.log(`[AudioCache] Retrieved cached audio for "${text.substring(0, 50)}..." (${cacheEntry.accessCount} accesses)`);
+        console.log(
+          `[AudioCache] Retrieved cached audio for "${text.substring(0, 50)}..." (${cacheEntry.accessCount} accesses)`
+        );
         return cacheEntry;
       }
 
@@ -201,7 +213,9 @@ export class AudioCacheService {
         request.onerror = () => reject(request.error);
       });
 
-      console.log(`[AudioCache] Removed audio for "${text.substring(0, 50)}..." with voice ${voice}`);
+      console.log(
+        `[AudioCache] Removed audio for "${text.substring(0, 50)}..." with voice ${voice}`
+      );
     } catch (error) {
       console.error('[AudioCache] Failed to remove audio:', error);
     }
@@ -227,14 +241,17 @@ export class AudioCacheService {
         request.onerror = () => reject(request.error);
       });
 
-      const totalSize = entries.reduce((sum, entry) => sum + entry.audioData.length, 0);
-      const timestamps = entries.map(entry => entry.timestamp);
+      const totalSize = entries.reduce(
+        (sum, entry) => sum + entry.audioData.length,
+        0
+      );
+      const timestamps = entries.map((entry) => entry.timestamp);
 
       return {
         entryCount: entries.length,
         totalSize,
         oldestEntry: timestamps.length > 0 ? Math.min(...timestamps) : null,
-        newestEntry: timestamps.length > 0 ? Math.max(...timestamps) : null
+        newestEntry: timestamps.length > 0 ? Math.max(...timestamps) : null,
       };
     } catch (error) {
       console.error('[AudioCache] Failed to get cache stats:', error);
@@ -242,7 +259,7 @@ export class AudioCacheService {
         entryCount: 0,
         totalSize: 0,
         oldestEntry: null,
-        newestEntry: null
+        newestEntry: null,
       };
     }
   }
@@ -256,7 +273,10 @@ export class AudioCacheService {
       const maxSizeBytes = this.options.maxCacheSize * 1024 * 1024; // Convert MB to bytes
 
       // Check if cleanup is needed
-      if (stats.entryCount <= this.options.maxEntries && stats.totalSize <= maxSizeBytes) {
+      if (
+        stats.entryCount <= this.options.maxEntries &&
+        stats.totalSize <= maxSizeBytes
+      ) {
         return;
       }
 
@@ -273,8 +293,8 @@ export class AudioCacheService {
 
       // Sort by priority: least recently used + least accessed
       entries.sort((a, b) => {
-        const aScore = a.lastAccessed + (a.accessCount * 10000); // Weight access count
-        const bScore = b.lastAccessed + (b.accessCount * 10000);
+        const aScore = a.lastAccessed + a.accessCount * 10000; // Weight access count
+        const bScore = b.lastAccessed + b.accessCount * 10000;
         return aScore - bScore; // Ascending = least valuable first
       });
 
@@ -288,7 +308,7 @@ export class AudioCacheService {
       // Also remove entries if size is exceeded
       let currentSize = stats.totalSize;
       let removeIndex = 0;
-      
+
       while (currentSize > maxSizeBytes && removeIndex < entries.length) {
         currentSize -= entries[removeIndex].audioData.length;
         entriesToRemove = Math.max(entriesToRemove, removeIndex + 1);
@@ -299,7 +319,7 @@ export class AudioCacheService {
       const now = Date.now();
       for (let i = 0; i < Math.min(entriesToRemove, entries.length); i++) {
         const entry = entries[i];
-        
+
         // Always remove expired entries
         if (now - entry.timestamp > this.options.maxAge) {
           await new Promise<void>((resolve, reject) => {
@@ -310,7 +330,9 @@ export class AudioCacheService {
         }
       }
 
-      console.log(`[AudioCache] Cleanup completed. Removed ${entriesToRemove} entries.`);
+      console.log(
+        `[AudioCache] Cleanup completed. Removed ${entriesToRemove} entries.`
+      );
     } catch (error) {
       console.error('[AudioCache] Cleanup failed:', error);
     }
@@ -354,7 +376,7 @@ export class AudioCacheService {
 
       const queryLower = query.toLowerCase();
       const filtered = entries
-        .filter(entry => entry.text.toLowerCase().includes(queryLower))
+        .filter((entry) => entry.text.toLowerCase().includes(queryLower))
         .sort((a, b) => b.lastAccessed - a.lastAccessed)
         .slice(0, limit);
 
@@ -368,7 +390,9 @@ export class AudioCacheService {
   /**
    * Preload audio for common phrases
    */
-  async preloadCommonPhrases(phrases: Array<{ text: string; voice: string }>): Promise<void> {
+  async preloadCommonPhrases(
+    phrases: Array<{ text: string; voice: string }>
+  ): Promise<void> {
     // This would typically call the TTS API to pre-generate audio
     // Implementation depends on the TTS service integration
     console.log(`[AudioCache] Would preload ${phrases.length} common phrases`);
@@ -394,7 +418,9 @@ export class AudioCacheService {
 // Export singleton instance
 let audioCacheInstance: AudioCacheService | null = null;
 
-export const getAudioCache = (options?: Partial<AudioCacheOptions>): AudioCacheService => {
+export const getAudioCache = (
+  options?: Partial<AudioCacheOptions>
+): AudioCacheService => {
   if (!audioCacheInstance || options) {
     audioCacheInstance = new AudioCacheService(options);
   }

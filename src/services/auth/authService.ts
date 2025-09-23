@@ -8,7 +8,7 @@ import type {
   PasswordResetConfirmData,
   PasswordResetData,
   RefreshTokenData,
-  RegisterData
+  RegisterData,
 } from './types.ts';
 import { TokenManager } from './tokenManager.ts';
 import { AccountSecurityManager } from './accountSecurityManager.ts';
@@ -18,7 +18,7 @@ import { createLogoutHandler } from './logout.ts';
 import { createRefreshTokenHandler } from './refreshToken.ts';
 import {
   createConfirmPasswordResetHandler,
-  createInitiatePasswordResetHandler
+  createInitiatePasswordResetHandler,
 } from './passwordReset.ts';
 import { createVerifyAccessTokenHandler } from './verifyAccessToken.ts';
 
@@ -64,35 +64,37 @@ export class AuthService {
 
     this.registerHandler = createRegisterHandler({
       usersService: this.usersService,
-      tokenManager: this.tokenManager
+      tokenManager: this.tokenManager,
     });
 
     this.loginHandler = createLoginHandler({
       usersService: this.usersService,
       tokenManager: this.tokenManager,
-      accountSecurity: this.accountSecurity
+      accountSecurity: this.accountSecurity,
     });
 
-    this.logoutHandler = createLogoutHandler({ usersService: this.usersService });
+    this.logoutHandler = createLogoutHandler({
+      usersService: this.usersService,
+    });
 
     this.refreshTokenHandler = createRefreshTokenHandler({
       usersService: this.usersService,
-      tokenManager: this.tokenManager
+      tokenManager: this.tokenManager,
     });
 
     this.initiatePasswordResetHandler = createInitiatePasswordResetHandler({
       usersService: this.usersService,
-      tokenManager: this.tokenManager
+      tokenManager: this.tokenManager,
     });
 
     this.confirmPasswordResetHandler = createConfirmPasswordResetHandler({
       usersService: this.usersService,
-      tokenManager: this.tokenManager
+      tokenManager: this.tokenManager,
     });
 
     this.verifyAccessTokenHandler = createVerifyAccessTokenHandler({
       usersService: this.usersService,
-      tokenManager: this.tokenManager
+      tokenManager: this.tokenManager,
     });
   }
 

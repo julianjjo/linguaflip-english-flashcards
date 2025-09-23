@@ -7,11 +7,17 @@ export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, AUTH_CONFIG.bcryptRounds);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hash: string
+): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
-export function ensurePasswordStrength(password: string, operation = 'validate_password'): void {
+export function ensurePasswordStrength(
+  password: string,
+  operation = 'validate_password'
+): void {
   if (password.length < 8) {
     throw new ValidationError(
       'Password must be at least 8 characters long',

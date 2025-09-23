@@ -58,25 +58,35 @@ class SessionEdgeCaseTester {
 
     this.logResult('Token Status Check', {
       hasToken,
-      timeUntilExpiry: timeUntilExpiry > 0 ? `${Math.round(timeUntilExpiry / 1000)}s` : 'expired',
-      expiryTime: expiryTime ? new Date(parseInt(expiryTime)).toISOString() : 'none'
+      timeUntilExpiry:
+        timeUntilExpiry > 0
+          ? `${Math.round(timeUntilExpiry / 1000)}s`
+          : 'expired',
+      expiryTime: expiryTime
+        ? new Date(parseInt(expiryTime)).toISOString()
+        : 'none',
     });
 
     // Test 1.2: Simulate expired token
     if (hasToken && timeUntilExpiry > 0) {
       console.log('[SESSION_TEST] Simulating token expiration...');
-      localStorage.setItem('linguaflip_token_expiry', (Date.now() - 1000).toString());
+      localStorage.setItem(
+        'linguaflip_token_expiry',
+        (Date.now() - 1000).toString()
+      );
 
       // Try to make an authenticated request
       try {
         const response = await fetch('/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('linguaflip_access_token')}` }
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('linguaflip_access_token')}`,
+          },
         });
 
         this.logResult('Expired Token Request', {
           status: response.status,
           shouldBe401: response.status === 401,
-          response: await response.text().substring(0, 100)
+          response: await response.text().substring(0, 100),
         });
       } catch (error) {
         this.logResult('Expired Token Request Error', { error: error.message });
@@ -88,13 +98,15 @@ class SessionEdgeCaseTester {
     try {
       const refreshResponse = await fetch('/api/auth/refresh', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       });
 
       this.logResult('Token Refresh Test', {
         status: refreshResponse.status,
         success: refreshResponse.ok,
-        hasNewToken: refreshResponse.headers.get('set-cookie')?.includes('accessToken')
+        hasNewToken: refreshResponse.headers
+          .get('set-cookie')
+          ?.includes('accessToken'),
       });
     } catch (error) {
       this.logResult('Token Refresh Error', { error: error.message });
@@ -114,16 +126,18 @@ class SessionEdgeCaseTester {
     for (let i = 0; i < concurrentRequests; i++) {
       promises.push(
         fetch('/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('linguaflip_access_token')}` }
-        }).then(r => ({ index: i, status: r.status, ok: r.ok }))
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('linguaflip_access_token')}`,
+          },
+        }).then((r) => ({ index: i, status: r.status, ok: r.ok }))
       );
     }
 
     const results = await Promise.all(promises);
     this.logResult('Concurrent Requests', {
       total: concurrentRequests,
-      successCount: results.filter(r => r.ok).length,
-      results: results.map(r => ({ index: r.index, status: r.status }))
+      successCount: results.filter((r) => r.ok).length,
+      results: results.map((r) => ({ index: r.index, status: r.status })),
     });
 
     // Test 2.2: Multiple tabs simulation
@@ -131,10 +145,13 @@ class SessionEdgeCaseTester {
     const originalToken = localStorage.getItem('linguaflip_access_token');
 
     // Simulate token change in another tab
-    localStorage.setItem('linguaflip_access_token', 'simulated_new_token_from_another_tab');
+    localStorage.setItem(
+      'linguaflip_access_token',
+      'simulated_new_token_from_another_tab'
+    );
     this.logResult('Multi-tab Token Change', {
       originalToken: originalToken ? 'present' : 'none',
-      newToken: 'simulated_new_token_from_another_tab'
+      newToken: 'simulated_new_token_from_another_tab',
     });
 
     // Restore original token
@@ -156,7 +173,7 @@ class SessionEdgeCaseTester {
     // For now, we'll test the current behavior
     this.logResult('Network Status Check', {
       online: navigator.onLine,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Test 3.2: Request timeout handling
@@ -166,21 +183,23 @@ class SessionEdgeCaseTester {
     try {
       const response = await fetch('/api/auth/me', {
         signal: controller.signal,
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('linguaflip_access_token')}` }
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('linguaflip_access_token')}`,
+        },
       });
 
       clearTimeout(timeoutId);
       this.logResult('Request Timeout Test', {
         completed: true,
         status: response.status,
-        duration: 'under 5s'
+        duration: 'under 5s',
       });
     } catch (error) {
       clearTimeout(timeoutId);
       this.logResult('Request Timeout Test', {
         completed: false,
         error: error.name,
-        aborted: error.name === 'AbortError'
+        aborted: error.name === 'AbortError',
       });
     }
   }
@@ -195,7 +214,7 @@ class SessionEdgeCaseTester {
     const beforeReload = {
       hasAccessToken: !!localStorage.getItem('linguaflip_access_token'),
       hasRefreshToken: !!localStorage.getItem('linguaflip_refresh_token'),
-      expiryTime: localStorage.getItem('linguaflip_token_expiry')
+      expiryTime: localStorage.getItem('linguaflip_token_expiry'),
     };
 
     this.logResult('Pre-Reload Token State', beforeReload);
@@ -203,12 +222,14 @@ class SessionEdgeCaseTester {
     // Simulate page reload by re-checking authentication
     try {
       const response = await fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('linguaflip_access_token')}` }
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('linguaflip_access_token')}`,
+        },
       });
 
       this.logResult('Post-Reload Auth Check', {
         status: response.status,
-        success: response.ok
+        success: response.ok,
       });
     } catch (error) {
       this.logResult('Post-Reload Auth Check Error', { error: error.message });
@@ -224,8 +245,9 @@ class SessionEdgeCaseTester {
     // Test 5.1: Check current session state
     const currentState = {
       hasToken: !!localStorage.getItem('linguaflip_access_token'),
-      timeSinceLastActivity: Date.now() - (parseInt(localStorage.getItem('lastActivity') || '0')),
-      timestamp: new Date().toISOString()
+      timeSinceLastActivity:
+        Date.now() - parseInt(localStorage.getItem('lastActivity') || '0'),
+      timestamp: new Date().toISOString(),
     };
 
     this.logResult('Inactivity Check', currentState);
@@ -237,7 +259,7 @@ class SessionEdgeCaseTester {
 
     this.logResult('Simulated Long Inactivity', {
       simulatedInactivity: `${Math.round(longInactivityPeriod / 1000 / 60)} minutes`,
-      shouldTriggerRefresh: true
+      shouldTriggerRefresh: true,
     });
   }
 
@@ -254,7 +276,9 @@ class SessionEdgeCaseTester {
     for (const route of routes) {
       try {
         const response = await fetch(route, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('linguaflip_access_token')}` }
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('linguaflip_access_token')}`,
+          },
         });
         results.push({ route, status: response.status, ok: response.ok });
       } catch (error) {
@@ -264,41 +288,45 @@ class SessionEdgeCaseTester {
 
     this.logResult('Context Switching Test', {
       routesTested: routes.length,
-      successCount: results.filter(r => r.ok).length,
-      results
+      successCount: results.filter((r) => r.ok).length,
+      results,
     });
 
     // Test 6.2: Mixed authenticated and non-authenticated requests
     const mixedRequests = [
       { path: '/api/auth/me', auth: true },
       { path: '/api/flashcards', auth: true },
-      { path: '/api/public/info', auth: false }
+      { path: '/api/public/info', auth: false },
     ];
 
     const mixedResults = [];
     for (const req of mixedRequests) {
       try {
-        const headers = req.auth ? { 'Authorization': `Bearer ${localStorage.getItem('linguaflip_access_token')}` } : {};
+        const headers = req.auth
+          ? {
+              Authorization: `Bearer ${localStorage.getItem('linguaflip_access_token')}`,
+            }
+          : {};
         const response = await fetch(req.path, { headers });
         mixedResults.push({
           path: req.path,
           auth: req.auth,
           status: response.status,
-          ok: response.ok
+          ok: response.ok,
         });
       } catch (error) {
         mixedResults.push({
           path: req.path,
           auth: req.auth,
-          error: error.message
+          error: error.message,
         });
       }
     }
 
     this.logResult('Mixed Auth Requests', {
       total: mixedRequests.length,
-      successCount: mixedResults.filter(r => r.ok).length,
-      results: mixedResults
+      successCount: mixedResults.filter((r) => r.ok).length,
+      results: mixedResults,
     });
   }
 
@@ -309,7 +337,7 @@ class SessionEdgeCaseTester {
     const result = {
       test: testName,
       timestamp: new Date().toISOString(),
-      data
+      data,
     };
 
     this.testResults.push(result);
@@ -332,7 +360,9 @@ class SessionEdgeCaseTester {
         console.log(`[SESSION_TEST] ${index + 1}. ${issue}`);
       });
     } else {
-      console.log('[SESSION_TEST] ✅ No obvious issues detected in basic tests');
+      console.log(
+        '[SESSION_TEST] ✅ No obvious issues detected in basic tests'
+      );
     }
 
     console.log('[SESSION_TEST] === END REPORT ===');
@@ -345,17 +375,19 @@ class SessionEdgeCaseTester {
     const issues = [];
 
     // Check for authentication failures
-    const authFailures = this.testResults.filter(r =>
-      r.test.includes('Auth Check') && r.data.status === 401
+    const authFailures = this.testResults.filter(
+      (r) => r.test.includes('Auth Check') && r.data.status === 401
     );
 
     if (authFailures.length > 0) {
-      issues.push('Authentication failures detected - tokens may not be properly validated');
+      issues.push(
+        'Authentication failures detected - tokens may not be properly validated'
+      );
     }
 
     // Check for token refresh issues
-    const refreshFailures = this.testResults.filter(r =>
-      r.test.includes('Refresh') && !r.data.success
+    const refreshFailures = this.testResults.filter(
+      (r) => r.test.includes('Refresh') && !r.data.success
     );
 
     if (refreshFailures.length > 0) {
@@ -363,13 +395,20 @@ class SessionEdgeCaseTester {
     }
 
     // Check for concurrent request problems
-    const concurrentResults = this.testResults.find(r => r.test === 'Concurrent Requests');
-    if (concurrentResults && concurrentResults.data.successCount < concurrentResults.data.total) {
+    const concurrentResults = this.testResults.find(
+      (r) => r.test === 'Concurrent Requests'
+    );
+    if (
+      concurrentResults &&
+      concurrentResults.data.successCount < concurrentResults.data.total
+    ) {
       issues.push('Concurrent requests may be causing race conditions');
     }
 
     // Check for network handling issues
-    const networkResults = this.testResults.find(r => r.test === 'Network Status Check');
+    const networkResults = this.testResults.find(
+      (r) => r.test === 'Network Status Check'
+    );
     if (networkResults && !networkResults.data.online) {
       issues.push('Application may not handle offline scenarios properly');
     }
@@ -389,12 +428,17 @@ describe('SessionEdgeCaseTester', () => {
 // Export for use in browser console
 if (typeof window !== 'undefined') {
   window.SessionEdgeCaseTester = SessionEdgeCaseTester;
-  console.log('[SESSION_TEST] SessionEdgeCaseTester available in window object');
+  console.log(
+    '[SESSION_TEST] SessionEdgeCaseTester available in window object'
+  );
   console.log('[SESSION_TEST] Run: new SessionEdgeCaseTester().runAllTests()');
 }
 
 // Auto-run tests if this script is loaded directly
-if (typeof window !== 'undefined' && window.location.search.includes('runSessionTests=true')) {
+if (
+  typeof window !== 'undefined' &&
+  window.location.search.includes('runSessionTests=true')
+) {
   console.log('[SESSION_TEST] Auto-running session tests...');
   new SessionEdgeCaseTester().runAllTests();
 }

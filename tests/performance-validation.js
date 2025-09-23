@@ -15,12 +15,14 @@ class PerformanceValidator {
       cachingSystem: null,
       serviceWorker: null,
       codeSplitting: null,
-      overall: null
+      overall: null,
     };
   }
 
   async runAllTests() {
-    console.log('🚀 Iniciando validación de rendimiento de LinguaFlip Fase 3...\n');
+    console.log(
+      '🚀 Iniciando validación de rendimiento de LinguaFlip Fase 3...\n'
+    );
 
     try {
       // Test 1: Sistema de Audio
@@ -48,7 +50,6 @@ class PerformanceValidator {
 
       this.printResults();
       this.saveResults();
-
     } catch (error) {
       console.error('❌ Error durante la validación:', error);
     }
@@ -63,8 +64,11 @@ class PerformanceValidator {
 
       // Check if audio system is loaded
       const audioSystemLoaded = await page.evaluate(() => {
-        return typeof window.speechSynthesis !== 'undefined' ||
-               (typeof window.AudioContext !== 'undefined' || typeof window.webkitAudioContext !== 'undefined');
+        return (
+          typeof window.speechSynthesis !== 'undefined' ||
+          typeof window.AudioContext !== 'undefined' ||
+          typeof window.webkitAudioContext !== 'undefined'
+        );
       });
 
       // Test audio button functionality
@@ -73,7 +77,8 @@ class PerformanceValidator {
 
       // Test audio settings component
       await page.goto('http://localhost:4321/settings');
-      const audioSettingsVisible = await page.$('[data-testid="audio-settings"]') !== null;
+      const audioSettingsVisible =
+        (await page.$('[data-testid="audio-settings"]')) !== null;
 
       await browser.close();
 
@@ -83,10 +88,9 @@ class PerformanceValidator {
           audioSystemLoaded,
           audioButtonsWork,
           audioSettingsVisible,
-          fallbackAvailable: true // Web Audio API fallback
-        }
+          fallbackAvailable: true, // Web Audio API fallback
+        },
       };
-
     } catch (error) {
       await browser.close();
       return { passed: false, error: error.message };
@@ -112,7 +116,10 @@ class PerformanceValidator {
       // Check cache headers for images
       const imageRequests = [];
       page.on('response', (response) => {
-        if (response.url().includes('.jpg') || response.url().includes('.png')) {
+        if (
+          response.url().includes('.jpg') ||
+          response.url().includes('.png')
+        ) {
           imageRequests.push(response);
         }
       });
@@ -128,10 +135,9 @@ class PerformanceValidator {
           lazyImagesCount: lazyImages.length,
           optimizedImagesCount: optimizedImages.length,
           fallbackImagesCount: fallbackImages.length,
-          imageRequestsCount: imageRequests.length
-        }
+          imageRequestsCount: imageRequests.length,
+        },
       };
-
     } catch (error) {
       await browser.close();
       return { passed: false, error: error.message };
@@ -147,8 +153,10 @@ class PerformanceValidator {
 
       // Check if cache system is initialized
       const cacheSystemReady = await page.evaluate(() => {
-        return typeof window.localStorage !== 'undefined' &&
-               localStorage.getItem('linguaflip-cache-ready') === 'true';
+        return (
+          typeof window.localStorage !== 'undefined' &&
+          localStorage.getItem('linguaflip-cache-ready') === 'true'
+        );
       });
 
       // Test cache persistence
@@ -175,10 +183,9 @@ class PerformanceValidator {
         details: {
           cacheSystemReady,
           cachePersisted,
-          localStorageAvailable: true
-        }
+          localStorageAvailable: true,
+        },
       };
-
     } catch (error) {
       await browser.close();
       return { passed: false, error: error.message };
@@ -197,20 +204,28 @@ class PerformanceValidator {
 
       // Check if service worker is registered
       const swStatus = await page.evaluate(() => {
-        return navigator.serviceWorker.getRegistration()
-          .then(registration => ({
+        return navigator.serviceWorker
+          .getRegistration()
+          .then((registration) => ({
             registered: !!registration,
             active: !!registration?.active,
             installing: !!registration?.installing,
-            waiting: !!registration?.waiting
+            waiting: !!registration?.waiting,
           }))
-          .catch(() => ({ registered: false, active: false, installing: false, waiting: false }));
+          .catch(() => ({
+            registered: false,
+            active: false,
+            installing: false,
+            waiting: false,
+          }));
       });
 
       // Test offline functionality
       await page.setOfflineMode(true);
       const offlinePageLoads = await page.evaluate(() => {
-        return fetch('/').then(() => true).catch(() => false);
+        return fetch('/')
+          .then(() => true)
+          .catch(() => false);
       });
       await page.setOfflineMode(false);
 
@@ -220,10 +235,9 @@ class PerformanceValidator {
         passed: swStatus.registered,
         details: {
           ...swStatus,
-          offlinePageLoads
-        }
+          offlinePageLoads,
+        },
       };
-
     } catch (error) {
       await browser.close();
       return { passed: false, error: error.message };
@@ -247,9 +261,12 @@ class PerformanceValidator {
       await page.waitForTimeout(3000);
 
       // Analyze bundle chunks
-      const chunks = requests.filter(url =>
-        url.includes('.js') &&
-        (url.includes('chunk') || url.includes('vendor') || url.includes('component'))
+      const chunks = requests.filter(
+        (url) =>
+          url.includes('.js') &&
+          (url.includes('chunk') ||
+            url.includes('vendor') ||
+            url.includes('component'))
       );
 
       // Check for lazy loaded components
@@ -263,10 +280,9 @@ class PerformanceValidator {
           totalRequests: requests.length,
           jsChunks: chunks.length,
           lazyComponentsCount: lazyComponents.length,
-          chunkNames: chunks.map(url => url.split('/').pop())
-        }
+          chunkNames: chunks.map((url) => url.split('/').pop()),
+        },
       };
-
     } catch (error) {
       await browser.close();
       return { passed: false, error: error.message };
@@ -274,8 +290,10 @@ class PerformanceValidator {
   }
 
   generateOverallAssessment() {
-    const tests = Object.values(this.results).filter(result => result !== null);
-    const passedTests = tests.filter(test => test.passed).length;
+    const tests = Object.values(this.results).filter(
+      (result) => result !== null
+    );
+    const passedTests = tests.filter((test) => test.passed).length;
     const totalTests = tests.length;
 
     const score = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
@@ -284,11 +302,17 @@ class PerformanceValidator {
       score: Math.round(score),
       passedTests,
       totalTests,
-      grade: score >= 90 ? 'A' :
-             score >= 80 ? 'B' :
-             score >= 70 ? 'C' :
-             score >= 60 ? 'D' : 'F',
-      summary: this.generateSummary()
+      grade:
+        score >= 90
+          ? 'A'
+          : score >= 80
+            ? 'B'
+            : score >= 70
+              ? 'C'
+              : score >= 60
+                ? 'D'
+                : 'F',
+      summary: this.generateSummary(),
     };
   }
 
@@ -333,18 +357,24 @@ class PerformanceValidator {
     console.log('📊 RESULTADOS DE VALIDACIÓN DE RENDIMIENTO');
     console.log('='.repeat(60));
 
-    console.log(`\n🎯 Puntaje General: ${this.results.overall.score}% (${this.results.overall.grade})`);
-    console.log(`✅ Pruebas Pasadas: ${this.results.overall.passedTests}/${this.results.overall.totalTests}`);
+    console.log(
+      `\n🎯 Puntaje General: ${this.results.overall.score}% (${this.results.overall.grade})`
+    );
+    console.log(
+      `✅ Pruebas Pasadas: ${this.results.overall.passedTests}/${this.results.overall.totalTests}`
+    );
 
     console.log('\n📋 Resumen:');
-    this.results.overall.summary.forEach(line => console.log(`   ${line}`));
+    this.results.overall.summary.forEach((line) => console.log(`   ${line}`));
 
     console.log('\n📈 Detalles por Categoría:');
 
     Object.entries(this.results).forEach(([category, result]) => {
       if (result && category !== 'overall') {
         const status = result.passed ? '✅' : '❌';
-        console.log(`\n${status} ${category.charAt(0).toUpperCase() + category.slice(1)}:`);
+        console.log(
+          `\n${status} ${category.charAt(0).toUpperCase() + category.slice(1)}:`
+        );
 
         if (result.details) {
           Object.entries(result.details).forEach(([key, value]) => {
@@ -368,10 +398,13 @@ class PerformanceValidator {
     const report = {
       timestamp,
       version: '3.0.0',
-      ...this.results
+      ...this.results,
     };
 
-    fs.writeFileSync(path.join(__dirname, '..', 'reports', filename), JSON.stringify(report, null, 2));
+    fs.writeFileSync(
+      path.join(__dirname, '..', 'reports', filename),
+      JSON.stringify(report, null, 2)
+    );
     console.log(`\n💾 Reporte guardado: reports/${filename}`);
   }
 }
@@ -379,13 +412,16 @@ class PerformanceValidator {
 // Run validation if called directly
 if (require.main === module) {
   const validator = new PerformanceValidator();
-  validator.runAllTests().then(() => {
-    console.log('\n✨ Validación completada!');
-    process.exit(0);
-  }).catch((error) => {
-    console.error('❌ Error fatal:', error);
-    process.exit(1);
-  });
+  validator
+    .runAllTests()
+    .then(() => {
+      console.log('\n✨ Validación completada!');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('❌ Error fatal:', error);
+      process.exit(1);
+    });
 }
 
 module.exports = PerformanceValidator;

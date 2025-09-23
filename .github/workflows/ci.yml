@@ -2,9 +2,9 @@ name: LinguaFlip CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
 
 jobs:
@@ -16,145 +16,145 @@ jobs:
         node-version: [18.x, 20.x]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run linter
-      run: npm run lint
+      - name: Run linter
+        run: npm run lint
 
-    - name: Check formatting
-      run: npm run format:check
+      - name: Check formatting
+        run: npm run format:check
 
-    - name: Type check
-      run: npm run type-check
+      - name: Type check
+        run: npm run type-check
 
-    - name: Build project
-      run: npm run build
+      - name: Build project
+        run: npm run build
 
-    - name: Setup test environment
-      run: npm run test:setup
+      - name: Setup test environment
+        run: npm run test:setup
 
-    - name: Run health checks
-      run: npm run test:health
+      - name: Run health checks
+        run: npm run test:health
 
-    - name: Run tests
-      run: npm run test:ci
-      env:
-        CI: true
-        NODE_ENV: test
+      - name: Run tests
+        run: npm run test:ci
+        env:
+          CI: true
+          NODE_ENV: test
 
-    - name: Install Playwright browsers
-      if: ${{ matrix['node-version'] == '20.x' }}
-      run: npx playwright install --with-deps
+      - name: Install Playwright browsers
+        if: ${{ matrix['node-version'] == '20.x' }}
+        run: npx playwright install --with-deps
 
-    - name: Run end-to-end tests
-      if: ${{ matrix['node-version'] == '20.x' }}
-      run: npm run test:e2e -- --reporter=line
-      env:
-        CI: true
+      - name: Run end-to-end tests
+        if: ${{ matrix['node-version'] == '20.x' }}
+        run: npm run test:e2e -- --reporter=line
+        env:
+          CI: true
 
-    - name: Upload Playwright report
-      if: ${{ matrix['node-version'] == '20.x' && always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 7
+      - name: Upload Playwright report
+        if: ${{ matrix['node-version'] == '20.x' && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-${{ matrix.node-version }}
-        path: test-results/
-        retention-days: 7
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.node-version }}
+          path: test-results/
+          retention-days: 7
 
-    - name: Cleanup test environment
-      if: always()
-      run: npm run test:cleanup
+      - name: Cleanup test environment
+        if: always()
+        run: npm run test:cleanup
 
   deploy-preview:
     runs-on: ubuntu-latest
     needs: [test]
 
     steps:
-    - name: Skip preview deploy
-      if: github.event_name != 'pull_request'
-      run: echo "Skipping preview deploy for event ${{ github.event_name }}"
+      - name: Skip preview deploy
+        if: github.event_name != 'pull_request'
+        run: echo "Skipping preview deploy for event ${{ github.event_name }}"
 
-    - name: Checkout code
-      if: github.event_name == 'pull_request'
-      uses: actions/checkout@v4
+      - name: Checkout code
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      if: github.event_name == 'pull_request'
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        if: github.event_name == 'pull_request'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
 
-    - name: Install dependencies
-      if: github.event_name == 'pull_request'
-      run: npm ci
+      - name: Install dependencies
+        if: github.event_name == 'pull_request'
+        run: npm ci
 
-    - name: Build preview
-      if: github.event_name == 'pull_request'
-      run: npm run build:preview
+      - name: Build preview
+        if: github.event_name == 'pull_request'
+        run: npm run build:preview
 
-    - name: Deploy to preview
-      if: github.event_name == 'pull_request'
-      uses: netlify/actions/cli@master
-      with:
-        args: deploy --dir=dist --prod=false
-      env:
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      - name: Deploy to preview
+        if: github.event_name == 'pull_request'
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=dist --prod=false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
   deploy-production:
     runs-on: ubuntu-latest
     needs: [test]
 
     steps:
-    - name: Skip production deploy
-      if: github.ref != 'refs/heads/main' || github.event_name != 'push'
-      run: echo "Skipping production deploy for ref ${{ github.ref }} and event ${{ github.event_name }}"
+      - name: Skip production deploy
+        if: github.ref != 'refs/heads/main' || github.event_name != 'push'
+        run: echo "Skipping production deploy for ref ${{ github.ref }} and event ${{ github.event_name }}"
 
-    - name: Checkout code
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: actions/checkout@v4
+      - name: Checkout code
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
 
-    - name: Install dependencies
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: npm ci
+      - name: Install dependencies
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm ci
 
-    - name: Build for production
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: npm run build
+      - name: Build for production
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm run build
 
-    - name: Deploy to production
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: netlify/actions/cli@master
-      with:
-        args: deploy --dir=dist --prod=true
-      env:
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      - name: Deploy to production
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=dist --prod=true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
   notify:
     runs-on: ubuntu-latest
@@ -162,14 +162,14 @@ jobs:
     if: always()
 
     steps:
-    - name: Notify on failure
-      if: failure()
-      run: |
-        echo "❌ CI/CD pipeline failed"
-        # Add notification logic here (Slack, Discord, etc.)
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ CI/CD pipeline failed"
+          # Add notification logic here (Slack, Discord, etc.)
 
-    - name: Notify on success
-      if: success()
-      run: |
-        echo "✅ CI/CD pipeline completed successfully"
-        # Add notification logic here (Slack, Discord, etc.)
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "✅ CI/CD pipeline completed successfully"
+          # Add notification logic here (Slack, Discord, etc.)

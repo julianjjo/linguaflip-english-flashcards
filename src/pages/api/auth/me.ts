@@ -17,35 +17,38 @@ export const GET: APIRoute = async ({ request }) => {
     if (!accessToken) {
       const cookieHeader = request.headers.get('Cookie');
       if (cookieHeader) {
-        const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie) => {
-          const [key, value] = cookie.trim().split('=');
-          if (key && value) {
-            acc[key] = value;
-          }
-          return acc;
-        }, {});
-        
+        const cookies = cookieHeader
+          .split(';')
+          .reduce((acc: Record<string, string>, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            if (key && value) {
+              acc[key] = value;
+            }
+            return acc;
+          }, {});
+
         accessToken = cookies.accessToken || null;
       }
     }
-    
+
     if (!accessToken) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'No authentication token provided'
+          error: 'No authentication token provided',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Get client IP for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIP =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     // Verify token
     const tokenResult = await verifyAccessToken(accessToken);
@@ -60,11 +63,11 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Invalid or expired token'
+          error: 'Invalid or expired token',
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -82,18 +85,22 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Failed to fetch user information'
+          error: 'Failed to fetch user information',
         }),
         {
           status: 404,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Remove sensitive information before sending
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _password, refreshTokens: _refreshTokens, ...safeUserData } = userResult.data as Record<string, unknown>;
+    const {
+      password: _password,
+      refreshTokens: _refreshTokens,
+      ...safeUserData
+    } = userResult.data as Record<string, unknown>;
 
     SecurityAuditor.logSecurityEvent(
       'USER_INFO_REQUEST_SUCCESS',
@@ -104,14 +111,13 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         success: true,
-        data: safeUserData
+        data: safeUserData,
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
-
   } catch (error) {
     console.error('User info API error:', error);
 
@@ -124,11 +130,11 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Failed to fetch user information'
+        error: 'Failed to fetch user information',
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

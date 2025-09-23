@@ -18,7 +18,7 @@ export {
   StudySessionSchema,
   StudyStatisticsSchema,
   MigrationSchema,
-  Schemas
+  Schemas,
 } from './definitions/index.ts';
 
 // ============================================================================
@@ -32,18 +32,18 @@ export {
   urlValidator,
   qualityValidator,
   sanitizeInput,
-  
+
   // SM-2 specific validators and utilities
   sm2Validator,
   validateSM2Params,
   getDefaultSM2Params,
   calculateNextReviewDate,
   type SM2Params,
-  
+
   // Document validation utilities
   validateDocument,
   type SchemaValidator,
-  type ValidationDocument
+  type ValidationDocument,
 } from './validators/index.ts';
 
 // ============================================================================
@@ -58,12 +58,12 @@ export { DatabaseIndexes } from './indexes.ts';
 // ============================================================================
 
 // Re-export main schemas for backward compatibility
-import { 
+import {
   UserSchema,
   FlashcardSchema,
   StudySessionSchema,
   StudyStatisticsSchema,
-  MigrationSchema
+  MigrationSchema,
 } from './definitions/index.ts';
 
 // Default export for convenience (maintaining backward compatibility)
@@ -72,5 +72,5 @@ export default {
   FlashcardSchema,
   StudySessionSchema,
   StudyStatisticsSchema,
-  MigrationSchema
+  MigrationSchema,
 };

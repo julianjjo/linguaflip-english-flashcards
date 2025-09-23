@@ -37,7 +37,7 @@ export class MockDatabaseConnection {
     return {
       status: 'connected',
       database: 'linguaflip_test',
-      collections: []
+      collections: [],
     };
   }
 }
@@ -57,13 +57,14 @@ class MockDatabase {
 
   admin() {
     return {
-      ping: async () => ({ ok: 1 })
+      ping: async () => ({ ok: 1 }),
     };
   }
 
   listCollections() {
     return {
-      toArray: async () => Array.from(this.collections.keys()).map(name => ({ name }))
+      toArray: async () =>
+        Array.from(this.collections.keys()).map((name) => ({ name })),
     };
   }
 }
@@ -75,7 +76,12 @@ class MockCollection {
 
   async insertOne(doc) {
     const id = doc._id || `mock_${Date.now()}_${Math.random()}`;
-    const newDoc = { ...doc, _id: id, createdAt: new Date(), updatedAt: new Date() };
+    const newDoc = {
+      ...doc,
+      _id: id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.documents.set(id, newDoc);
     return { acknowledged: true, insertedId: id };
   }
@@ -123,7 +129,7 @@ class MockCollection {
 
   matchesQuery(doc, query) {
     if (!query || Object.keys(query).length === 0) return true;
-    
+
     for (const [key, value] of Object.entries(query)) {
       if (doc[key] !== value) {
         return false;
@@ -134,17 +140,17 @@ class MockCollection {
 
   applyUpdate(doc, update) {
     const updatedDoc = { ...doc, updatedAt: new Date() };
-    
+
     if (update.$set) {
       Object.assign(updatedDoc, update.$set);
     }
-    
+
     if (update.$inc) {
       for (const [key, value] of Object.entries(update.$inc)) {
         updatedDoc[key] = (updatedDoc[key] || 0) + value;
       }
     }
-    
+
     return updatedDoc;
   }
 }
