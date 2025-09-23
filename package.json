@@ -16,6 +16,7 @@
     "test:interaction": "jest tests/interaction-tests.js",
     "test:all": "npm run test:design && npm run test:interaction",
     "test:parallel": "NODE_ENV=test node tests/run-parallel-tests.js",
+    "test:e2e": "playwright test",
     "test:ci": "npm run test:ci:unit",
     "test:health": "NODE_ENV=test node tests/health-check.js",
     "test:setup": "NODE_ENV=test node tests/setup-test-env.js",

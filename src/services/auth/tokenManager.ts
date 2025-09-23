@@ -1,6 +1,8 @@
 import crypto from 'crypto';
-import { JsonWebTokenError, sign, verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import type { SignOptions } from 'jsonwebtoken';
+
+const { JsonWebTokenError, sign, verify } = jwt;
 
 import type { UsersService } from '../users.ts';
 import type { UserDocument } from '../../types/database.ts';
