@@ -61,7 +61,7 @@ LinguaFlip is an AI-powered English flashcard application built with Astro, Reac
   - `User`, `AuthState`: Authentication and user management types
   - Database schemas in `src/schemas/mongodb.ts`
 
-- **Authentication & Security** (`src/services/auth.ts`):
+- **Authentication & Security** (`src/services/auth/`):
   - JWT-based authentication with secure token storage
   - bcrypt password hashing and rate limiting
   - User data isolation and secure endpoints
