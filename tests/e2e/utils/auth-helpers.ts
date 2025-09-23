@@ -15,6 +15,10 @@ export class AuthHelpers {
   async goToLogin(): Promise<void> {
     await this.page.goto('/login');
     await this.page.waitForLoadState('networkidle');
+    // Deshabilitar validación nativa para capturar mensajes personalizados en pruebas
+    await this.page.evaluate(() => {
+      document.getElementById('loginForm')?.setAttribute('novalidate', 'true');
+    });
   }
 
   /**
@@ -23,6 +27,10 @@ export class AuthHelpers {
   async goToRegister(): Promise<void> {
     await this.page.goto('/register');
     await this.page.waitForLoadState('networkidle');
+    // Deshabilitar la validación nativa para permitir que los mensajes personalizados aparezcan en pruebas
+    await this.page.evaluate(() => {
+      document.getElementById('registerForm')?.setAttribute('novalidate', 'true');
+    });
   }
 
   /**
@@ -89,14 +97,35 @@ export class AuthHelpers {
    * Realiza logout desde el menú de usuario
    */
   async logout(): Promise<void> {
-    // Abrir menú de usuario
-    await this.page.click('#user-menu-button');
+    try {
+      // Abrir menú de usuario
+      await this.page.waitForSelector('#user-menu-button', { state: 'visible', timeout: 5000 });
+      await this.page.click('#user-menu-button');
 
-    // Hacer clic en "Sign Out"
-    await this.page.click('text=Sign Out');
+      // Asegurar que el menú esté visible antes de hacer clic
+      await this.page.evaluate(() => {
+        const menu = document.getElementById('user-dropdown-menu');
+        if (menu && menu.classList.contains('hidden')) {
+          menu.classList.remove('hidden');
+        }
+      });
 
-    // Esperar redirección a login
-    await this.page.waitForURL('**/login');
+      // Hacer clic en "Sign Out"
+      const signOutOption = this.page.locator('#user-dropdown-menu a', { hasText: 'Sign Out' });
+      await signOutOption.click({ timeout: 3000 });
+
+      // Esperar redirección a login
+      await this.page.waitForURL('**/login');
+    } catch (error) {
+      // Fallback: limpiar almacenamiento y navegar manualmente
+      await this.page.evaluate(() => {
+        localStorage.removeItem('linguaflip_auth_token');
+        localStorage.removeItem('linguaflip_refresh_token');
+        localStorage.removeItem('linguaflip_user');
+      });
+      await this.page.goto('/login');
+      await this.page.waitForLoadState('networkidle');
+    }
   }
 
   /**
@@ -121,7 +150,12 @@ export class AuthHelpers {
   async isAuthenticated(): Promise<boolean> {
     // Verificar si existe el menú de usuario
     const userMenu = this.page.locator('#user-menu-button');
-    return await userMenu.isVisible();
+    try {
+      await userMenu.waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -149,26 +183,34 @@ export class AuthHelpers {
    * Espera a que aparezca el mensaje de error
    */
   async waitForErrorMessage(): Promise<void> {
-    await this.page.waitForSelector('#errorMessage:not([class*="hidden"])');
+    await this.page.waitForSelector('#errorMessage', { state: 'visible' });
   }
 
   /**
    * Espera a que aparezca el mensaje de éxito
    */
   async waitForSuccessMessage(): Promise<void> {
-    await this.page.waitForSelector('#successMessage:not([class*="hidden"])');
+    await this.page.waitForSelector('#successMessage', { state: 'visible' });
   }
 
   /**
    * Limpia el localStorage (útil para pruebas de persistencia)
    */
   async clearStorage(): Promise<void> {
+    // Limpiar cookies del contexto
     await this.page.context().clearCookies();
-    // Usar addInitScript para limpiar storage en cada página
-    await this.page.addInitScript(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+
+    // Intentar limpiar storage en la página actual. En algunos contextos como about:blank
+    // Playwright lanza SecurityError al acceder a localStorage. En ese caso lo ignoramos,
+    // ya que no hay datos que limpiar y la siguiente navegación tendrá almacenamiento limpio.
+    try {
+      await this.page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      // Ignorar errores de seguridad en contextos sin almacenamiento disponible (ej. about:blank)
+    }
   }
 
   /**

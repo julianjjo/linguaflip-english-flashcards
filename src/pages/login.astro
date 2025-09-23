@@ -191,18 +191,25 @@ import AppProvider from '../components/AppProvider.tsx';
       const toggleButtons = document.querySelectorAll('[onclick*="togglePasswordVisibility"]');
       toggleButtons.forEach(button => {
         const onclick = button.getAttribute('onclick');
-        if (onclick) {
-          const inputId = onclick.match(/'([^']+)'/)?.[1];
-          if (inputId) {
-            button.removeAttribute('onclick');
-            button.addEventListener('click', () => togglePasswordVisibility(inputId));
-          }
+        if (!onclick) {
+          return;
         }
+
+        const inputId = onclick.match(/'([^']+)'/)?.[1];
+        if (!inputId || button.dataset.passwordToggleBound === 'true') {
+          return;
+        }
+
+        button.dataset.passwordToggleBound = 'true';
+        button.addEventListener('click', () => togglePasswordVisibility(inputId));
       });
 
       // Login form submission
       const loginForm = document.getElementById('loginForm');
       if (loginForm) {
+        // Deshabilitar la validación nativa para mostrar mensajes personalizados
+        loginForm.setAttribute('novalidate', 'true');
+
         loginForm.addEventListener('submit', async function(e) {
           e.preventDefault();
 
@@ -218,14 +225,22 @@ import AppProvider from '../components/AppProvider.tsx';
             return;
           }
 
-          const email = emailInput.value;
+          const email = emailInput.value.trim();
           const password = passwordInput.value;
+
+          // Limpiar mensajes previos
+          errorMessage.classList.add('hidden');
+
+          if (!email || !password) {
+            errorText.textContent = 'Todos los campos obligatorios deben ser completados';
+            errorMessage.classList.remove('hidden');
+            return;
+          }
 
           // Show loading state
           loginButton.disabled = true;
           buttonText.textContent = 'Iniciando sesión...';
           loadingSpinner.classList.remove('hidden');
-          errorMessage.classList.add('hidden');
 
           try {
             const response = await fetch('/api/auth/login', {

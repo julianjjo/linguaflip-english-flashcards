@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Email and password are required'
+          error: 'Todos los campos obligatorios deben ser completados'
         }),
         {
           status: 400,
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Invalid email format'
+          error: 'El formato del correo electrónico no es válido'
         }),
         {
           status: 400,
@@ -75,7 +75,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || 'Login failed'
+          error: 'Error al iniciar sesión'
         }),
         {
           status: 401,
@@ -148,7 +148,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Error al iniciar sesión'
       }),
       {
         status: 500,

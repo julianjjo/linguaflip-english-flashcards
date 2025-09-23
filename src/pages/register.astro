@@ -392,13 +392,17 @@ import AppProvider from '../components/AppProvider.tsx';
       const toggleButtons = document.querySelectorAll('[onclick*="togglePasswordVisibility"]');
       toggleButtons.forEach(button => {
         const onclick = button.getAttribute('onclick');
-        if (onclick) {
-          const inputId = onclick.match(/'([^']+)'/)?.[1];
-          if (inputId) {
-            button.removeAttribute('onclick');
-            button.addEventListener('click', () => togglePasswordVisibility(inputId));
-          }
+        if (!onclick) {
+          return;
         }
+
+        const inputId = onclick.match(/'([^']+)'/)?.[1];
+        if (!inputId || button.dataset.passwordToggleBound === 'true') {
+          return;
+        }
+
+        button.dataset.passwordToggleBound = 'true';
+        button.addEventListener('click', () => togglePasswordVisibility(inputId));
       });
     });
   </script>

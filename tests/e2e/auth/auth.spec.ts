@@ -11,9 +11,18 @@ import {
   createUserWithMissingFields,
   VALID_PASSWORD,
 } from '../fixtures/users';
+import type { TestUser } from '../fixtures/users';
 
 test.describe('Autenticación - LinguaFlip', () => {
   let authHelpers: AuthHelpers;
+
+  const registerTestUser = async (user: TestUser = createValidUser()): Promise<TestUser> => {
+    await authHelpers.register(user);
+    await authHelpers.waitForDashboardRedirect();
+    return user;
+  };
+
+  const toCredentials = (user: TestUser) => ({ email: user.email, password: user.password });
 
   test.beforeEach(async ({ page }) => {
     authHelpers = new AuthHelpers(page);
@@ -23,7 +32,9 @@ test.describe('Autenticación - LinguaFlip', () => {
 
   test.afterEach(async () => {
     // Limpiar storage después de cada prueba
-    await authHelpers.clearStorage();
+    if (authHelpers) {
+      await authHelpers.clearStorage();
+    }
   });
 
   test.describe('Registro de nuevo usuario', () => {
@@ -145,10 +156,16 @@ test.describe('Autenticación - LinguaFlip', () => {
     });
 
     test('debería mantener la sesión después de recargar la página', async () => {
-      const validUser = createLoginUser();
+      const registeredUser = await registerTestUser();
+      const credentials = toCredentials(registeredUser);
 
-      // Login
-      await authHelpers.login(validUser);
+      // Hacer logout para iniciar el flujo de login
+      await authHelpers.logout();
+      await authHelpers.waitForLoginRedirect();
+
+      // Login con el usuario recién creado
+      await authHelpers.login(credentials);
+      await authHelpers.waitForDashboardRedirect();
 
       // Verificar que estamos en el dashboard
       expect(await authHelpers.isOnDashboard()).toBe(true);
@@ -201,10 +218,7 @@ test.describe('Autenticación - LinguaFlip', () => {
 
   test.describe('Logout', () => {
     test('debería cerrar sesión correctamente', async () => {
-      const validUser = createLoginUser();
-
-      // Login primero
-      await authHelpers.login(validUser);
+      await registerTestUser();
 
       // Verificar que estamos autenticados
       expect(await authHelpers.isAuthenticated()).toBe(true);
@@ -224,10 +238,7 @@ test.describe('Autenticación - LinguaFlip', () => {
     });
 
     test('debería limpiar la sesión completamente', async () => {
-      const validUser = createLoginUser();
-
-      // Login
-      await authHelpers.login(validUser);
+      await registerTestUser();
 
       // Verificar tokens existen
       const tokensBefore = await authHelpers.getStoredTokens();
@@ -299,10 +310,7 @@ test.describe('Autenticación - LinguaFlip', () => {
 
   test.describe('Persistencia de sesión', () => {
     test('debería mantener la sesión después de recargar la página', async () => {
-      const validUser = createLoginUser();
-
-      // Login
-      await authHelpers.login(validUser);
+      await registerTestUser();
 
       // Verificar que estamos en el dashboard
       expect(await authHelpers.isOnDashboard()).toBe(true);
@@ -321,10 +329,7 @@ test.describe('Autenticación - LinguaFlip', () => {
     });
 
     test('debería limpiar la sesión al hacer logout', async () => {
-      const validUser = createLoginUser();
-
-      // Login
-      await authHelpers.login(validUser);
+      await registerTestUser();
 
       // Verificar tokens existen
       const tokensBefore = await authHelpers.getStoredTokens();
@@ -362,10 +367,14 @@ test.describe('Autenticación - LinguaFlip', () => {
     });
 
     test('debería mostrar elementos de loading durante el login', async ({ page }) => {
-      const validUser = createLoginUser();
+      const registeredUser = await registerTestUser();
+      const credentials = toCredentials(registeredUser);
+
+      await authHelpers.logout();
+      await authHelpers.waitForLoginRedirect();
 
       await authHelpers.goToLogin();
-      await authHelpers.fillLoginForm(validUser);
+      await authHelpers.fillLoginForm(credentials);
       await authHelpers.submitLogin();
 
       // Verificar que el botón muestra estado de loading
