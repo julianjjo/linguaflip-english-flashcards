@@ -95,12 +95,12 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // Remove sensitive information before sending
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      password: _password,
-      refreshTokens: _refreshTokens,
-      ...safeUserData
-    } = userResult.data as Record<string, unknown>;
+    const safeUserData = {
+      ...(userResult.data as Record<string, unknown>),
+    };
+
+    delete safeUserData.password;
+    delete safeUserData.refreshTokens;
 
     SecurityAuditor.logSecurityEvent(
       'USER_INFO_REQUEST_SUCCESS',

@@ -64,10 +64,8 @@ import AuthenticatedApp from '../components/AuthenticatedApp.tsx';
   <meta name="apple-mobile-web-app-title" content="LinguaFlip" />
 
   <!-- Schema.org structured data -->
-  <script
-    type="application/ld+json"
-    is:inline
-    set:html={JSON.stringify({
+  <script type="application/ld+json" is:inline>
+    {JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'LinguaFlip',
@@ -96,13 +94,11 @@ import AuthenticatedApp from '../components/AuthenticatedApp.tsx';
       ],
       screenshot: 'https://linguaflip.app/screenshot.jpg',
     })}
-  />
+  </script>
 
   <!-- Breadcrumbs Schema -->
-  <script
-    type="application/ld+json"
-    is:inline
-    set:html={JSON.stringify({
+  <script type="application/ld+json" is:inline>
+    {JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -114,7 +110,7 @@ import AuthenticatedApp from '../components/AuthenticatedApp.tsx';
         },
       ],
     })}
-  />
+  </script>
 
   <AppProvider client:load>
     <main

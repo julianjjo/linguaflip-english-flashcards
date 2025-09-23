@@ -237,7 +237,6 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 /**
  * User ownership middleware - ensures user can only access their own data
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function requireOwnership(
   req: Request,
   res: Response,
@@ -395,7 +394,6 @@ export function authLogging(req: Request, res: Response, next: NextFunction) {
 /**
  * Combined authentication middleware with all security features
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function secureAuth(required: boolean = true) {
   const middlewares = [securityHeaders, authCors, authLogging, authRateLimit];
 
@@ -411,7 +409,6 @@ export function secureAuth(required: boolean = true) {
 /**
  * Authentication error handler
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function authErrorHandler(
   err: Error,
   req: Request,
