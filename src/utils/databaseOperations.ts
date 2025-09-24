@@ -16,11 +16,16 @@ function generateRandomHexId(bytes: number): string {
   if (globalCrypto?.getRandomValues) {
     const values = new Uint8Array(bytes);
     globalCrypto.getRandomValues(values);
-    return Array.from(values, (value) => value.toString(16).padStart(2, '0')).join('');
+    return Array.from(values, (value) =>
+      value.toString(16).padStart(2, '0')
+    ).join('');
   }
 
   if (globalCrypto?.randomUUID) {
-    return globalCrypto.randomUUID().replace(/-/g, '').slice(0, bytes * 2);
+    return globalCrypto
+      .randomUUID()
+      .replace(/-/g, '')
+      .slice(0, bytes * 2);
   }
 
   let fallback = '';
@@ -1052,7 +1057,7 @@ export const databaseUtils = {
   },
 
   generateId(): string {
-    return randomBytes(12).toString('hex');
+    return generateRandomHexId(RANDOM_ID_BYTES);
   },
 
   idToString(id: string): string {
