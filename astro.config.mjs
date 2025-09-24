@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
+import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
@@ -9,6 +10,9 @@ export default defineConfig({
     port: process.env.PORT ? parseInt(process.env.PORT) : 4321,
     host: process.env.HOST || 'localhost',
   },
+  adapter: node({
+    mode: 'standalone',
+  }),
   integrations: [
     react({
       include: ['**/react/*'],

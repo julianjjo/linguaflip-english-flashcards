@@ -1,11 +1,35 @@
-import { randomBytes } from 'node:crypto';
-
 import { d1Client } from './d1Client';
 import { dbConnection } from './database';
 import type {
   DatabaseOperationResult,
   BulkOperationResult,
 } from '../types/database';
+
+const RANDOM_ID_BYTES = 12;
+
+function generateRandomHexId(bytes: number): string {
+  const globalCrypto =
+    typeof globalThis !== 'undefined'
+      ? (globalThis.crypto as Crypto | undefined)
+      : undefined;
+
+  if (globalCrypto?.getRandomValues) {
+    const values = new Uint8Array(bytes);
+    globalCrypto.getRandomValues(values);
+    return Array.from(values, (value) => value.toString(16).padStart(2, '0')).join('');
+  }
+
+  if (globalCrypto?.randomUUID) {
+    return globalCrypto.randomUUID().replace(/-/g, '').slice(0, bytes * 2);
+  }
+
+  let fallback = '';
+  for (let index = 0; index < bytes; index += 1) {
+    const randomValue = Math.floor(Math.random() * 256);
+    fallback += randomValue.toString(16).padStart(2, '0');
+  }
+  return fallback;
+}
 
 type Filter = Record<string, unknown>;
 type UpdateFilter = Record<string, unknown> & {
@@ -118,7 +142,7 @@ export class DatabaseOperations {
   }
 
   private generateId(): string {
-    return randomBytes(12).toString('hex');
+    return generateRandomHexId(RANDOM_ID_BYTES);
   }
 
   private normalizeValue(value: unknown): unknown {
