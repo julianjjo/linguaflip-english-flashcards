@@ -26,16 +26,15 @@ import Sidebar from '../components/Sidebar.astro';
   />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'LinguaFlip Dashboard',
-      description:
-        'Dashboard de análisis de progreso para aprendizaje de inglés',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'Web Browser',
-    })}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LinguaFlip Dashboard",
+      "description": "Dashboard de análisis de progreso para aprendizaje de inglés",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser"
+    }
   </script>
 
   <AppProvider client:only="react">

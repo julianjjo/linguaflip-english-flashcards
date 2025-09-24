@@ -64,52 +64,51 @@ import AuthenticatedApp from '../components/AuthenticatedApp.tsx';
   <meta name="apple-mobile-web-app-title" content="LinguaFlip" />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'LinguaFlip',
-      description:
-        'Aplicación web para aprender inglés con flashcards inteligentes y repetición espaciada',
-      url: 'https://linguaflip.app',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'Web Browser',
-      softwareVersion: '1.0.0',
-      author: {
-        '@type': 'Organization',
-        name: 'LinguaFlip',
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LinguaFlip",
+      "description": "Aplicación web para aprender inglés con flashcards inteligentes y repetición espaciada",
+      "url": "https://linguaflip.app",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "softwareVersion": "1.0.0",
+      "author": {
+        "@type": "Organization",
+        "name": "LinguaFlip"
       },
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       },
-      featureList: [
-        'Flashcards inteligentes con IA',
-        'Sistema de repetición espaciada',
-        'Seguimiento de progreso',
-        'Interfaz adaptativa móvil',
-        'Estadísticas detalladas',
+      "featureList": [
+        "Flashcards inteligentes con IA",
+        "Sistema de repetición espaciada",
+        "Seguimiento de progreso",
+        "Interfaz adaptativa móvil",
+        "Estadísticas detalladas"
       ],
-      screenshot: 'https://linguaflip.app/screenshot.jpg',
-    })}
+      "screenshot": "https://linguaflip.app/screenshot.jpg"
+    }
   </script>
 
   <!-- Breadcrumbs Schema -->
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
         {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Inicio',
-          item: 'https://linguaflip.app',
-        },
-      ],
-    })}
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Inicio",
+          "item": "https://linguaflip.app"
+        }
+      ]
+    }
   </script>
 
   <AppProvider client:load>

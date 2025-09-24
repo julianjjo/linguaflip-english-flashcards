@@ -87,23 +87,22 @@ if (!currentProfileStore.get()) {
   />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'LinguaFlip Settings',
-      description:
-        'Panel de configuración para personalizar la experiencia de aprendizaje',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'Web Browser',
-      featureList: [
-        'Configuración de sesiones de estudio',
-        'Preferencias de audio',
-        'Ajustes visuales',
-        'Notificaciones',
-        'Metas de estudio',
-      ],
-    })}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LinguaFlip Settings",
+      "description": "Panel de configuración para personalizar la experiencia de aprendizaje",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "featureList": [
+        "Configuración de sesiones de estudio",
+        "Preferencias de audio",
+        "Ajustes visuales",
+        "Notificaciones",
+        "Metas de estudio"
+      ]
+    }
   </script>
 
   <AppProvider client:only="react">

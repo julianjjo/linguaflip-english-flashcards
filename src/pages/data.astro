@@ -24,21 +24,21 @@ import AppProvider from '../components/AppProvider.tsx';
   />
 
   <!-- Schema.org structured data -->
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'LinguaFlip Data Management',
-      description: 'Herramientas para gestionar y respaldar datos de aprendizaje',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'Web Browser',
-      featureList: [
-        'Exportación de datos',
-        'Importación de datos',
-        'Copia de seguridad',
-        'Restauración de progreso',
-      ],
-    })}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LinguaFlip Data Management",
+      "description": "Herramientas para gestionar y respaldar datos de aprendizaje",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "featureList": [
+        "Exportación de datos",
+        "Importación de datos",
+        "Copia de seguridad",
+        "Restauración de progreso"
+      ]
+    }
   </script>
 
   <AppProvider client:only="react">
