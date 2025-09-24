@@ -1052,7 +1052,7 @@ export const databaseUtils = {
   },
 
   generateId(): string {
-    return randomBytes(12).toString('hex');
+    return generateRandomHexId(RANDOM_ID_BYTES);
   },
 
   idToString(id: string): string {
