@@ -113,7 +113,10 @@ function checkTestServerConfig() {
 }
 
 function checkMockServerConfig() {
-  if (typeof mockServer.start !== 'function' || typeof mockServer.stop !== 'function') {
+  if (
+    typeof mockServer.start !== 'function' ||
+    typeof mockServer.stop !== 'function'
+  ) {
     throw new Error('Mock server start/stop handlers are not available');
   }
 
@@ -142,7 +145,11 @@ async function runHealthChecks() {
       results.push(result);
       formatResult(result);
     } catch (error) {
-      const result = { name: check.name, success: false, detail: error.message };
+      const result = {
+        name: check.name,
+        success: false,
+        detail: error.message,
+      };
       results.push(result);
       formatResult(result);
     }
