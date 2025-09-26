@@ -30,9 +30,10 @@ async function loginThroughAuthModal(page: Page): Promise<void> {
     .locator('form')
     .getByRole('button', { name: 'Iniciar Sesión', exact: true });
 
-  const loginResponsePromise = page.waitForResponse((response) =>
-    response.url().includes('/api/auth/login') &&
-    response.request().method() === 'POST'
+  const loginResponsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes('/api/auth/login') &&
+      response.request().method() === 'POST'
   );
 
   await submitButton.click();
@@ -67,7 +68,8 @@ test('los invitados deben autenticarse antes de crear flashcards', async ({
   ).toBeVisible();
 });
 
-test.describe.serial('Flujo autenticado de creación y estudio de flashcards', () => {
+test.describe
+  .serial('Flujo autenticado de creación y estudio de flashcards', () => {
   let createdFlashcard: { english: string; spanish: string } | null = null;
 
   test.beforeAll(async ({ request }) => {
@@ -125,14 +127,17 @@ test.describe.serial('Flujo autenticado de creación y estudio de flashcards', (
 
     await page.getByLabel('Palabra en Inglés *').fill(englishTerm);
     await page.getByLabel('Traducción en Español *').fill(spanishTerm);
-    await page.getByLabel('Ejemplo en Inglés').fill('This is an automated example.');
+    await page
+      .getByLabel('Ejemplo en Inglés')
+      .fill('This is an automated example.');
     await page
       .getByLabel('Ejemplo en Español')
       .fill('Este es un ejemplo generado por pruebas.');
 
-    const createResponsePromise = page.waitForResponse((response) =>
-      response.url().includes('/api/flashcards/create') &&
-      response.request().method() === 'POST'
+    const createResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/flashcards/create') &&
+        response.request().method() === 'POST'
     );
 
     await page.getByRole('button', { name: 'Crear Flashcard' }).click();
@@ -193,9 +198,10 @@ test.describe.serial('Flujo autenticado de creación y estudio de flashcards', (
     await expect(flashcardBack).toBeVisible();
     await expect(page.locator('#recall-controls')).toBeVisible();
 
-    const reviewResponsePromise = page.waitForResponse((response) =>
-      response.url().includes('/api/flashcards/review') &&
-      response.request().method() === 'POST'
+    const reviewResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/flashcards/review') &&
+        response.request().method() === 'POST'
     );
 
     await page.getByRole('button', { name: 'Good' }).click();
