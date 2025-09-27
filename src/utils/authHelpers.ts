@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getAuthConfig } from '../config/security.ts';
 
 interface JWTPayload {
   userId: string;
@@ -17,9 +18,10 @@ interface AuthResult {
   error?: string;
 }
 
+const { jwtSecret } = getAuthConfig();
+
 const AUTH_CONFIG = {
-  jwtSecret:
-    process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
+  jwtSecret: jwtSecret || 'default-jwt-secret-change-in-production',
 };
 
 /**
@@ -37,8 +39,13 @@ function extractToken(request: Request): string | null {
   if (cookieHeader) {
     const cookies = cookieHeader.split(';').reduce(
       (acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
+        const [rawKey, ...rawValue] = cookie.trim().split('=');
+        if (!rawKey) {
+          return acc;
+        }
+
+        const value = rawValue.join('=');
+        acc[rawKey] = value ? decodeURIComponent(value) : '';
         return acc;
       },
       {} as Record<string, string>
