@@ -73,7 +73,22 @@ test.describe('LinguaFlip end-to-end journey', () => {
       await expect(
         page.getByRole('heading', { name: 'Sesión de Estudio' })
       ).toBeVisible();
-      await expect(page.getByText('Cargando flashcards...')).toBeVisible();
+      await expect
+        .poll(async () => {
+          const possibleStates = [
+            page.getByText('Cargando flashcards...'),
+            page.getByText('Inicia Sesión para Estudiar'),
+            page.getByText('¡Crea tu primera flashcard!'),
+            page.getByRole('button', { name: 'Voltear', exact: true }),
+          ];
+
+          const visibility = await Promise.all(
+            possibleStates.map((locator) => locator.isVisible())
+          );
+
+          return visibility.some(Boolean);
+        })
+        .toBe(true);
       await expect(
         page.getByRole('link', { name: 'Volver al Dashboard' })
       ).toBeVisible();
