@@ -1,0 +1,67 @@
+import { c as createComponent, g as renderComponent, d as renderTemplate, m as maybeRenderHead } from '../chunks/vendor_Bpx6Nh43.mjs';
+export { f as renderers } from '../chunks/vendor_Bpx6Nh43.mjs';
+import 'kleur/colors';
+import { $ as $$MainLayout } from '../chunks/MainLayout_laCPBsuV.mjs';
+import { b as $$Sidebar, T as ThemeToggle } from '../chunks/ui-components_Dymo2gSD.mjs';
+
+const $$Progress = createComponent(($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "Progreso de Estudio - LinguaFlip", "description": "Revisa tus estad\xEDsticas de aprendizaje, racha de estudio y progreso general" }, { "default": ($$result2) => renderTemplate`  <meta property="og:title" content="Progreso de Estudio - LinguaFlip"> <meta property="og:description" content="Analiza tu progreso de aprendizaje de inglés"> <meta property="og:type" content="website"> ${renderComponent($$result2, "AppProvider", null, { "client:only": "react", "client:component-hydration": "only", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/AppProvider.tsx", "client:component-export": "default" }, { "default": ($$result3) => renderTemplate` ${maybeRenderHead()}<div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50"> <div class="flex"> <!-- Sidebar --> ${renderComponent($$result3, "Sidebar", $$Sidebar, { "currentPath": "/progress", "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/Sidebar.astro", "client:component-export": "default" })} <!-- Main Content --> <main class="flex-1 p-6 lg:pl-72"> <div class="mx-auto max-w-6xl"> <!-- Page Header --> <div class="mb-8"> <div class="mb-4 flex items-center justify-between"> <div> <h1 class="mb-2 text-3xl font-bold text-neutral-900">
+Progreso de Estudio
+</h1> <p class="text-neutral-600">
+Analiza tu rendimiento y mantén tu racha de aprendizaje
+</p> </div> <div class="flex items-center gap-3"> <!-- Theme Toggle --> ${renderComponent($$result3, "ThemeToggle", ThemeToggle, { "variant": "icon", "size": "md", "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/ThemeToggle.tsx", "client:component-export": "default" })} </div> </div> </div> <!-- Stats Overview --> <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4"> <!-- Current Streak --> <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-lg"> <div class="flex items-center justify-between"> <div> <p class="text-sm font-medium text-neutral-600">
+Racha Actual
+</p> <p class="text-3xl font-bold text-orange-600" id="current-streak">
+7
+</p> <p class="text-xs text-neutral-500">días consecutivos</p> </div> <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100"> <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path> </svg> </div> </div> </div> <!-- Total Study Time --> <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-lg"> <div class="flex items-center justify-between"> <div> <p class="text-sm font-medium text-neutral-600">
+Tiempo Total
+</p> <p class="text-3xl font-bold text-blue-600" id="total-time">
+24.5
+</p> <p class="text-xs text-neutral-500">horas estudiadas</p> </div> <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100"> <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> </div> </div> </div> <!-- Cards Reviewed --> <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-lg"> <div class="flex items-center justify-between"> <div> <p class="text-sm font-medium text-neutral-600">
+Tarjetas Revisadas
+</p> <p class="text-3xl font-bold text-green-600" id="cards-reviewed">
+1,247
+</p> <p class="text-xs text-neutral-500">esta semana</p> </div> <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100"> <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path> </svg> </div> </div> </div> <!-- Accuracy Rate --> <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-lg"> <div class="flex items-center justify-between"> <div> <p class="text-sm font-medium text-neutral-600">
+Precisión
+</p> <p class="text-3xl font-bold text-purple-600" id="accuracy-rate">
+87%
+</p> <p class="text-xs text-neutral-500">respuestas correctas</p> </div> <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100"> <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> </div> </div> </div> </div> <!-- Study Heatmap --> <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl"> <h2 class="mb-6 text-xl font-bold text-neutral-900">
+Mapa de Calor de Estudio
+</h2> <div class="rounded-lg bg-neutral-50 p-6 text-center"> <div class="mb-4 text-neutral-500"> <svg class="mx-auto mb-2 h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path> </svg> <p>Mapa de calor próximamente</p> <p class="text-sm">
+Visualiza tus patrones de estudio por día
+</p> </div> </div> </div> <!-- Performance Chart --> <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl"> <h2 class="mb-6 text-xl font-bold text-neutral-900">
+Rendimiento por Semana
+</h2> <div class="rounded-lg bg-neutral-50 p-6 text-center"> <div class="mb-4 text-neutral-500"> <svg class="mx-auto mb-2 h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path> </svg> <p>Gráfico de rendimiento próximamente</p> <p class="text-sm">
+Sigue tu progreso de precisión y tiempo de estudio
+</p> </div> </div> </div> <!-- Recent Sessions --> <div class="rounded-2xl bg-white p-8 shadow-xl"> <h2 class="mb-6 text-xl font-bold text-neutral-900">
+Sesiones Recientes
+</h2> <div class="space-y-4"> <div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4"> <div class="flex items-center space-x-4"> <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100"> <svg class="h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg> </div> <div> <p class="font-medium text-neutral-900">
+Sesión de vocabulario básico
+</p> <p class="text-sm text-neutral-600">
+Hace 2 horas • 25 tarjetas • 87% precisión
+</p> </div> </div> <div class="text-right"> <p class="text-sm font-medium text-green-600">Completada</p> <p class="text-xs text-neutral-500">15 min</p> </div> </div> <div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4"> <div class="flex items-center space-x-4"> <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary-100"> <svg class="h-5 w-5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg> </div> <div> <p class="font-medium text-neutral-900">
+Repaso de gramática
+</p> <p class="text-sm text-neutral-600">
+Ayer • 18 tarjetas • 92% precisión
+</p> </div> </div> <div class="text-right"> <p class="text-sm font-medium text-green-600">Completada</p> <p class="text-xs text-neutral-500">12 min</p> </div> </div> <div class="flex items-center justify-between rounded-lg border border-neutral-200 p-4"> <div class="flex items-center space-x-4"> <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-100"> <svg class="h-5 w-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg> </div> <div> <p class="font-medium text-neutral-900">
+Vocabulario avanzado
+</p> <p class="text-sm text-neutral-600">
+Hace 3 días • 32 tarjetas • 78% precisión
+</p> </div> </div> <div class="text-right"> <p class="text-sm font-medium text-green-600">Completada</p> <p class="text-xs text-neutral-500">22 min</p> </div> </div> </div> <div class="mt-6 text-center"> <a href="/study" class="inline-flex items-center rounded-lg bg-primary-600 px-6 py-3 font-medium text-white transition-colors duration-200 hover:bg-primary-700"> <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path> </svg>
+Nueva Sesión de Estudio
+</a> </div> </div> </div> </main> </div> </div> ` })} ` })}`;
+}, "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/progress.astro", void 0);
+
+const $$file = "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/progress.astro";
+const $$url = "/progress";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$Progress,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };
