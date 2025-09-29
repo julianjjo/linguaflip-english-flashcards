@@ -483,6 +483,12 @@ if (!currentProfileStore.get()) {
     // import StudySettings from '../components/StudySettings.tsx'; // Component not found
     import { createRoot } from 'react-dom/client';
 
+    const defaultProfileData = JSON.parse(
+      decodeURIComponent(
+        `${encodeURIComponent(JSON.stringify(defaultProfile))}`
+      )
+    );
+
     class SettingsManager {
       currentProfile: any;
 
@@ -499,6 +505,10 @@ if (!currentProfileStore.get()) {
 
       loadCurrentProfile() {
         this.currentProfile = currentProfileStore.get();
+        if (!this.currentProfile) {
+          this.currentProfile = defaultProfileData;
+          profileActions.setCurrentProfile(this.currentProfile as any);
+        }
         if (this.currentProfile) {
           this.updateProfileDisplay();
         }
