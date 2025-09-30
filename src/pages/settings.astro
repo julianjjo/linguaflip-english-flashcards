@@ -483,6 +483,12 @@ if (!currentProfileStore.get()) {
     // import StudySettings from '../components/StudySettings.tsx'; // Component not found
     import { createRoot } from 'react-dom/client';
 
+    const defaultProfileData = JSON.parse(
+      decodeURIComponent(
+        `${encodeURIComponent(JSON.stringify(defaultProfile))}`
+      )
+    );
+
     class SettingsManager {
       currentProfile: any;
 
@@ -499,6 +505,10 @@ if (!currentProfileStore.get()) {
 
       loadCurrentProfile() {
         this.currentProfile = currentProfileStore.get();
+        if (!this.currentProfile) {
+          this.currentProfile = defaultProfileData;
+          profileActions.setCurrentProfile(this.currentProfile as any);
+        }
         if (this.currentProfile) {
           this.updateProfileDisplay();
         }
@@ -555,10 +565,13 @@ if (!currentProfileStore.get()) {
         this.showSaveStatus();
       }
 
-      setupEventListeners() {
+      async setupEventListeners() {
         // Save settings button
-        const saveBtn = document.getElementById('save-settings');
-        if (saveBtn) {
+        const saveBtn = (await this.waitForElement(
+          '#save-settings'
+        )) as HTMLElement | null;
+        if (saveBtn && !saveBtn.dataset.listenerAttached) {
+          saveBtn.dataset.listenerAttached = 'true';
           saveBtn.addEventListener('click', () => {
             if (this.currentProfile) {
               profileActions.setCurrentProfile(this.currentProfile);
@@ -568,8 +581,11 @@ if (!currentProfileStore.get()) {
         }
 
         // Reset settings button
-        const resetBtn = document.getElementById('reset-settings');
-        if (resetBtn) {
+        const resetBtn = (await this.waitForElement(
+          '#reset-settings'
+        )) as HTMLElement | null;
+        if (resetBtn && !resetBtn.dataset.listenerAttached) {
+          resetBtn.dataset.listenerAttached = 'true';
           resetBtn.addEventListener('click', () => {
             if (
               confirm(
@@ -580,6 +596,29 @@ if (!currentProfileStore.get()) {
             }
           });
         }
+      }
+
+      waitForElement(selector: string) {
+        return new Promise((resolve) => {
+          const existing = document.querySelector(selector);
+          if (existing) {
+            resolve(existing);
+            return;
+          }
+
+          const observer = new MutationObserver(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+              observer.disconnect();
+              resolve(element);
+            }
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+          });
+        });
       }
 
       resetSettings() {
