@@ -483,11 +483,19 @@ if (!currentProfileStore.get()) {
     // import StudySettings from '../components/StudySettings.tsx'; // Component not found
     import { createRoot } from 'react-dom/client';
 
+    const defaultProfileData = JSON.parse(
+      decodeURIComponent(
+        `${encodeURIComponent(JSON.stringify(defaultProfile))}`
+      )
+    );
+
     class SettingsManager {
       currentProfile: any;
+      handleDocumentClick: (event: Event) => void;
 
       constructor() {
         this.currentProfile = null;
+        this.handleDocumentClick = this.onDocumentClick.bind(this);
         this.init();
       }
 
@@ -499,6 +507,10 @@ if (!currentProfileStore.get()) {
 
       loadCurrentProfile() {
         this.currentProfile = currentProfileStore.get();
+        if (!this.currentProfile) {
+          this.currentProfile = defaultProfileData;
+          profileActions.setCurrentProfile(this.currentProfile as any);
+        }
         if (this.currentProfile) {
           this.updateProfileDisplay();
         }
@@ -556,29 +568,32 @@ if (!currentProfileStore.get()) {
       }
 
       setupEventListeners() {
-        // Save settings button
-        const saveBtn = document.getElementById('save-settings');
-        if (saveBtn) {
-          saveBtn.addEventListener('click', () => {
-            if (this.currentProfile) {
-              profileActions.setCurrentProfile(this.currentProfile);
-              this.showSaveStatus();
-            }
-          });
+        document.addEventListener('click', this.handleDocumentClick);
+      }
+
+      onDocumentClick(event: Event) {
+        const target = event.target as HTMLElement | null;
+        if (!target) return;
+
+        const saveTrigger = target.closest('#save-settings');
+        if (saveTrigger) {
+          if (this.currentProfile) {
+            profileActions.setCurrentProfile(this.currentProfile);
+            this.showSaveStatus();
+          }
+          return;
         }
 
-        // Reset settings button
-        const resetBtn = document.getElementById('reset-settings');
-        if (resetBtn) {
-          resetBtn.addEventListener('click', () => {
-            if (
-              confirm(
-                '¿Estás seguro de que quieres restablecer todas las configuraciones?'
-              )
-            ) {
-              this.resetSettings();
-            }
-          });
+        const resetTrigger = target.closest('#reset-settings');
+        if (resetTrigger) {
+          event.preventDefault();
+          if (
+            confirm(
+              '¿Estás seguro de que quieres restablecer todas las configuraciones?'
+            )
+          ) {
+            this.resetSettings();
+          }
         }
       }
 
