@@ -1,0 +1,234 @@
+import { c as createComponent, g as renderComponent, d as renderTemplate, m as maybeRenderHead } from '../chunks/vendor_Bpx6Nh43.mjs';
+export { f as renderers } from '../chunks/vendor_Bpx6Nh43.mjs';
+import 'kleur/colors';
+import { $ as $$MainLayout } from '../chunks/MainLayout_laCPBsuV.mjs';
+import { f as AppProvider, T as ThemeToggle, e as AuthenticatedApp } from '../chunks/ui-components_Dymo2gSD.mjs';
+
+var __freeze = Object.freeze;
+var __defProp = Object.defineProperty;
+var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(cooked.slice()) }));
+var _a;
+const $$Index = createComponent(($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "LinguaFlip - Aprende Ingl\xE9s con Flashcards" }, { "default": ($$result2) => renderTemplate(_a || (_a = __template(['  <meta name="description" content="Aprende ingl\xE9s de manera inteligente con flashcards basados en repetici\xF3n espaciada y IA. Mejora tu vocabulario con nuestro sistema de estudio personalizado."> <meta name="keywords" content="ingles, flashcards, aprendizaje, repetici\xF3n espaciada, vocabulario, IA, educaci\xF3n, estudio"> <meta name="author" content="LinguaFlip"> <meta name="robots" content="index, follow"> <meta name="language" content="Spanish"> <meta name="revisit-after" content="7 days">  <link rel="canonical" href="https://linguaflip.app/">  <meta property="og:type" content="website"> <meta property="og:url" content="https://linguaflip.app/"> <meta property="og:title" content="LinguaFlip - Aprende Ingl\xE9s con Flashcards Inteligentes"> <meta property="og:description" content="Sistema de aprendizaje de ingl\xE9s revolucionario con IA y repetici\xF3n espaciada. Mejora tu vocabulario de forma eficiente."> <meta property="og:image" content="https://linguaflip.app/og-image.jpg"> <meta property="og:image:width" content="1200"> <meta property="og:image:height" content="630"> <meta property="og:locale" content="es_ES"> <meta property="og:site_name" content="LinguaFlip">  <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:url" content="https://linguaflip.app/"> <meta name="twitter:title" content="LinguaFlip - Aprende Ingl\xE9s con Flashcards Inteligentes"> <meta name="twitter:description" content="Sistema de aprendizaje de ingl\xE9s revolucionario con IA y repetici\xF3n espaciada."> <meta name="twitter:image" content="https://linguaflip.app/twitter-image.jpg">  <meta name="theme-color" content="#0ea5e9"> <meta name="msapplication-TileColor" content="#0ea5e9"> <meta name="apple-mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-status-bar-style" content="default"> <meta name="apple-mobile-web-app-title" content="LinguaFlip">  <script type="application/ld+json">\n    {\n      "@context": "https://schema.org",\n      "@type": "WebApplication",\n      "name": "LinguaFlip",\n      "description": "Aplicaci\xF3n web para aprender ingl\xE9s con flashcards inteligentes y repetici\xF3n espaciada",\n      "url": "https://linguaflip.app",\n      "applicationCategory": "EducationalApplication",\n      "operatingSystem": "Web Browser",\n      "softwareVersion": "1.0.0",\n      "author": {\n        "@type": "Organization",\n        "name": "LinguaFlip"\n      },\n      "offers": {\n        "@type": "Offer",\n        "price": "0",\n        "priceCurrency": "USD",\n        "availability": "https://schema.org/InStock"\n      },\n      "featureList": [\n        "Flashcards inteligentes con IA",\n        "Sistema de repetici\xF3n espaciada",\n        "Seguimiento de progreso",\n        "Interfaz adaptativa m\xF3vil",\n        "Estad\xEDsticas detalladas"\n      ],\n      "screenshot": "https://linguaflip.app/screenshot.jpg"\n    }\n  <\/script>  <script type="application/ld+json">\n    {\n      "@context": "https://schema.org",\n      "@type": "BreadcrumbList",\n      "itemListElement": [\n        {\n          "@type": "ListItem",\n          "position": 1,\n          "name": "Inicio",\n          "item": "https://linguaflip.app"\n        }\n      ]\n    }\n  <\/script> ', " "])), renderComponent($$result2, "AppProvider", AppProvider, { "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/AppProvider.tsx", "client:component-export": "default" }, { "default": ($$result3) => renderTemplate` ${maybeRenderHead()}<main class="relative min-h-screen bg-white pb-24 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50"> <div class="pointer-events-none absolute inset-x-0 top-0 -z-10 overflow-hidden"> <div class="from-primary-200/70 via-primary-100/40 to-secondary-200/70 dark:from-primary-500/20 dark:via-neutral-900/70 dark:to-secondary-400/20 mx-auto h-[28rem] w-[80rem] -translate-y-32 rounded-full bg-gradient-to-tr opacity-80 blur-3xl" aria-hidden="true"></div> </div> <header class="relative z-10"> <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-8"> <a class="text-lg font-semibold text-primary-700 transition hover:text-primary-600 dark:text-primary-200" href="/">
+LinguaFlip
+</a> <nav class="hidden items-center gap-8 text-sm font-medium text-neutral-600 dark:text-neutral-300 md:flex" aria-label="Navegación principal"> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="#features">Características</a> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="#workflow">Cómo funciona</a> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="#opiniones">Testimonios</a> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="#preguntas">Preguntas</a> </nav> <div class="flex items-center gap-3"> ${renderComponent($$result3, "ThemeToggle", ThemeToggle, { "variant": "minimal", "size": "sm", "className": "shadow-primary-500/20 shadow-sm dark:shadow-none", "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/ThemeToggle.tsx", "client:component-export": "default" })} <a class="hidden text-sm font-semibold text-neutral-600 transition hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-300 md:inline-flex" href="/login">
+Iniciar sesión
+</a> <a class="shadow-primary-500/30 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary-600 to-primary-500 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:from-primary-500 hover:to-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500" href="/register">
+Empieza gratis
+</a> </div> </div> </header> <nav class="relative z-10 px-6 md:hidden" aria-label="Secciones principales"> <div class="dark:bg-neutral-900/60 flex gap-3 overflow-x-auto rounded-full bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-600 shadow-sm dark:text-neutral-300"> <a class="whitespace-nowrap transition hover:text-primary-600 dark:hover:text-primary-200" href="#features">Características</a> <a class="whitespace-nowrap transition hover:text-primary-600 dark:hover:text-primary-200" href="#workflow">Cómo funciona</a> <a class="whitespace-nowrap transition hover:text-primary-600 dark:hover:text-primary-200" href="#opiniones">Testimonios</a> <a class="whitespace-nowrap transition hover:text-primary-600 dark:hover:text-primary-200" href="#preguntas">Preguntas</a> </div> </nav> <section class="relative z-10 px-6 pt-16 sm:pt-24 lg:pt-28" aria-labelledby="hero-heading"> <div class="mx-auto max-w-6xl"> <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center"> <div> <span class="dark:bg-primary-900/40 inline-flex items-center gap-2 rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 shadow-sm dark:text-primary-200"> <span class="h-2 w-2 rounded-full bg-primary-500" aria-hidden="true"></span>
+Nuevo: rutas guiadas por objetivos
+</span> <h1 id="hero-heading" class="mt-6 text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-5xl lg:text-6xl">
+Impulsa tu inglés con
+<span class="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 bg-clip-text text-transparent">
+flashcards inteligentes
+</span> </h1> <p class="mt-6 max-w-xl text-lg text-neutral-600 dark:text-neutral-300">
+Diseñamos sesiones cortas y efectivas que se adaptan a tu ritmo.
+                Practica vocabulario, pronunciación y listening con
+                recordatorios inteligentes y estadísticas que celebran cada
+                avance.
+</p> <div class="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center"> <a class="shadow-primary-500/30 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary-600 to-primary-500 px-8 py-3 text-base font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:from-primary-500 hover:to-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500" href="/register">
+Crear cuenta gratuita
+</a> <a class="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary-700 transition hover:text-primary-500 dark:text-primary-200 dark:hover:text-primary-100" href="/study">
+Ver modo estudio
+<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path> </svg> </a> </div> <dl class="mt-12 grid gap-6 sm:grid-cols-3"> <div class="dark:bg-neutral-900/70 rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-left shadow-sm dark:border-neutral-800"> <dt class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+Estudiantes activos
+</dt> <dd class="mt-2 text-3xl font-semibold text-primary-600 dark:text-primary-300">
+12k+
+</dd> <dd class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+aprendiendo cada mes
+</dd> </div> <div class="dark:bg-neutral-900/70 rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-left shadow-sm dark:border-neutral-800"> <dt class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+Constancia promedio
+</dt> <dd class="mt-2 text-3xl font-semibold text-primary-600 dark:text-primary-300">
+94%
+</dd> <dd class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+de sesiones completadas
+</dd> </div> <div class="dark:bg-neutral-900/70 rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-left shadow-sm dark:border-neutral-800"> <dt class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+Tiempo diario sugerido
+</dt> <dd class="mt-2 text-3xl font-semibold text-primary-600 dark:text-primary-300">
+15 min
+</dd> <dd class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+para mantener la racha
+</dd> </div> </dl> </div> <div class="relative"> <div class="from-primary-400/30 via-primary-300/20 to-secondary-400/30 dark:from-primary-500/15 dark:via-primary-700/10 dark:to-secondary-500/15 pointer-events-none absolute inset-x-6 top-0 h-64 rounded-3xl bg-gradient-to-br blur-2xl" aria-hidden="true"></div> <div class="shadow-primary-500/20 dark:bg-neutral-900/80 relative overflow-hidden rounded-3xl border border-neutral-100 bg-white/95 p-8 shadow-xl backdrop-blur-sm dark:border-neutral-800"> <div class="flex items-center justify-between text-sm font-medium text-neutral-500 dark:text-neutral-400"> <span>Plan de estudio de hoy</span> <span>12 tarjetas</span> </div> <div class="mt-6 space-y-4"> <div class="dark:bg-neutral-900/60 rounded-2xl border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800"> <div class="flex items-center justify-between text-sm font-semibold text-neutral-600 dark:text-neutral-300"> <span>Vocabulario clave</span> <span>B2</span> </div> <p class="mt-2 text-lg font-semibold text-neutral-900 dark:text-white">
+to overcome
+</p> <p class="text-sm text-neutral-500 dark:text-neutral-400">
+Significado: superar. Crea una frase sobre un reto que
+                      venciste.
+</p> <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700"> <div class="h-full w-3/5 rounded-full bg-gradient-to-r from-primary-500 to-primary-400"></div> </div> </div> <div class="dark:bg-neutral-950/40 grid gap-4 rounded-2xl border border-neutral-100 bg-white/80 p-4 dark:border-neutral-800"> <div class="flex items-start gap-3"> <div class="dark:bg-accent-500/20 flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-100 text-lg font-semibold text-accent-700 dark:text-accent-200">
+👂
+</div> <div> <p class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+Listening activo
+</p> <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+Escucha y repite expresiones naturales con
+                          retroalimentación instantánea.
+</p> </div> </div> <div class="flex items-start gap-3"> <div class="dark:bg-success-500/20 flex h-10 w-10 items-center justify-center rounded-2xl bg-success-100 text-lg font-semibold text-success-700 dark:text-success-200">
+💬
+</div> <div> <p class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+Práctica hablada
+</p> <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+Pronuncia la tarjeta y recibe sugerencias para sonar
+                          más natural.
+</p> </div> </div> </div> </div> <div class="dark:bg-neutral-900/60 mt-6 flex items-center justify-between rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"> <span>Racha perfecta</span> <span class="flex items-center gap-2 text-primary-600 dark:text-primary-300"> <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path> </svg>
+21 días
+</span> </div> </div> </div> </div> </div> </section> <section id="features" class="relative z-10 mt-24 px-6"> <div class="mx-auto max-w-6xl"> <div class="mx-auto max-w-2xl text-center"> <h2 class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-4xl">
+Todo lo que necesitas para crear hábito
+</h2> <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
+LinguaFlip simplifica tu estudio con herramientas diseñadas para
+              mantenerte motivado sin saturarte.
+</p> </div> <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4"> <article class="dark:bg-neutral-900/70 group relative flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-neutral-800"> <div> <div class="dark:bg-primary-900/40 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 transition group-hover:scale-105 dark:text-primary-200"> <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h7.5M6 6h.008M6 12h.008M6 18h.008m4.492 0H21M10.5 12H21M10.5 18H21"></path> </svg> </div> <h3 class="mt-6 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+Planes adaptativos
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+El algoritmo ajusta la dificultad y frecuencia según tu
+                  desempeño para que avances sin frustración.
+</p> </div> <span class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 transition group-hover:text-primary-500 dark:text-primary-300">
+Personalización automática
+<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path> </svg> </span> </article> <article class="dark:bg-neutral-900/70 group relative flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-neutral-800"> <div> <div class="dark:bg-accent-500/20 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-100 text-accent-700 transition group-hover:scale-105 dark:text-accent-200"> <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"></path> </svg> </div> <h3 class="mt-6 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+Sesiones micro
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+Estudia en bloques de cinco minutos con indicaciones claras y
+                  ejercicios variados que evitan la monotonía.
+</p> </div> <span class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 transition group-hover:text-primary-500 dark:text-primary-300">
+Aprovecha cada minuto
+<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path> </svg> </span> </article> <article class="dark:bg-neutral-900/70 group relative flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-neutral-800"> <div> <div class="dark:bg-success-500/20 flex h-12 w-12 items-center justify-center rounded-2xl bg-success-100 text-success-700 transition group-hover:scale-105 dark:text-success-200"> <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5l6 6L21 6"></path> </svg> </div> <h3 class="mt-6 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+Seguimiento claro
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+Visualiza tus avances, identifica áreas de mejora y celebra
+                  tus logros con informes semanales sencillos.
+</p> </div> <span class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 transition group-hover:text-primary-500 dark:text-primary-300">
+Estadísticas en tiempo real
+<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path> </svg> </span> </article> <article class="dark:bg-neutral-900/70 group relative flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-neutral-800"> <div> <div class="dark:bg-secondary-500/20 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-100 text-secondary-600 transition group-hover:scale-105 dark:text-secondary-200"> <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.121 2.121M8.757 15.243l-2.12 2.121m12.728 0l-2.121-2.121M8.757 8.757L6.636 6.636"></path> </svg> </div> <h3 class="mt-6 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+Motivación constante
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+Recibe recordatorios amables, retos semanales y recompensas
+                  digitales que mantienen tu energía alta.
+</p> </div> <span class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 transition group-hover:text-primary-500 dark:text-primary-300">
+Ritmo sostenible
+<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path> </svg> </span> </article> </div> </div> </section> <section id="workflow" class="relative z-10 mt-24 px-6"> <div class="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 px-8 py-12 text-primary-50 shadow-2xl dark:from-primary-600 dark:via-primary-500 dark:to-primary-700"> <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] lg:items-center"> <div> <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+Un flujo pensado para tu agenda
+</h2> <p class="mt-4 text-base text-primary-100">
+Solo necesitas unos minutos al día. La app te guía paso a paso y
+                mantiene tu motivación al máximo.
+</p> <div class="mt-10 grid gap-6 sm:grid-cols-2"> <div class="rounded-2xl bg-white/10 p-5 backdrop-blur-sm"> <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-lg font-semibold">1</span> <h3 class="mt-4 text-lg font-semibold text-white">
+Define tu meta
+</h3> <p class="mt-2 text-sm text-primary-100">
+Selecciona las competencias que quieres reforzar y tu nivel
+                    actual.
+</p> </div> <div class="rounded-2xl bg-white/10 p-5 backdrop-blur-sm"> <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-lg font-semibold">2</span> <h3 class="mt-4 text-lg font-semibold text-white">
+Estudia sin fricción
+</h3> <p class="mt-2 text-sm text-primary-100">
+Completa tarjetas dinámicas con audio, contexto cultural y
+                    retos de pronunciación.
+</p> </div> <div class="rounded-2xl bg-white/10 p-5 backdrop-blur-sm"> <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-lg font-semibold">3</span> <h3 class="mt-4 text-lg font-semibold text-white">
+Refuerza lo aprendido
+</h3> <p class="mt-2 text-sm text-primary-100">
+Repite exactamente las palabras que necesitas gracias a la
+                    repetición espaciada.
+</p> </div> <div class="rounded-2xl bg-white/10 p-5 backdrop-blur-sm"> <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-lg font-semibold">4</span> <h3 class="mt-4 text-lg font-semibold text-white">
+Celebra cada hito
+</h3> <p class="mt-2 text-sm text-primary-100">
+Suma puntos, mantén tu racha y desbloquea logros por
+                    constancia.
+</p> </div> </div> </div> <div class="rounded-3xl bg-white/10 p-6 backdrop-blur-sm"> <h3 class="text-lg font-semibold text-white">Tu ritmo ideal</h3> <ul class="mt-6 space-y-5 text-sm text-primary-100"> <li class="flex items-start gap-3"> <span class="mt-1 h-2 w-2 rounded-full bg-white"></span> <div> <p class="font-semibold text-white">15 minutos diarios</p> <p class="mt-1">
+Recordatorios inteligentes adaptados a tu horario.
+</p> </div> </li> <li class="flex items-start gap-3"> <span class="mt-1 h-2 w-2 rounded-full bg-white"></span> <div> <p class="font-semibold text-white">Revisión inteligente</p> <p class="mt-1">
+Las tarjetas se priorizan según tu nivel de dominio.
+</p> </div> </li> <li class="flex items-start gap-3"> <span class="mt-1 h-2 w-2 rounded-full bg-white"></span> <div> <p class="font-semibold text-white">Resultados visibles</p> <p class="mt-1">
+Indicadores diarios y semanales que muestran tu progreso
+                      real.
+</p> </div> </li> </ul> <div class="mt-8 flex flex-col gap-3 rounded-2xl bg-white/10 p-4 text-sm text-white shadow-inner shadow-black/10"> <div class="flex items-center justify-between"> <span>Tiempo estimado de hoy</span> <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">12 minutos</span> </div> <div class="flex items-center justify-between"> <span>Tarjetas dominadas</span> <span class="text-base font-semibold">68%</span> </div> </div> </div> </div> </div> </section> <section id="opiniones" class="relative z-10 mt-24 px-6"> <div class="mx-auto max-w-6xl"> <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"> <div class="max-w-2xl"> <h2 class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-4xl">
+Historias reales de progreso
+</h2> <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
+Millones de repasos completados y estudiantes que confían en
+                pequeños avances diarios para dominar el inglés.
+</p> </div> <a class="dark:border-primary-500/30 inline-flex items-center justify-center gap-2 self-start rounded-full border border-primary-200 px-5 py-2 text-sm font-semibold text-primary-700 transition hover:border-primary-400 hover:text-primary-500 dark:text-primary-200 dark:hover:border-primary-300" href="/progress">
+Ver tablero de progreso
+<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path> </svg> </a> </div> <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3"> <article class="dark:bg-neutral-900/70 flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-md dark:border-neutral-800"> <div> <div class="flex items-center gap-3"> <div class="dark:bg-primary-900/40 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-lg font-semibold text-primary-700 dark:text-primary-200">
+AC
+</div> <div> <p class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+Ana Castillo
+</p> <p class="text-xs text-neutral-500 dark:text-neutral-400">
+Marketing · Nivel B1 → B2
+</p> </div> </div> <p class="mt-4 text-sm text-neutral-600 dark:text-neutral-300">
+“En tres meses mi vocabulario profesional se duplicó. Las
+                  sesiones cortas me permiten estudiar antes de cada reunión
+                  importante.”
+</p> </div> <div class="mt-6 flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400"> <span class="inline-flex items-center gap-1"> <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3"></path> </svg>
+18 tarjetas diarias
+</span> <span>Racha de 42 días</span> </div> </article> <article class="dark:bg-neutral-900/70 flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-md dark:border-neutral-800"> <div> <div class="flex items-center gap-3"> <div class="dark:bg-success-500/20 flex h-12 w-12 items-center justify-center rounded-full bg-success-100 text-lg font-semibold text-success-700 dark:text-success-200">
+JL
+</div> <div> <p class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+Jorge López
+</p> <p class="text-xs text-neutral-500 dark:text-neutral-400">
+Ingeniero · Nivel A2 → B1
+</p> </div> </div> <p class="mt-4 text-sm text-neutral-600 dark:text-neutral-300">
+“La app me recuerda revisar justo cuando estoy a punto de
+                  olvidar. Ahora participo con seguridad en las llamadas con el
+                  equipo global.”
+</p> </div> <div class="mt-6 flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400"> <span class="inline-flex items-center gap-1"> <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path> </svg>
++320 palabras nuevas
+</span> <span>Mejora de 1 nivel CEFR</span> </div> </article> <article class="dark:bg-neutral-900/70 flex h-full flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-6 shadow-md dark:border-neutral-800"> <div> <div class="flex items-center gap-3"> <div class="dark:bg-secondary-500/20 flex h-12 w-12 items-center justify-center rounded-full bg-secondary-100 text-lg font-semibold text-secondary-600 dark:text-secondary-200">
+RP
+</div> <div> <p class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+Rocío Peña
+</p> <p class="text-xs text-neutral-500 dark:text-neutral-400">
+Estudiante · Nivel B2 → C1
+</p> </div> </div> <p class="mt-4 text-sm text-neutral-600 dark:text-neutral-300">
+“La variedad de actividades mantiene mi motivación alta. El
+                  seguimiento semanal me muestra exactamente dónde debo
+                  enfocarme.”
+</p> </div> <div class="mt-6 flex items-center justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400"> <span class="inline-flex items-center gap-1"> <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01"></path> </svg>
+Practica premium
+</span> <span>Feedback pronunciación IA</span> </div> </article> </div> </div> </section> <section id="preguntas" class="relative z-10 mt-24 px-6"> <div class="dark:bg-neutral-900/70 mx-auto max-w-5xl rounded-3xl border border-neutral-200 bg-white/90 p-8 shadow-xl dark:border-neutral-800"> <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"> <div class="max-w-2xl"> <h2 class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-4xl">
+¿Listo para tu próxima sesión?
+</h2> <p class="mt-4 text-base text-neutral-600 dark:text-neutral-300">
+Resolvemos las dudas frecuentes para que solo te concentres en
+                aprender. Si necesitas soporte personal, estamos a un clic.
+</p> </div> <a class="shadow-primary-500/30 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:from-primary-500 hover:to-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500" href="/help">
+Agendar recordatorio
+</a> </div> <div class="mt-10 grid gap-6 md:grid-cols-2"> <div> <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+¿Cuánto tiempo debo estudiar?
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+Recomendamos sesiones de 10 a 15 minutos. Nuestro sistema ajusta
+                la carga diaria automáticamente.
+</p> </div> <div> <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+¿Necesito pagar desde el inicio?
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+No. El plan gratuito incluye repaso infinito con IA, seguimiento
+                de rachas y sincronización entre dispositivos.
+</p> </div> <div> <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+¿Puedo usarlo sin conexión?
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+Descarga mazos para repasar en modo offline y sincroniza tu
+                progreso cuando vuelvas a tener internet.
+</p> </div> <div> <h3 class="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+¿El contenido se adapta a mi nivel?
+</h3> <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+Sí. Analizamos tus respuestas y priorizamos vocabulario
+                relevante para tus objetivos personales o profesionales.
+</p> </div> </div> </div> </section> <section class="relative z-10 mt-24 px-6"> <div class="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 px-8 py-12 text-white shadow-2xl"> <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"> <div class="max-w-2xl"> <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+Crea tu plan en minutos
+</h2> <p class="mt-3 text-base text-white/80">
+Personaliza tus objetivos, recibe recordatorios y mantén el
+                hábito con retos semanales. Todo desde la misma experiencia.
+</p> </div> <div class="flex flex-col gap-4 sm:flex-row"> <a class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-primary-600 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-primary-50" href="/register">
+Comenzar gratis
+</a> <a class="inline-flex items-center justify-center rounded-full border border-white/60 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-white" href="/login">
+Ya tengo cuenta
+</a> </div> </div> </div> </section> <footer class="relative z-10 mt-24 px-6"> <div class="mx-auto max-w-6xl border-t border-neutral-200 py-10 text-sm text-neutral-500 dark:border-neutral-800 dark:text-neutral-400"> <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between"> <p>
+© 2025 LinguaFlip. Hecho con foco en estudiantes
+              hispanohablantes.
+</p> <div class="flex flex-wrap gap-x-5 gap-y-3"> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="/help">Ayuda</a> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="/settings">Preferencias</a> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="/dashboard">Panel</a> <a class="transition hover:text-primary-600 dark:hover:text-primary-300" href="/study">Modo estudio</a> </div> </div> </div> </footer> </main> ${renderComponent($$result3, "AuthenticatedApp", AuthenticatedApp, { "client:load": true, "showUserProfile": false, "showCreateButton": false, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/AuthenticatedApp.tsx", "client:component-export": "default" })} ` })) })}`;
+}, "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/index.astro", void 0);
+
+const $$file = "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/index.astro";
+const $$url = "";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$Index,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

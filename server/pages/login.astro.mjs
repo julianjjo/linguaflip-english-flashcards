@@ -1,0 +1,180 @@
+import { c as createComponent, g as renderComponent, d as renderTemplate, m as maybeRenderHead } from '../chunks/vendor_Bpx6Nh43.mjs';
+export { f as renderers } from '../chunks/vendor_Bpx6Nh43.mjs';
+import 'kleur/colors';
+import { $ as $$MainLayout } from '../chunks/MainLayout_laCPBsuV.mjs';
+import { T as ThemeToggle } from '../chunks/ui-components_Dymo2gSD.mjs';
+
+var __freeze = Object.freeze;
+var __defProp = Object.defineProperty;
+var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(cooked.slice()) }));
+var _a;
+const $$Login = createComponent(async ($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "Iniciar Sesi\xF3n - LinguaFlip", "description": "Accede a tu cuenta de LinguaFlip para sincronizar tu progreso de aprendizaje" }, { "default": async ($$result2) => renderTemplate(_a || (_a = __template(['  <meta property="og:title" content="Iniciar Sesi\xF3n - LinguaFlip"> <meta property="og:description" content="Accede a tu cuenta para continuar aprendiendo ingl\xE9s"> <meta property="og:type" content="website"> ', '<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4"> <div class="w-full max-w-md"> <!-- Theme Toggle --> ', ` <!-- Login Card --> <div class="rounded-2xl bg-white p-8 shadow-xl"> <!-- Header --> <div class="mb-8 text-center"> <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100"> <svg class="h-8 w-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg> </div> <h1 class="mb-2 text-2xl font-bold text-neutral-900">
+Bienvenido de vuelta
+</h1> <p class="text-neutral-600">
+Inicia sesi\xF3n para continuar aprendiendo
+</p> </div> <!-- Login Form --> <form id="loginForm" class="space-y-6"> <!-- Email Field --> <div> <label for="email" class="mb-2 block text-sm font-medium text-neutral-700">
+Correo electr\xF3nico
+</label> <input type="email" id="email" name="email" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="tu@email.com"> </div> <!-- Password Field --> <div> <label for="password" class="mb-2 block text-sm font-medium text-neutral-700">
+Contrase\xF1a
+</label> <div class="relative"> <input type="password" id="password" name="password" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Tu contrase\xF1a"> <button type="button" onclick="togglePasswordVisibility('password')" class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"> <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path> </svg> </button> </div> </div> <!-- Remember Me & Forgot Password --> <div class="flex items-center justify-between"> <label class="flex items-center"> <input type="checkbox" class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"> <span class="ml-2 text-sm text-neutral-600">Recordarme</span> </label> <a href="/forgot-password" class="text-sm font-medium text-primary-600 hover:text-primary-700">
+\xBFOlvidaste tu contrase\xF1a?
+</a> </div> <!-- Error Message --> <div id="errorMessage" class="hidden rounded-lg border border-red-200 bg-red-50 p-4"> <div class="flex items-center"> <svg class="mr-2 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> <span id="errorText" class="text-sm text-red-800"></span> </div> </div> <!-- Submit Button --> <button type="submit" id="loginButton" class="flex w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-primary-700"> <span id="buttonText">Iniciar Sesi\xF3n</span> <svg id="loadingSpinner" class="ml-2 hidden h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"> <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path> </svg> </button> </form> <!-- Social Login --> <div class="mt-6"> <div class="relative"> <div class="absolute inset-0 flex items-center"> <div class="w-full border-t border-neutral-300"></div> </div> <div class="relative flex justify-center text-sm"> <span class="bg-white px-2 text-neutral-500">O contin\xFAa con</span> </div> </div> <div class="mt-6 grid grid-cols-2 gap-3"> <button class="inline-flex w-full justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50"> <svg class="h-5 w-5" viewBox="0 0 24 24"> <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path> <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path> <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path> <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path> </svg> <span class="ml-2">Google</span> </button> <button class="inline-flex w-full justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-500 shadow-sm transition-colors hover:bg-neutral-50"> <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"> <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"></path> </svg> <span class="ml-2">Twitter</span> </button> </div> </div> <!-- Sign Up Link --> <div class="mt-8 text-center"> <p class="text-neutral-600">
+\xBFNo tienes cuenta?
+<a href="/register" class="font-medium text-primary-600 hover:text-primary-700">
+Reg\xEDstrate gratis
+</a> </p> </div> </div> <!-- Footer --> <div class="mt-8 text-center"> <p class="text-sm text-neutral-500">
+Al iniciar sesi\xF3n, aceptas nuestros
+<a href="/terms" class="text-primary-600 hover:text-primary-700">T\xE9rminos de servicio</a>
+y
+<a href="/privacy" class="text-primary-600 hover:text-primary-700">Pol\xEDtica de privacidad</a> </p> </div> </div> </div> <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Password visibility toggle
+      function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input?.nextElementSibling;
+        const icon = button?.querySelector('svg');
+
+        if (input && icon) {
+          if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+          } else {
+            input.type = 'password';
+            icon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+          }
+        }
+      }
+
+      // Setup password toggle buttons
+      const toggleButtons = document.querySelectorAll(
+        '[onclick*="togglePasswordVisibility"]'
+      );
+      toggleButtons.forEach((button) => {
+        const onclick = button.getAttribute('onclick');
+        if (!onclick) {
+          return;
+        }
+
+        const inputId = onclick.match(/'([^']+)'/)?.[1];
+        if (!inputId || button.dataset.passwordToggleBound === 'true') {
+          return;
+        }
+
+        button.dataset.passwordToggleBound = 'true';
+        button.addEventListener('click', () =>
+          togglePasswordVisibility(inputId)
+        );
+      });
+
+      // Login form submission
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+        // Deshabilitar la validaci\xF3n nativa para mostrar mensajes personalizados
+        loginForm.setAttribute('novalidate', 'true');
+
+        loginForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          const emailInput = document.getElementById('email');
+          const passwordInput = document.getElementById('password');
+          const loginButton = document.getElementById('loginButton');
+          const buttonText = document.getElementById('buttonText');
+          const loadingSpinner = document.getElementById('loadingSpinner');
+          const errorMessage = document.getElementById('errorMessage');
+          const errorText = document.getElementById('errorText');
+
+          if (
+            !emailInput ||
+            !passwordInput ||
+            !loginButton ||
+            !buttonText ||
+            !loadingSpinner ||
+            !errorMessage ||
+            !errorText
+          ) {
+            return;
+          }
+
+          const email = emailInput.value.trim();
+          const password = passwordInput.value;
+
+          // Limpiar mensajes previos
+          errorMessage.classList.add('hidden');
+
+          if (!email || !password) {
+            errorText.textContent =
+              'Todos los campos obligatorios deben ser completados';
+            errorMessage.classList.remove('hidden');
+            return;
+          }
+
+          // Show loading state
+          loginButton.disabled = true;
+          buttonText.textContent = 'Iniciando sesi\xF3n...';
+          loadingSpinner.classList.remove('hidden');
+
+          try {
+            const response = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+              // Store tokens
+              localStorage.setItem(
+                'linguaflip_auth_token',
+                data.data.accessToken
+              );
+              localStorage.setItem(
+                'linguaflip_refresh_token',
+                data.data.refreshToken
+              );
+              localStorage.setItem(
+                'linguaflip_user',
+                JSON.stringify(data.data.user)
+              );
+
+              // Redirect to dashboard
+              window.location.href = '/dashboard';
+            } else {
+              // Show error
+              errorText.textContent = data.error || 'Error al iniciar sesi\xF3n';
+              errorMessage.classList.remove('hidden');
+            }
+          } catch (error) {
+            console.error('Login error:', error);
+            errorText.textContent = 'Error de conexi\xF3n. Int\xE9ntalo de nuevo.';
+            errorMessage.classList.remove('hidden');
+          } finally {
+            // Reset loading state
+            loginButton.disabled = false;
+            buttonText.textContent = 'Iniciar Sesi\xF3n';
+            loadingSpinner.classList.add('hidden');
+          }
+        });
+      }
+    });
+  <\/script> `])), maybeRenderHead(), renderComponent($$result2, "AppProvider", null, { "client:only": "react", "client:component-hydration": "only", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/AppProvider.tsx", "client:component-export": "default" }, { "default": async ($$result3) => renderTemplate` <div class="absolute right-4 top-4"> ${renderComponent($$result3, "ThemeToggle", ThemeToggle, { "variant": "icon", "size": "md", "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/ThemeToggle.tsx", "client:component-export": "default" })} </div> ` })) })}`;
+}, "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/login.astro", void 0);
+
+const $$file = "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/login.astro";
+const $$url = "/login";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$Login,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

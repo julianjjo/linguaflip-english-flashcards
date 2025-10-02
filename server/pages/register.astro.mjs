@@ -1,0 +1,543 @@
+import { c as createComponent, g as renderComponent, d as renderTemplate, m as maybeRenderHead } from '../chunks/vendor_Bpx6Nh43.mjs';
+export { f as renderers } from '../chunks/vendor_Bpx6Nh43.mjs';
+import 'kleur/colors';
+import { $ as $$MainLayout } from '../chunks/MainLayout_laCPBsuV.mjs';
+import { T as ThemeToggle } from '../chunks/ui-components_Dymo2gSD.mjs';
+
+var __freeze = Object.freeze;
+var __defProp = Object.defineProperty;
+var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(raw || cooked.slice()) }));
+var _a;
+const $$Register = createComponent(async ($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "Registro - LinguaFlip", "description": "Crea tu cuenta de LinguaFlip para comenzar a aprender ingl\xE9s de manera efectiva" }, { "default": async ($$result2) => renderTemplate(_a || (_a = __template(['  <meta property="og:title" content="Registro - LinguaFlip"> <meta property="og:description" content="\xDAnete a LinguaFlip para aprender ingl\xE9s con flashcards inteligentes"> <meta property="og:type" content="website"> ', '<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4"> <div class="w-full max-w-md"> <!-- Theme Toggle --> ', ` <!-- Registration Card --> <div class="rounded-2xl bg-white p-8 shadow-xl"> <!-- Header --> <div class="mb-8 text-center"> <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100"> <svg class="h-8 w-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg> </div> <h1 class="mb-2 text-2xl font-bold text-neutral-900">
+\xDAnete a LinguaFlip
+</h1> <p class="text-neutral-600">
+Crea tu cuenta para comenzar a aprender
+</p> </div> <!-- Registration Form --> <form id="registerForm" class="space-y-6"> <!-- Email Field --> <div> <label for="email" class="mb-2 block text-sm font-medium text-neutral-700">
+Correo electr\xF3nico *
+</label> <input type="email" id="email" name="email" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="tu@email.com"> </div> <!-- Username Field (Optional) --> <div> <label for="username" class="mb-2 block text-sm font-medium text-neutral-700">
+Nombre de usuario (opcional)
+</label> <input type="text" id="username" name="username" class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Ej: juan_123" maxlength="50"> <p class="mt-1 text-xs text-neutral-500">
+Solo letras, n\xFAmeros, guiones y guiones bajos
+</p> </div> <!-- Password Field --> <div> <label for="password" class="mb-2 block text-sm font-medium text-neutral-700">
+Contrase\xF1a *
+</label> <div class="relative"> <input type="password" id="password" name="password" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Tu contrase\xF1a" minlength="8"> <button type="button" onclick="togglePasswordVisibility('password')" class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"> <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path> </svg> </button> </div> <div class="mt-2 space-y-1"> <p class="text-xs text-neutral-500">
+La contrase\xF1a debe contener:
+</p> <ul class="ml-4 text-xs text-neutral-500"> <li>\u2022 Al menos 8 caracteres</li> <li>\u2022 Una letra min\xFAscula</li> <li>\u2022 Una letra may\xFAscula</li> <li>\u2022 Un n\xFAmero</li> </ul> </div> </div> <!-- Confirm Password Field --> <div> <label for="confirmPassword" class="mb-2 block text-sm font-medium text-neutral-700">
+Confirmar contrase\xF1a *
+</label> <div class="relative"> <input type="password" id="confirmPassword" name="confirmPassword" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Confirma tu contrase\xF1a"> <button type="button" onclick="togglePasswordVisibility('confirmPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"> <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path> </svg> </button> </div> </div> <!-- Terms Agreement --> <div class="flex items-start space-x-2"> <input type="checkbox" id="terms" name="terms" required class="mt-1 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"> <label for="terms" class="text-sm text-neutral-600">
+Acepto los
+<a href="/terms" class="font-medium text-primary-600 hover:text-primary-700">T\xE9rminos de servicio</a>
+y la
+<a href="/privacy" class="font-medium text-primary-600 hover:text-primary-700">Pol\xEDtica de privacidad</a> </label> </div> <!-- Error Message --> <div id="errorMessage" class="hidden rounded-lg border border-red-200 bg-red-50 p-4"> <div class="flex items-center"> <svg class="mr-2 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> <span id="errorText" class="text-sm text-red-800"></span> </div> </div> <!-- Success Message --> <div id="successMessage" class="hidden rounded-lg border border-green-200 bg-green-50 p-4"> <div class="flex items-center"> <svg class="mr-2 h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path> </svg> <span id="successText" class="text-sm text-green-800"></span> </div> </div> <!-- Submit Button --> <button type="submit" id="registerButton" class="flex w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-primary-700"> <span id="buttonText">Crear cuenta</span> <svg id="loadingSpinner" class="ml-2 hidden h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"> <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path> </svg> </button> </form> <!-- Login Link --> <div class="mt-8 text-center"> <p class="text-neutral-600">
+\xBFYa tienes cuenta?
+<a href="/login" class="font-medium text-primary-600 hover:text-primary-700">
+Inicia sesi\xF3n
+</a> </p> </div> </div> <!-- Footer --> <div class="mt-8 text-center"> <p class="text-sm text-neutral-500">
+Al registrarte, aceptas nuestros
+<a href="/terms" class="text-primary-600 hover:text-primary-700">T\xE9rminos de servicio</a>
+y
+<a href="/privacy" class="text-primary-600 hover:text-primary-700">Pol\xEDtica de privacidad</a> </p> </div> </div> </div> <script>
+    // Password visibility toggle
+    function togglePasswordVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      const button = input?.nextElementSibling;
+      const icon = button?.querySelector('svg');
+
+      if (input && icon) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+        } else {
+          input.type = 'password';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+        }
+      }
+    }
+
+    // Client-side password validation
+    function validatePassword(password) {
+      const errors = [];
+
+      if (password.length < 8) {
+        errors.push('La contrase\xF1a debe tener al menos 8 caracteres');
+      }
+
+      if (!/[a-z]/.test(password)) {
+        errors.push('Debe contener al menos una letra min\xFAscula');
+      }
+
+      if (!/[A-Z]/.test(password)) {
+        errors.push('Debe contener al menos una letra may\xFAscula');
+      }
+
+      if (!/\\d/.test(password)) {
+        errors.push('Debe contener al menos un n\xFAmero');
+      }
+
+      return { valid: errors.length === 0, errors };
+    }
+
+    // Registration form submission
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+      registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const emailInput = document.getElementById('email');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const termsInput = document.getElementById('terms');
+        const registerButton = document.getElementById('registerButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const successMessage = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+
+        if (
+          !emailInput ||
+          !passwordInput ||
+          !confirmPasswordInput ||
+          !termsInput ||
+          !registerButton ||
+          !buttonText ||
+          !loadingSpinner ||
+          !errorMessage ||
+          !errorText ||
+          !successMessage ||
+          !successText
+        ) {
+          return;
+        }
+
+        const email = emailInput.value.trim();
+        const username = usernameInput?.value.trim() || undefined;
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const termsAccepted = termsInput.checked;
+
+        // Hide previous messages
+        errorMessage.classList.add('hidden');
+        successMessage.classList.add('hidden');
+
+        // Client-side validation
+        if (!email || !password || !confirmPassword) {
+          errorText.textContent =
+            'Todos los campos obligatorios deben ser completados';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        if (!termsAccepted) {
+          errorText.textContent =
+            'Debes aceptar los t\xE9rminos de servicio y la pol\xEDtica de privacidad';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+        if (!emailRegex.test(email)) {
+          errorText.textContent =
+            'El formato del correo electr\xF3nico no es v\xE1lido';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Validate password
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+          errorText.textContent = passwordValidation.errors[0];
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Check password confirmation
+        if (password !== confirmPassword) {
+          errorText.textContent = 'Las contrase\xF1as no coinciden';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Validate username if provided
+        if (username && username.length > 0) {
+          if (username.length < 3 || username.length > 50) {
+            errorText.textContent =
+              'El nombre de usuario debe tener entre 3 y 50 caracteres';
+            errorMessage.classList.remove('hidden');
+            return;
+          }
+
+          const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+          if (!usernameRegex.test(username)) {
+            errorText.textContent =
+              'El nombre de usuario solo puede contener letras, n\xFAmeros, guiones y guiones bajos';
+            errorMessage.classList.remove('hidden');
+            return;
+          }
+        }
+
+        // Show loading state
+        registerButton.disabled = true;
+        buttonText.textContent = 'Creando cuenta...';
+        loadingSpinner.classList.remove('hidden');
+
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email,
+              username: username || undefined,
+              password,
+              confirmPassword,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Store tokens
+            localStorage.setItem(
+              'linguaflip_auth_token',
+              data.data.tokens.accessToken
+            );
+            localStorage.setItem(
+              'linguaflip_refresh_token',
+              data.data.tokens.refreshToken
+            );
+            localStorage.setItem(
+              'linguaflip_user',
+              JSON.stringify(data.data.user)
+            );
+
+            // Show success message
+            successText.textContent =
+              'Cuenta creada exitosamente. Redirigiendo...';
+            successMessage.classList.remove('hidden');
+
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 1500);
+          } else {
+            // Show error
+            errorText.textContent = data.error || 'Error al crear la cuenta';
+            errorMessage.classList.remove('hidden');
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          errorText.textContent = 'Error de conexi\xF3n. Int\xE9ntalo de nuevo.';
+          errorMessage.classList.remove('hidden');
+        } finally {
+          // Reset loading state
+          registerButton.disabled = false;
+          buttonText.textContent = 'Crear cuenta';
+          loadingSpinner.classList.add('hidden');
+        }
+      });
+    }
+
+    // Setup password toggle buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleButtons = document.querySelectorAll(
+        '[onclick*="togglePasswordVisibility"]'
+      );
+      toggleButtons.forEach((button) => {
+        const onclick = button.getAttribute('onclick');
+        if (!onclick) {
+          return;
+        }
+
+        const inputId = onclick.match(/'([^']+)'/)?.[1];
+        if (!inputId || button.dataset.passwordToggleBound === 'true') {
+          return;
+        }
+
+        button.dataset.passwordToggleBound = 'true';
+        button.addEventListener('click', () =>
+          togglePasswordVisibility(inputId)
+        );
+      });
+    });
+  <\/script> `], ['  <meta property="og:title" content="Registro - LinguaFlip"> <meta property="og:description" content="\xDAnete a LinguaFlip para aprender ingl\xE9s con flashcards inteligentes"> <meta property="og:type" content="website"> ', '<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4"> <div class="w-full max-w-md"> <!-- Theme Toggle --> ', ` <!-- Registration Card --> <div class="rounded-2xl bg-white p-8 shadow-xl"> <!-- Header --> <div class="mb-8 text-center"> <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100"> <svg class="h-8 w-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg> </div> <h1 class="mb-2 text-2xl font-bold text-neutral-900">
+\xDAnete a LinguaFlip
+</h1> <p class="text-neutral-600">
+Crea tu cuenta para comenzar a aprender
+</p> </div> <!-- Registration Form --> <form id="registerForm" class="space-y-6"> <!-- Email Field --> <div> <label for="email" class="mb-2 block text-sm font-medium text-neutral-700">
+Correo electr\xF3nico *
+</label> <input type="email" id="email" name="email" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="tu@email.com"> </div> <!-- Username Field (Optional) --> <div> <label for="username" class="mb-2 block text-sm font-medium text-neutral-700">
+Nombre de usuario (opcional)
+</label> <input type="text" id="username" name="username" class="w-full rounded-lg border border-neutral-300 px-4 py-3 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Ej: juan_123" maxlength="50"> <p class="mt-1 text-xs text-neutral-500">
+Solo letras, n\xFAmeros, guiones y guiones bajos
+</p> </div> <!-- Password Field --> <div> <label for="password" class="mb-2 block text-sm font-medium text-neutral-700">
+Contrase\xF1a *
+</label> <div class="relative"> <input type="password" id="password" name="password" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Tu contrase\xF1a" minlength="8"> <button type="button" onclick="togglePasswordVisibility('password')" class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"> <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path> </svg> </button> </div> <div class="mt-2 space-y-1"> <p class="text-xs text-neutral-500">
+La contrase\xF1a debe contener:
+</p> <ul class="ml-4 text-xs text-neutral-500"> <li>\u2022 Al menos 8 caracteres</li> <li>\u2022 Una letra min\xFAscula</li> <li>\u2022 Una letra may\xFAscula</li> <li>\u2022 Un n\xFAmero</li> </ul> </div> </div> <!-- Confirm Password Field --> <div> <label for="confirmPassword" class="mb-2 block text-sm font-medium text-neutral-700">
+Confirmar contrase\xF1a *
+</label> <div class="relative"> <input type="password" id="confirmPassword" name="confirmPassword" required class="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 transition-colors focus:border-transparent focus:ring-2 focus:ring-primary-500" placeholder="Confirma tu contrase\xF1a"> <button type="button" onclick="togglePasswordVisibility('confirmPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 transform text-neutral-400 hover:text-neutral-600"> <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path> </svg> </button> </div> </div> <!-- Terms Agreement --> <div class="flex items-start space-x-2"> <input type="checkbox" id="terms" name="terms" required class="mt-1 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"> <label for="terms" class="text-sm text-neutral-600">
+Acepto los
+<a href="/terms" class="font-medium text-primary-600 hover:text-primary-700">T\xE9rminos de servicio</a>
+y la
+<a href="/privacy" class="font-medium text-primary-600 hover:text-primary-700">Pol\xEDtica de privacidad</a> </label> </div> <!-- Error Message --> <div id="errorMessage" class="hidden rounded-lg border border-red-200 bg-red-50 p-4"> <div class="flex items-center"> <svg class="mr-2 h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> <span id="errorText" class="text-sm text-red-800"></span> </div> </div> <!-- Success Message --> <div id="successMessage" class="hidden rounded-lg border border-green-200 bg-green-50 p-4"> <div class="flex items-center"> <svg class="mr-2 h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path> </svg> <span id="successText" class="text-sm text-green-800"></span> </div> </div> <!-- Submit Button --> <button type="submit" id="registerButton" class="flex w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-primary-700"> <span id="buttonText">Crear cuenta</span> <svg id="loadingSpinner" class="ml-2 hidden h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"> <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path> </svg> </button> </form> <!-- Login Link --> <div class="mt-8 text-center"> <p class="text-neutral-600">
+\xBFYa tienes cuenta?
+<a href="/login" class="font-medium text-primary-600 hover:text-primary-700">
+Inicia sesi\xF3n
+</a> </p> </div> </div> <!-- Footer --> <div class="mt-8 text-center"> <p class="text-sm text-neutral-500">
+Al registrarte, aceptas nuestros
+<a href="/terms" class="text-primary-600 hover:text-primary-700">T\xE9rminos de servicio</a>
+y
+<a href="/privacy" class="text-primary-600 hover:text-primary-700">Pol\xEDtica de privacidad</a> </p> </div> </div> </div> <script>
+    // Password visibility toggle
+    function togglePasswordVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      const button = input?.nextElementSibling;
+      const icon = button?.querySelector('svg');
+
+      if (input && icon) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+        } else {
+          input.type = 'password';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+        }
+      }
+    }
+
+    // Client-side password validation
+    function validatePassword(password) {
+      const errors = [];
+
+      if (password.length < 8) {
+        errors.push('La contrase\xF1a debe tener al menos 8 caracteres');
+      }
+
+      if (!/[a-z]/.test(password)) {
+        errors.push('Debe contener al menos una letra min\xFAscula');
+      }
+
+      if (!/[A-Z]/.test(password)) {
+        errors.push('Debe contener al menos una letra may\xFAscula');
+      }
+
+      if (!/\\\\d/.test(password)) {
+        errors.push('Debe contener al menos un n\xFAmero');
+      }
+
+      return { valid: errors.length === 0, errors };
+    }
+
+    // Registration form submission
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+      registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const emailInput = document.getElementById('email');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const termsInput = document.getElementById('terms');
+        const registerButton = document.getElementById('registerButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const successMessage = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+
+        if (
+          !emailInput ||
+          !passwordInput ||
+          !confirmPasswordInput ||
+          !termsInput ||
+          !registerButton ||
+          !buttonText ||
+          !loadingSpinner ||
+          !errorMessage ||
+          !errorText ||
+          !successMessage ||
+          !successText
+        ) {
+          return;
+        }
+
+        const email = emailInput.value.trim();
+        const username = usernameInput?.value.trim() || undefined;
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const termsAccepted = termsInput.checked;
+
+        // Hide previous messages
+        errorMessage.classList.add('hidden');
+        successMessage.classList.add('hidden');
+
+        // Client-side validation
+        if (!email || !password || !confirmPassword) {
+          errorText.textContent =
+            'Todos los campos obligatorios deben ser completados';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        if (!termsAccepted) {
+          errorText.textContent =
+            'Debes aceptar los t\xE9rminos de servicio y la pol\xEDtica de privacidad';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$/;
+        if (!emailRegex.test(email)) {
+          errorText.textContent =
+            'El formato del correo electr\xF3nico no es v\xE1lido';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Validate password
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+          errorText.textContent = passwordValidation.errors[0];
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Check password confirmation
+        if (password !== confirmPassword) {
+          errorText.textContent = 'Las contrase\xF1as no coinciden';
+          errorMessage.classList.remove('hidden');
+          return;
+        }
+
+        // Validate username if provided
+        if (username && username.length > 0) {
+          if (username.length < 3 || username.length > 50) {
+            errorText.textContent =
+              'El nombre de usuario debe tener entre 3 y 50 caracteres';
+            errorMessage.classList.remove('hidden');
+            return;
+          }
+
+          const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+          if (!usernameRegex.test(username)) {
+            errorText.textContent =
+              'El nombre de usuario solo puede contener letras, n\xFAmeros, guiones y guiones bajos';
+            errorMessage.classList.remove('hidden');
+            return;
+          }
+        }
+
+        // Show loading state
+        registerButton.disabled = true;
+        buttonText.textContent = 'Creando cuenta...';
+        loadingSpinner.classList.remove('hidden');
+
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email,
+              username: username || undefined,
+              password,
+              confirmPassword,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Store tokens
+            localStorage.setItem(
+              'linguaflip_auth_token',
+              data.data.tokens.accessToken
+            );
+            localStorage.setItem(
+              'linguaflip_refresh_token',
+              data.data.tokens.refreshToken
+            );
+            localStorage.setItem(
+              'linguaflip_user',
+              JSON.stringify(data.data.user)
+            );
+
+            // Show success message
+            successText.textContent =
+              'Cuenta creada exitosamente. Redirigiendo...';
+            successMessage.classList.remove('hidden');
+
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 1500);
+          } else {
+            // Show error
+            errorText.textContent = data.error || 'Error al crear la cuenta';
+            errorMessage.classList.remove('hidden');
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          errorText.textContent = 'Error de conexi\xF3n. Int\xE9ntalo de nuevo.';
+          errorMessage.classList.remove('hidden');
+        } finally {
+          // Reset loading state
+          registerButton.disabled = false;
+          buttonText.textContent = 'Crear cuenta';
+          loadingSpinner.classList.add('hidden');
+        }
+      });
+    }
+
+    // Setup password toggle buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleButtons = document.querySelectorAll(
+        '[onclick*="togglePasswordVisibility"]'
+      );
+      toggleButtons.forEach((button) => {
+        const onclick = button.getAttribute('onclick');
+        if (!onclick) {
+          return;
+        }
+
+        const inputId = onclick.match(/'([^']+)'/)?.[1];
+        if (!inputId || button.dataset.passwordToggleBound === 'true') {
+          return;
+        }
+
+        button.dataset.passwordToggleBound = 'true';
+        button.addEventListener('click', () =>
+          togglePasswordVisibility(inputId)
+        );
+      });
+    });
+  <\/script> `])), maybeRenderHead(), renderComponent($$result2, "AppProvider", null, { "client:only": "react", "client:component-hydration": "only", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/AppProvider.tsx", "client:component-export": "default" }, { "default": async ($$result3) => renderTemplate` <div class="absolute right-4 top-4"> ${renderComponent($$result3, "ThemeToggle", ThemeToggle, { "variant": "icon", "size": "md", "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/components/ThemeToggle.tsx", "client:component-export": "default" })} </div> ` })) })}`;
+}, "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/register.astro", void 0);
+
+const $$file = "/home/runner/work/linguaflip-english-flashcards/linguaflip-english-flashcards/src/pages/register.astro";
+const $$url = "/register";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$Register,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };
